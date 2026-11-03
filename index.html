@@ -758,6 +758,230 @@ db.auth.onAuthStateChange((event,session)=>{
 
 start();
 </script>
+
+<!-- INCO NEWS MANAGEMENT -->
+<script>
+(function(){
+
+const nav = document.querySelector("nav");
+const section = document.createElement("section");
+
+section.id = "newsAdmin";
+section.className = "page";
+section.innerHTML = `
+<div class="panel">
+<h3>🌍 INCO Newsroom</h3>
+<p class="muted">Global News Publishing Centre</p>
+<div id="newsRole">Checking account...</div>
+</div>
+
+<div class="panel" id="newsEditor">
+<h3>Write an Article</h3>
+
+<input id="articleTitle" placeholder="News headline">
+
+<select id="articleCategory">
+<option>World</option>
+<option>Nigeria</option>
+<option>Africa</option>
+<option>Europe</option>
+<option>Asia</option>
+<option>America</option>
+<option>Politics</option>
+<option>Business</option>
+<option>Technology</option>
+<option>Sports</option>
+<option>Entertainment</option>
+<option>Science</option>
+<option>Health</option>
+</select>
+
+<input id="articleImage" placeholder="Article image URL (optional)">
+
+<textarea id="articleContent"
+placeholder="Write your original news article..."></textarea>
+
+<button id="submitArticle">Submit Article</button>
+</div>
+
+<h3>News Articles & Submissions</h3>
+<div id="adminArticles">Loading...</div>
+`;
+
+document.body.insertBefore(
+section,
+document.querySelector(".bottom")
+);
+
+const navButton = document.createElement("button");
+navButton.textContent = "Newsroom";
+navButton.onclick = function(){
+ page("newsAdmin",navButton);
+ loadNewsAdmin();
+};
+nav.appendChild(navButton);
+
+async function getRole(){
+ if(!currentUser) return "guest";
+
+ const {data,error} = await db.from("profiles")
+ .select("role")
+ .eq("id",currentUser.id)
+ .maybeSingle();
+
+ if(error) throw error;
+ return data?.role || "member";
+}
+
+window.loadNewsAdmin = async function(){
+
+ const roleBox = document.getElementById("newsRole");
+ const list = document.getElementById("adminArticles");
+ const editor = document.getElementById("newsEditor");
+
+ if(!currentUser){
+ roleBox.textContent="Please login first.";
+ editor.classList.add("hidden");
+ list.textContent="Login to continue.";
+ return;
+ }
+
+ try{
+ const role = await getRole();
+
+ roleBox.textContent = "Your role: "+role;
+
+ if(!["admin","editor"].includes(role)){
+ editor.classList.add("hidden");
+ list.textContent="You do not have newsroom permission.";
+ return;
+ }
+
+ editor.classList.remove("hidden");
+
+ const {data,error} = await db.from("news_articles")
+ .select("*")
+ .order("created_at",{ascending:false});
+
+ if(error) throw error;
+
+ list.innerHTML="";
+
+ if(!data?.length){
+ list.textContent="No articles yet.";
+ return;
+ }
+
+ data.forEach(article=>{
+
+ const card=document.createElement("div");
+ card.className="post";
+
+ card.innerHTML=`
+ <h3>${esc(article.title)}</h3>
+ <p>${esc(article.category)}</p>
+ <p>${esc(article.content)}</p>
+ <p class="muted">Status: ${esc(article.status)}</p>
+ `;
+
+ if(role==="admin"){
+ const publish=document.createElement("button");
+ publish.textContent="Publish";
+ publish.onclick=()=>publishNews(article.id);
+
+ const remove=document.createElement("button");
+ remove.textContent="Delete";
+ remove.style.marginLeft="8px";
+ remove.onclick=()=>deleteNews(article.id);
+
+ card.append(publish,remove);
+ }
+
+ list.appendChild(card);
+ });
+
+ }catch(error){
+ roleBox.textContent="Error: "+error.message;
+ }
+};
+
+document.getElementById("submitArticle").onclick =
+async function(){
+
+ if(!currentUser)return msg("Login first.");
+
+ const role=await getRole();
+
+ if(!["admin","editor"].includes(role))
+ return msg("Newsroom permission required.");
+
+ const title=document.getElementById("articleTitle").value.trim();
+ const content=document.getElementById("articleContent").value.trim();
+ const category=document.getElementById("articleCategory").value;
+ const image=document.getElementById("articleImage").value.trim();
+
+ if(!title||!content)return msg("Enter headline and article.");
+
+ if(image){
+ try{
+ const url=new URL(image);
+ if(!["http:","https:"].includes(url.protocol))
+ throw Error();
+ }catch(e){
+ return msg("Enter a valid image URL.");
+ }
+ }
+
+ msg("Submitting article...");
+
+ const {error}=await db.from("news_articles").insert({
+ title,
+ content,
+ category,
+ image_url:image||null,
+ author_id:currentUser.id,
+ status:role==="admin"?"published":"pending"
+ });
+
+ if(error)return msg(error.message);
+
+ document.getElementById("articleTitle").value="";
+ document.getElementById("articleContent").value="";
+ document.getElementById("articleImage").value="";
+
+ msg(role==="admin"?"News published.":"Article submitted for approval.");
+
+ loadNewsAdmin();
+};
+
+window.publishNews=async function(id){
+
+ const {error}=await db.from("news_articles")
+ .update({status:"published"})
+ .eq("id",id);
+
+ if(error)return msg(error.message);
+
+ msg("Article published.");
+ loadNewsAdmin();
+};
+
+window.deleteNews=async function(id){
+
+ if(!confirm("Delete this article?"))return;
+
+ const {error}=await db.from("news_articles")
+ .delete().eq("id",id);
+
+ if(error)return msg(error.message);
+
+ msg("Article deleted.");
+ loadNewsAdmin();
+};
+
+})();
+</script>
+
 </body>
 </html>
 
