@@ -1,79 +1,763 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>INCO Browser</title>
-<script src="https://alwingulla.com/88/tag.min.js" data-zone="12129987" async data-cfasync="false"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://alwingulla.com/88/tag.min.js"
+data-zone="12129987" async data-cfasync="false"></script>
+
 <style>
-* {box-sizing:border-box}
-body {margin:0;background:#080808;color:white;font-family:Arial;text-align:center}
-.header {margin-top:35px}
-.logo {font-size:44px;font-weight:900;letter-spacing:1px}
-.logo i {color:#2d7bff}
-.sub {color:#777;font-size:12px;margin-top:3px;letter-spacing:1px}
-
-.search-wrap {margin:28px 14px 0 14px}
-.search-box {background:#1c1c1e;border-radius:28px;display:flex;align-items:center;padding:3px 6px}
-.search-box span {padding-left:12px;font-size:18px}
-.search-box input {flex:1;background:transparent;border:none;outline:none;color:white;padding:14px 10px;font-size:15px}
-.search-box button {background:#2d7bff;border:none;color:white;padding:10px 18px;border-radius:22px;font-weight:bold}
-
-.engines {margin-top:14px}
-.engines a {display:inline-block;background:#1c1c1e;color:#999;text-decoration:none;padding:8px 16px;border-radius:20px;margin:4px;font-size:13px}
-
-.label {text-align:left;padding:0 18px;margin-top:28px;color:#666;font-size:13px}
-
-.grid {display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;padding:12px 14px}
-.card {background:#151515;border-radius:16px;padding:16px 4px;text-decoration:none;color:white;display:block;border:1px solid #1f1f1f}
-.card .icon {font-size:28px;display:block}
-.card .name {font-size:11px;margin-top:6px;color:#ccc}
-
-.bottom {margin:30px 0 10px 0;display:flex;justify-content:space-around;background:#111;padding:14px 0;border-radius:24px;margin-left:14px;margin-right:14px}
-.bottom span {color:#555;font-size:20px}
-
-.foot {color:#333;font-size:10px;margin:20px 0}
+*{box-sizing:border-box}
+body{
+ margin:0;background:#080808;color:white;
+ font-family:Arial,sans-serif;padding-bottom:75px
+}
+header{
+ padding:20px;text-align:center;
+ border-bottom:1px solid #292929
+}
+.logo{font-size:38px;font-weight:900}
+.logo span{color:#2d7bff}
+.sub{color:#777;font-size:11px;letter-spacing:2px}
+nav{
+ display:flex;overflow-x:auto;gap:7px;
+ padding:12px;background:#111;
+ position:sticky;top:0;z-index:5
+}
+nav button{
+ flex-shrink:0;background:#222;color:#aaa;
+ padding:10px 14px
+}
+nav button.active{background:#2d7bff;color:white}
+button{
+ border:0;border-radius:20px;
+ padding:10px 15px;background:#2d7bff;
+ color:white;font-weight:bold;cursor:pointer
+}
+input,textarea,select{
+ width:100%;padding:13px;margin:6px 0;
+ border:1px solid #333;border-radius:10px;
+ background:#1b1b1d;color:white;font-size:15px
+}
+textarea{min-height:90px;resize:vertical}
+.page{display:none;padding:15px}
+.page.active{display:block}
+.panel,.post,.news{
+ background:#151515;border:1px solid #292929;
+ border-radius:15px;padding:15px;margin-bottom:14px
+}
+h3{margin-top:0}
+.muted{color:#888;font-size:12px}
+.row{display:flex;gap:8px;align-items:center}
+.row button{white-space:nowrap}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.actions button{font-size:12px;padding:9px 12px}
+.post img,.post video,.news img{
+ width:100%;max-height:350px;object-fit:contain;
+ border-radius:10px;margin-top:10px;background:#000
+}
+.avatar{
+ width:40px;height:40px;border-radius:50%;
+ object-fit:cover;background:#333
+}
+.bottom{
+ position:fixed;bottom:0;left:0;right:0;
+ background:#111;padding:13px;text-align:center;
+ border-top:1px solid #333;z-index:10
+}
+a{color:#64a0ff}
+.hidden{display:none!important}
+#message{padding:10px;color:#75aaff}
 </style>
 </head>
+
 <body>
 
-<div class="header">
-<div class="logo"><i>🛡️</i> INCO</div>
-<div class="sub">OWN BOSS BROWSER</div>
-</div>
+<header>
+ <div class="logo">🛡️ INCO<span>.</span></div>
+ <div class="sub">OWN BOSS BROWSER</div>
+ <div id="accountStatus" class="muted">Connecting...</div>
+</header>
 
-<div class="search-wrap">
-<form class="search-box" action="https://search.yahoo.com/search" method="GET">
-<span>Y!</span>
-<input type="text" name="p" placeholder="Search or type web address" required>
-<button type="submit">Go</button>
-</form>
-<div class="engines">
-<a href="https://www.google.com">Google</a>
-<a href="https://www.bing.com">Bing</a>
-<a href="https://duckduckgo.com">DuckDuckGo</a>
-</div>
-</div>
+<nav>
+ <button class="active" onclick="page('home',this)">Home</button>
+ <button onclick="page('community',this)">Community</button>
+ <button onclick="page('news',this)">News</button>
+ <button onclick="page('search',this)">Search</button>
+ <button onclick="page('saved',this)">Saved</button>
+ <button onclick="page('profile',this)">Profile</button>
+ <button onclick="page('account',this)">Account</button>
+</nav>
 
-<div class="label">Speed Dial</div>
-<div class="grid">
-<a class="card" href="https://facebook.com"><span class="icon">📘</span><span class="name">Facebook</span></a>
-<a class="card" href="https://youtube.com"><span class="icon">▶️</span><span class="name">YouTube</span></a>
-<a class="card" href="https://ghanaweb.com"><span class="icon">🇬🇭</span><span class="name">GhanaWeb</span></a>
-<a class="card" href="https://livescore.com"><span class="icon">⚽</span><span class="name">LiveScore</span></a>
-<a class="card" href="https://tiktok.com"><span class="icon">🎵</span><span class="name">TikTok</span></a>
-<a class="card" href="https://x.com"><span class="icon">✖️</span><span class="name">X</span></a>
-<a class="card" href="https://joyonline.com.gh"><span class="icon">🎙️</span><span class="name">Joy News</span></a>
-<a class="card" href="https://jforce.jumia.com.ng/s/Sy0dHa3"><span class="icon">🛍️</span><span class="name">Jumia</span></a>
-</div>
+<div id="message"></div>
+
+<!-- HOME -->
+<section id="home" class="page active">
+ <div class="panel">
+  <h3>Welcome to INCO</h3>
+  <p>Your World, Your Browser.</p>
+  <p class="muted">Search the web and explore your community.</p>
+  <button onclick="page('search')">Start Searching</button>
+  <button onclick="page('community')">Explore Community</button>
+ </div>
+
+ <h3>Speed Dial</h3>
+ <div id="shortcuts"></div>
+
+ <div class="panel">
+  <h3>Add Website</h3>
+  <input id="siteName" placeholder="Website name">
+  <input id="siteUrl" placeholder="Website address">
+  <button onclick="addShortcut()">Add Website</button>
+ </div>
+</section>
+
+<!-- SEARCH -->
+<section id="search" class="page">
+ <div class="panel">
+  <h3>INCO Search</h3>
+  <select id="engine">
+   <option value="https://search.yahoo.com/search?p=">Yahoo</option>
+   <option value="https://www.google.com/search?q=">Google</option>
+   <option value="https://www.bing.com/search?q=">Bing</option>
+   <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+  </select>
+  <form onsubmit="searchWeb(event)">
+   <input id="searchText"
+   placeholder="Search or enter website address" required>
+   <button>Search</button>
+  </form>
+ </div>
+</section>
+
+<!-- COMMUNITY -->
+<section id="community" class="page">
+ <div class="panel">
+  <h3>Create a post</h3>
+  <textarea id="postText" placeholder="What's happening?"></textarea>
+  <input type="file" id="postMedia" accept="image/*,video/*">
+  <button onclick="createPost()">Publish Post</button>
+ </div>
+ <h3>Community Feed</h3>
+ <div id="feed">Loading posts...</div>
+</section>
+
+<!-- NEWS -->
+<section id="news" class="page">
+ <h3>INCO News</h3>
+ <div id="newsList">Loading news...</div>
+</section>
+
+<!-- SAVED -->
+<section id="saved" class="page">
+ <h3>⭐ Bookmarks</h3>
+ <div id="bookmarks"></div>
+ <h3>🕘 Browsing History</h3>
+ <div id="history"></div>
+ <button onclick="clearHistory()">Clear History</button>
+</section>
+
+<!-- PROFILE -->
+<section id="profile" class="page">
+ <div class="panel">
+  <h3>My Profile</h3>
+  <img id="avatar" class="avatar"
+  src="" alt="Profile picture">
+  <p id="profileName">Not logged in</p>
+  <input type="file" id="avatarFile" accept="image/*">
+  <button onclick="uploadAvatar()">Update Profile Picture</button>
+  <p class="muted">Your profile picture is stored in INCO Supabase Storage.</p>
+ </div>
+ <h3>My Posts</h3>
+ <div id="myPosts"></div>
+</section>
+
+<!-- ACCOUNT -->
+<section id="account" class="page">
+ <div class="panel" id="authPanel">
+  <h3>INCO Account</h3>
+  <input id="displayName" placeholder="Your name">
+  <input id="email" type="email" placeholder="Email address">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="signup()">Create Account</button>
+  <button onclick="login()">Login</button>
+  <button onclick="resetPassword()">Forgot Password?</button>
+ </div>
+
+ <div class="panel hidden" id="loggedPanel">
+  <h3>Your Account</h3>
+  <p id="userEmail"></p>
+  <button onclick="logout()">Logout</button>
+ </div>
+</section>
 
 <div class="bottom">
-<span>📑 3</span>
-<span>🏠</span>
-<span>☰</span>
+ INCO by Bhig Buga • Your World, Your Browser
 </div>
 
-<div class="foot">INCO by Bhig Buga • 100% Owned • Nobody fit block am</div>
+<script>
+// SUPABASE CONNECTION
+const SUPABASE_URL =
+"https://zvrbkmvoyofnasqssnhu.supabase.co";
 
+const SUPABASE_KEY =
+"sb_publishable_GgUFgvk2DLQx_w2Jzbbkpw_kcix85oQ";
+
+const db = window.supabase.createClient(
+ SUPABASE_URL,SUPABASE_KEY
+);
+
+let currentUser=null;
+
+// HELPERS
+function msg(text){
+ document.getElementById("message").textContent=text;
+}
+
+function esc(value){
+ return String(value||"").replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",
+ '"':"&quot;","'":"&#39;"
+ })[c]);
+}
+
+function page(name,button){
+ document.querySelectorAll(".page").forEach(p=>
+ p.classList.remove("active"));
+ document.getElementById(name).classList.add("active");
+
+ document.querySelectorAll("nav button").forEach(b=>
+ b.classList.remove("active"));
+
+ if(button)button.classList.add("active");
+
+ if(name==="community")loadFeed();
+ if(name==="news")loadNews();
+ if(name==="saved")renderSaved();
+ if(name==="profile")loadMyPosts();
+}
+
+// SEARCH
+function searchWeb(e){
+ e.preventDefault();
+ let value=document.getElementById("searchText").value.trim();
+ if(!value)return;
+
+ let url;
+ if(/^https?:\/\//i.test(value)){
+  url=value;
+ }else if(/^[\w.-]+\.[a-z]{2,}(\/.*)?$/i.test(value)){
+  url="https://"+value;
+ }else{
+  url=document.getElementById("engine").value+
+  encodeURIComponent(value);
+ }
+
+ try{
+  const u=new URL(url);
+  if(!["http:","https:"].includes(u.protocol))throw Error();
+  visit(url);
+ }catch(e){msg("Invalid website address.");}
+}
+
+function visit(url){
+ let h=JSON.parse(localStorage.getItem("inco_history")||"[]");
+ h.unshift({url,time:new Date().toLocaleString()});
+ localStorage.setItem("inco_history",JSON.stringify(h.slice(0,100)));
+ window.open(url,"_blank","noopener");
+}
+
+// SHORTCUTS
+const defaults=[
+ ["📘","Facebook","https://facebook.com"],
+ ["▶️","YouTube","https://youtube.com"],
+ ["🎵","TikTok","https://tiktok.com"],
+ ["🌐","Google","https://google.com"],
+ ["✖️","X","https://x.com"],
+ ["🛍️","Jumia","https://jumia.com.ng"]
+];
+
+function getShortcuts(){
+ return JSON.parse(localStorage.getItem("inco_shortcuts")||"null")||defaults;
+}
+
+function renderShortcuts(){
+ document.getElementById("shortcuts").innerHTML=
+ getShortcuts().map((s,i)=>`
+ <div class="panel">
+ ${esc(s[0])} ${esc(s[1])}
+ <button onclick="visit('${esc(s[2])}')">Open</button>
+ <button onclick="removeShortcut(${i})">Remove</button>
+ </div>`).join("");
+}
+
+function addShortcut(){
+ let name=document.getElementById("siteName").value.trim();
+ let url=document.getElementById("siteUrl").value.trim();
+ if(!name||!url)return msg("Enter website name and address.");
+
+ if(!/^https?:\/\//i.test(url))url="https://"+url;
+
+ try{
+  const u=new URL(url);
+  if(!["http:","https:"].includes(u.protocol))throw Error();
+ }catch(e){return msg("Invalid website address.");}
+
+ let list=getShortcuts();
+ list.push(["🌐",name,url]);
+ localStorage.setItem("inco_shortcuts",JSON.stringify(list));
+ renderShortcuts();
+ msg("Shortcut added.");
+}
+
+function removeShortcut(i){
+ let list=getShortcuts();
+ list.splice(i,1);
+ localStorage.setItem("inco_shortcuts",JSON.stringify(list));
+ renderShortcuts();
+}
+
+// SAVED
+function saveBookmark(url){
+ let list=JSON.parse(localStorage.getItem("inco_bookmarks")||"[]");
+ if(!list.includes(url))list.unshift(url);
+ localStorage.setItem("inco_bookmarks",JSON.stringify(list));
+ renderSaved();
+ msg("Bookmark saved.");
+}
+
+function renderSaved(){
+ let list=JSON.parse(localStorage.getItem("inco_bookmarks")||"[]");
+ document.getElementById("bookmarks").innerHTML=list.map((u,i)=>`
+ <div class="panel">
+ <a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a>
+ <button onclick="removeBookmark(${i})">Remove</button>
+ </div>`).join("")||"No bookmarks yet.";
+
+ let history=JSON.parse(localStorage.getItem("inco_history")||"[]");
+ document.getElementById("history").innerHTML=history.map(h=>`
+ <div class="panel">${esc(h.url)}
+ <p class="muted">${esc(h.time)}</p></div>`).join("")||"No history yet.";
+}
+
+function removeBookmark(i){
+ let list=JSON.parse(localStorage.getItem("inco_bookmarks")||"[]");
+ list.splice(i,1);
+ localStorage.setItem("inco_bookmarks",JSON.stringify(list));
+ renderSaved();
+}
+
+function clearHistory(){
+ localStorage.removeItem("inco_history");
+ renderSaved();
+}
+
+// AUTHENTICATION
+async function signup(){
+ let name=document.getElementById("displayName").value.trim();
+ let email=document.getElementById("email").value.trim();
+ let password=document.getElementById("password").value;
+
+ if(!name||!email||password.length<8)
+ return msg("Enter your name, email and a password of at least 8 characters.");
+
+ msg("Creating account...");
+
+ const {data,error}=await db.auth.signUp({
+  email,password,
+  options:{data:{display_name:name}}
+ });
+
+ if(error)return msg(error.message);
+
+ if(data.user){
+  if(data.session){
+   currentUser=data.user;
+   await ensureProfile();
+   updateAccount();
+  }
+  msg(data.session?
+  "Account created successfully.":
+  "Check your email to confirm your account.");
+ }
+}
+
+async function login(){
+ let email=document.getElementById("email").value.trim();
+ let password=document.getElementById("password").value;
+
+ msg("Logging in...");
+
+ const {data,error}=await db.auth.signInWithPassword({
+  email,password
+ });
+
+ if(error)return msg(error.message);
+
+ currentUser=data.user;
+ await ensureProfile();
+ updateAccount();
+ msg("Welcome to INCO!");
+ loadFeed();
+}
+
+async function resetPassword(){
+ let email=document.getElementById("email").value.trim();
+ if(!email)return msg("Enter your email first.");
+
+ const {error}=await db.auth.resetPasswordForEmail(email,{
+  redirectTo:location.origin+location.pathname
+ });
+
+ msg(error?error.message:"Password reset email requested.");
+}
+
+async function logout(){
+ await db.auth.signOut();
+ currentUser=null;
+ updateAccount();
+ msg("Logged out.");
+}
+
+async function ensureProfile(){
+ if(!currentUser)return;
+ const {error}=await db.from("profiles").upsert({
+  id:currentUser.id
+ },{onConflict:"id"});
+ if(error)msg("Profile setup: "+error.message);
+}
+
+function updateAccount(){
+ let logged=!!currentUser;
+
+ document.getElementById("accountStatus").textContent=
+ logged?"Signed in":"Guest";
+
+ document.getElementById("authPanel").classList.toggle("hidden",logged);
+ document.getElementById("loggedPanel").classList.toggle("hidden",!logged);
+
+ document.getElementById("userEmail").textContent=
+ currentUser?.email||"";
+
+ document.getElementById("profileName").textContent=
+ currentUser?.user_metadata?.display_name||currentUser?.email||"Guest";
+
+ if(logged)loadAvatar();
+ else document.getElementById("avatar").removeAttribute("src");
+}
+
+async function loadAvatar(){
+ const {data}=await db.from("profiles")
+ .select("avatar_url").eq("id",currentUser.id).maybeSingle();
+
+ if(data?.avatar_url)
+ document.getElementById("avatar").src=data.avatar_url;
+}
+
+// AVATAR
+async function uploadAvatar(){
+ if(!currentUser)return msg("Login first.");
+
+ const file=document.getElementById("avatarFile").files[0];
+ if(!file)return msg("Choose a picture.");
+
+ if(!file.type.startsWith("image/")||file.size>5*1024*1024)
+ return msg("Choose an image smaller than 5 MB.");
+
+ msg("Uploading picture...");
+
+ const path=currentUser.id+"/"+Date.now()+"_"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+
+ const {error}=await db.storage.from("inco-avatars")
+ .upload(path,file,{upsert:true});
+
+ if(error)return msg(error.message);
+
+ const {data}=db.storage.from("inco-avatars").getPublicUrl(path);
+
+ const result=await db.from("profiles").upsert({
+  id:currentUser.id,avatar_url:data.publicUrl
+ });
+
+ if(result.error)return msg(result.error.message);
+
+ loadAvatar();
+ msg("Profile picture updated.");
+}
+
+// POSTS
+async function createPost(){
+ if(!currentUser)return msg("Login to publish posts.");
+
+ const content=document.getElementById("postText").value.trim();
+ const file=document.getElementById("postMedia").files[0];
+
+ if(!content&&!file)return msg("Write something or choose media.");
+
+ let media_url=null;
+
+ if(file){
+  if(!["image/","video/"].some(t=>file.type.startsWith(t)))
+  return msg("Choose an image or video.");
+
+  if(file.size>10*1024*1024)
+  return msg("Media limit is 10 MB.");
+
+  const path=currentUser.id+"/"+Date.now()+"_"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+
+  const upload=await db.storage.from("inco-posts")
+  .upload(path,file);
+
+  if(upload.error)return msg(upload.error.message);
+
+  media_url=db.storage.from("inco-posts").getPublicUrl(path).data.publicUrl;
+ }
+
+ msg("Publishing...");
+
+ const {error}=await db.from("posts").insert({
+  user_id:currentUser.id,
+  content,
+  media_url
+ });
+
+ if(error)return msg(error.message);
+
+ document.getElementById("postText").value="";
+ document.getElementById("postMedia").value="";
+ msg("Post published.");
+ loadFeed();
+}
+
+// FEED
+async function loadFeed(){
+ const box=document.getElementById("feed");
+
+ const {data:posts,error}=await db.from("posts")
+ .select("*").order("created_at",{ascending:false}).limit(50);
+
+ if(error){box.textContent=error.message;return;}
+
+ if(!posts.length){box.textContent="No posts yet. Be the first!";return;}
+
+ const ids=[...new Set(posts.map(p=>p.user_id))];
+
+ const {data:profiles}=await db.from("profiles")
+ .select("id,avatar_url").in("id",ids);
+
+ const avatarMap=Object.fromEntries((profiles||[]).map(p=>[p.id,p.avatar_url]));
+
+ box.innerHTML="";
+
+ for(const p of posts){
+  const {count}=await db.from("likes")
+  .select("*",{count:"exact",head:true}).eq("post_id",p.id);
+
+  const {data:mine}=currentUser?
+  await db.from("likes").select("id")
+  .eq("post_id",p.id).eq("user_id",currentUser.id).limit(1):
+  {data:[]};
+
+  const div=document.createElement("div");
+  div.className="post";
+
+  const media=p.media_url?
+  (/\.(mp4|webm|mov)(\?|$)/i.test(p.media_url)?
+  `<video controls src="${esc(p.media_url)}"></video>`:
+  `<img src="${esc(p.media_url)}" alt="Post media">`):"";
+
+  div.innerHTML=`
+   <div class="row">
+    <img class="avatar" src="${esc(avatarMap[p.user_id]||"")}" alt="">
+    <div>
+     <b>${p.user_id===currentUser?.id?"You":"INCO Member"}</b>
+     <div class="muted">${esc(new Date(p.created_at).toLocaleString())}</div>
+    </div>
+   </div>
+   <p>${esc(p.content)}</p>
+   ${media}
+   <div class="actions">
+    <button data-like>${mine?.length?"Unlike":"Like"} (${count||0})</button>
+    <button data-comment>Comments</button>
+    <button data-follow>Follow</button>
+    <button data-report>Report</button>
+    ${p.user_id===currentUser?.id?'<button data-delete>Delete</button>':""}
+   </div>
+   <div data-comments></div>
+   <div data-comment-form class="hidden">
+    <input placeholder="Write a comment..." data-comment-text>
+    <button data-send>Send</button>
+   </div>
+  `;
+
+  div.querySelector("[data-like]").onclick=()=>toggleLike(p.id);
+  div.querySelector("[data-comment]").onclick=async()=>{
+   const form=div.querySelector("[data-comment-form]");
+   form.classList.toggle("hidden");
+   await loadComments(p.id,div.querySelector("[data-comments]"));
+  };
+  div.querySelector("[data-send]").onclick=()=>{
+   const input=div.querySelector("[data-comment-text]");
+   sendComment(p.id,input.value);
+  };
+  div.querySelector("[data-follow]").onclick=()=>followUser(p.user_id);
+  div.querySelector("[data-report]").onclick=()=>reportPost(p.id);
+  const del=div.querySelector("[data-delete]");
+  if(del)del.onclick=()=>deletePost(p.id);
+
+  box.appendChild(div);
+ }
+}
+
+async function toggleLike(postId){
+ if(!currentUser)return msg("Login first.");
+
+ const {data}=await db.from("likes").select("id")
+ .eq("post_id",postId).eq("user_id",currentUser.id).maybeSingle();
+
+ const result=data?
+ await db.from("likes").delete().eq("id",data.id):
+ await db.from("likes").insert({
+  post_id:postId,user_id:currentUser.id
+ });
+
+ if(result.error)return msg(result.error.message);
+ loadFeed();
+}
+
+async function sendComment(postId,value){
+ if(!currentUser)return msg("Login first.");
+ value=value.trim();
+ if(!value)return msg("Write a comment.");
+
+ const {error}=await db.from("comments").insert({
+  post_id:postId,user_id:currentUser.id,content:value
+ });
+
+ if(error)return msg(error.message);
+ msg("Comment added.");
+ loadFeed();
+}
+
+async function loadComments(postId,box){
+ const {data,error}=await db.from("comments")
+ .select("*").eq("post_id",postId)
+ .order("created_at",{ascending:true});
+
+ if(error){box.textContent=error.message;return;}
+
+ box.innerHTML=(data||[]).map(c=>`
+ <div class="panel">
+ ${c.user_id===currentUser?.id?"You":"INCO Member"}:
+ ${esc(c.content)}
+ </div>`).join("")||"No comments yet.";
+}
+
+async function followUser(id){
+ if(!currentUser)return msg("Login first.");
+ if(id===currentUser.id)return msg("This is your own post.");
+
+ const {data}=await db.from("follows").select("id")
+ .eq("follower_id",currentUser.id)
+ .eq("following_id",id).maybeSingle();
+
+ const result=data?
+ await db.from("follows").delete().eq("id",data.id):
+ await db.from("follows").insert({
+  follower_id:currentUser.id,following_id:id
+ });
+
+ msg(result.error?result.error.message:
+ data?"Unfollowed.":"Following.");
+}
+
+async function reportPost(id){
+ if(!currentUser)return msg("Login first.");
+
+ const reason=prompt("Why are you reporting this post?");
+ if(!reason?.trim())return;
+
+ const {error}=await db.from("reports").insert({
+  reporter_id:currentUser.id,
+  post_id:id,reason:reason.trim()
+ });
+
+ msg(error?error.message:"Report submitted.");
+}
+
+async function deletePost(id){
+ if(!currentUser||!confirm("Delete this post?"))return;
+
+ const {error}=await db.from("posts").delete()
+ .eq("id",id).eq("user_id",currentUser.id);
+
+ msg(error?error.message:"Post deleted.");
+ loadFeed();
+}
+
+async function loadMyPosts(){
+ if(!currentUser){
+  document.getElementById("myPosts").textContent="Login first.";
+  return;
+ }
+
+ const {data,error}=await db.from("posts")
+ .select("*").eq("user_id",currentUser.id)
+ .order("created_at",{ascending:false});
+
+ document.getElementById("myPosts").innerHTML=
+ error?esc(error.message):
+ (data||[]).map(p=>`
+ <div class="post">
+ ${esc(p.content)}
+ <div class="muted">${esc(p.created_at)}</div>
+ </div>`).join("")||"You have not published any posts.";
+}
+
+// NEWS
+async function loadNews(){
+ const box=document.getElementById("newsList");
+
+ const {data,error}=await db.from("news_articles")
+ .select("*").eq("status","published")
+ .order("created_at",{ascending:false}).limit(30);
+
+ if(error){box.textContent=error.message;return;}
+
+ box.innerHTML=(data||[]).map(n=>`
+ <article class="news">
+ <div class="muted">${esc(n.category)}</div>
+ <h3>${esc(n.title)}</h3>
+ ${n.image_url?`<img src="${esc(n.image_url)}" alt="">`:""}
+ <p>${esc(n.content)}</p>
+ <div class="muted">${esc(n.created_at)}</div>
+ </article>`).join("")||"No published news yet.";
+}
+
+// START
+async function start(){
+ const {data}=await db.auth.getSession();
+ currentUser=data.session?.user||null;
+
+ if(currentUser)await ensureProfile();
+
+ updateAccount();
+ renderShortcuts();
+ renderSaved();
+ loadFeed();
+}
+
+db.auth.onAuthStateChange((event,session)=>{
+ currentUser=session?.user||null;
+ updateAccount();
+});
+
+start();
+</script>
 </body>
 </html>
+
