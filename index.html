@@ -759,9 +759,29 @@ db.auth.onAuthStateChange((event,session)=>{
 start();
 </script>
 
-<!-- INCO NEWS MANAGEMENT -->
+<!-- INCO NEWS MANAGEMENT - WITH YOUR SUPABASE CONNECTED -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 <script>
 (function(){
+
+// YOUR INCO SUPABASE CONNECTION - ADDED
+const SUPABASE_URL = "https://zvrbkmvoyofnasqssnhu.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_GgUFgvk2DLQx_w2Jzbbkpw_kcix85oQ";
+if(!window.db){
+  window.db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+const db = window.db;
+
+// Ensure currentUser is set
+if(typeof window.currentUser === 'undefined'){
+  window.currentUser = null;
+  db.auth.getSession().then(({data})=>{
+    window.currentUser = data.session?.user || null;
+  });
+  db.auth.onAuthStateChange((e,s)=>{
+    window.currentUser = s?.user || null;
+  });
+}
 
 const nav = document.querySelector("nav");
 const section = document.createElement("section");
@@ -777,9 +797,7 @@ section.innerHTML = `
 
 <div class="panel" id="newsEditor">
 <h3>Write an Article</h3>
-
 <input id="articleTitle" placeholder="News headline">
-
 <select id="articleCategory">
 <option>World</option>
 <option>Nigeria</option>
@@ -795,12 +813,8 @@ section.innerHTML = `
 <option>Science</option>
 <option>Health</option>
 </select>
-
 <input id="articleImage" placeholder="Article image URL (optional)">
-
-<textarea id="articleContent"
-placeholder="Write your original news article..."></textarea>
-
+<textarea id="articleContent" placeholder="Write your original news article..."></textarea>
 <button id="submitArticle">Submit Article</button>
 </div>
 
@@ -808,96 +822,81 @@ placeholder="Write your original news article..."></textarea>
 <div id="adminArticles">Loading...</div>
 `;
 
-document.body.insertBefore(
-section,
-document.querySelector(".bottom")
-);
+const bottom = document.querySelector(".bottom") || document.querySelector("nav") || document.body;
+document.body.insertBefore(section, bottom);
 
 const navButton = document.createElement("button");
 navButton.textContent = "Newsroom";
 navButton.onclick = function(){
- page("newsAdmin",navButton);
+ if(typeof page === 'function') page("newsAdmin",navButton);
+ else { document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById('newsAdmin').style.display='block'; }
  loadNewsAdmin();
 };
-nav.appendChild(navButton);
+if(nav) nav.appendChild(navButton);
 
 async function getRole(){
- if(!currentUser) return "guest";
-
- const {data,error} = await db.from("profiles")
- .select("role")
- .eq("id",currentUser.id)
- .maybeSingle();
-
+ if(!window.currentUser) return "guest";
+ const {data,error} = await db.from("profiles").select("role").eq("id",window.currentUser.id).maybeSingle();
  if(error) throw error;
  return data?.role || "member";
 }
 
 window.loadNewsAdmin = async function(){
-
  const roleBox = document.getElementById("newsRole");
  const list = document.getElementById("adminArticles");
  const editor = document.getElementById("newsEditor");
 
- if(!currentUser){
+ if(!window.currentUser){
  roleBox.textContent="Please login first.";
  editor.classList.add("hidden");
+ if(editor.style) editor.style.display="none";
  list.textContent="Login to continue.";
  return;
  }
 
  try{
  const role = await getRole();
-
  roleBox.textContent = "Your role: "+role;
 
  if(!["admin","editor"].includes(role)){
- editor.classList.add("hidden");
- list.textContent="You do not have newsroom permission.";
+ if(editor.classList) editor.classList.add("hidden");
+ if(editor.style) editor.style.display="none";
+ list.textContent="You do not have newsroom permission. Go to Supabase > profiles > change role to admin";
  return;
  }
 
- editor.classList.remove("hidden");
+ if(editor.classList) editor.classList.remove("hidden");
+ if(editor.style) editor.style.display="block";
 
- const {data,error} = await db.from("news_articles")
- .select("*")
- .order("created_at",{ascending:false});
-
+ const {data,error} = await db.from("news_articles").select("*").order("created_at",{ascending:false});
  if(error) throw error;
 
  list.innerHTML="";
-
  if(!data?.length){
  list.textContent="No articles yet.";
  return;
  }
 
  data.forEach(article=>{
-
- const card=document.createElement("div");
- card.className="post";
-
- card.innerHTML=`
- <h3>${esc(article.title)}</h3>
- <p>${esc(article.category)}</p>
- <p>${esc(article.content)}</p>
- <p class="muted">Status: ${esc(article.status)}</p>
- `;
-
- if(role==="admin"){
- const publish=document.createElement("button");
- publish.textContent="Publish";
- publish.onclick=()=>publishNews(article.id);
-
- const remove=document.createElement("button");
- remove.textContent="Delete";
- remove.style.marginLeft="8px";
- remove.onclick=()=>deleteNews(article.id);
-
- card.append(publish,remove);
- }
-
- list.appendChild(card);
+   const card=document.createElement("div");
+   card.className="post";
+   card.innerHTML=`
+   <h3>${article.title}</h3>
+   <p>${article.category}</p>
+   <p>${article.content}</p>
+   <p class="muted">Status: ${article.status}</p>
+   `;
+   if(role==="admin"){
+     const publish=document.createElement("button");
+     publish.textContent="Publish";
+     publish.onclick=()=>publishNews(article.id);
+     const remove=document.createElement("button");
+     remove.textContent="Delete";
+     remove.style.marginLeft="8px";
+     remove.onclick=()=>deleteNews(article.id);
+     card.append(publish,remove);
+   }
+   list.appendChild(card);
  });
 
  }catch(error){
@@ -905,83 +904,45 @@ window.loadNewsAdmin = async function(){
  }
 };
 
-document.getElementById("submitArticle").onclick =
-async function(){
-
- if(!currentUser)return msg("Login first.");
-
+document.getElementById("submitArticle").onclick = async function(){
+ if(!window.currentUser) return msg("Login first.");
  const role=await getRole();
-
- if(!["admin","editor"].includes(role))
- return msg("Newsroom permission required.");
-
+ if(!["admin","editor"].includes(role)) return msg("Newsroom permission required.");
  const title=document.getElementById("articleTitle").value.trim();
  const content=document.getElementById("articleContent").value.trim();
  const category=document.getElementById("articleCategory").value;
  const image=document.getElementById("articleImage").value.trim();
-
- if(!title||!content)return msg("Enter headline and article.");
-
+ if(!title||!content) return msg("Enter headline and article.");
  if(image){
- try{
- const url=new URL(image);
- if(!["http:","https:"].includes(url.protocol))
- throw Error();
- }catch(e){
- return msg("Enter a valid image URL.");
+   try{ const url=new URL(image); if(!["http:","https:"].includes(url.protocol)) throw Error(); }catch(e){ return msg("Enter a valid image URL."); }
  }
- }
-
  msg("Submitting article...");
-
  const {error}=await db.from("news_articles").insert({
- title,
- content,
- category,
- image_url:image||null,
- author_id:currentUser.id,
- status:role==="admin"?"published":"pending"
+ title, content, category, image_url:image||null, author_id:window.currentUser.id, status:role==="admin"?"published":"pending"
  });
-
- if(error)return msg(error.message);
-
+ if(error) return msg(error.message);
  document.getElementById("articleTitle").value="";
  document.getElementById("articleContent").value="";
  document.getElementById("articleImage").value="";
-
  msg(role==="admin"?"News published.":"Article submitted for approval.");
-
  loadNewsAdmin();
 };
 
 window.publishNews=async function(id){
-
- const {error}=await db.from("news_articles")
- .update({status:"published"})
- .eq("id",id);
-
- if(error)return msg(error.message);
-
+ const {error}=await db.from("news_articles").update({status:"published"}).eq("id",id);
+ if(error) return msg(error.message);
  msg("Article published.");
  loadNewsAdmin();
 };
 
 window.deleteNews=async function(id){
-
  if(!confirm("Delete this article?"))return;
-
- const {error}=await db.from("news_articles")
- .delete().eq("id",id);
-
- if(error)return msg(error.message);
-
+ const {error}=await db.from("news_articles").delete().eq("id",id);
+ if(error) return msg(error.message);
  msg("Article deleted.");
  loadNewsAdmin();
 };
 
 })();
 </script>
-
-</body>
-</html>
 
