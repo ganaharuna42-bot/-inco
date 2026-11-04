@@ -5,8 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>INCO Browser</title>
-
-<!-- SUPABASE SCRIPT: YES, IT IS INCLUDED -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -33,10 +31,19 @@ a{color:#65b5ff}
 .hidden{display:none}
 .item{padding:10px;border-bottom:1px solid #263b5c}
 footer{text-align:center;color:#7e91ad;padding:25px}
+.chat-message{padding:11px;margin:8px 0;border-radius:12px;max-width:85%;background:#1b2c46;overflow-wrap:anywhere}
+.chat-message.mine{margin-left:auto;background:#075bb0}
+.chat-message small{display:block;color:#c4d8f1;margin-top:7px;font-size:11px}
+.chat-message audio{max-width:100%}
+#chatMessages{height:350px;overflow-y:auto;border:1px solid #263b5c;border-radius:10px;padding:10px;margin:12px 0}
+#recordButton{background:#d62828;touch-action:none;user-select:none;-webkit-user-select:none}
+#recordButton.recording{background:#8b0000;box-shadow:0 0 12px #ff3333}
+.status{padding:8px}
 </style>
 </head>
 
 <body>
+
 <header>
  <div class="logo">🛡️ INCO</div>
  <div id="accountStatus" class="muted">Not signed in</div>
@@ -45,6 +52,7 @@ footer{text-align:center;color:#7e91ad;padding:25px}
 <nav>
  <button onclick="showPage('home')">Home</button>
  <button onclick="showPage('community')">Community</button>
+ <button onclick="showPage('chat')">Messages</button>
  <button onclick="showPage('news')">News</button>
  <button onclick="showPage('search')">Search</button>
  <button onclick="showPage('saved')">Saved</button>
@@ -64,7 +72,7 @@ footer{text-align:center;color:#7e91ad;padding:25px}
   <h3>Quick websites</h3>
   <div id="shortcuts"></div>
   <input id="shortcutName" placeholder="Website name">
-  <input id="shortcutUrl" placeholder="Website address, e.g. https://example.com">
+  <input id="shortcutUrl" placeholder="Website address">
   <button onclick="addShortcut()">Add Website</button>
  </div>
  <div class="card">
@@ -85,7 +93,7 @@ footer{text-align:center;color:#7e91ad;padding:25px}
   </select>
   <input id="webSearch" placeholder="Search or enter website address">
   <button onclick="searchWeb('webSearch')">Go</button>
-  <p class="muted">Website pages open in your browser. Some websites do not allow embedding inside another app.</p>
+  <p class="muted">Websites open in your browser.</p>
  </div>
  <div class="card">
   <h3>Recent history</h3>
@@ -104,6 +112,40 @@ footer{text-align:center;color:#7e91ad;padding:25px}
  <div id="feed"></div>
 </section>
 
+<!-- INCO CHAT -->
+<section id="chat">
+ <div class="card">
+  <h2>💬 INCO Messages</h2>
+  <p class="muted">Send private messages to other INCO users.</p>
+
+  <input id="chatUsername" placeholder="Enter receiver's exact username">
+  <button onclick="openChat()">Open Chat</button>
+  <p id="chatStatus" class="muted"></p>
+
+  <div id="chatMessages">
+   <p class="muted">Open a conversation to see messages.</p>
+  </div>
+
+  <textarea id="chatText" placeholder="Write your message..."></textarea>
+  <button onclick="sendChatMessage()">Send Message</button>
+
+  <hr>
+
+  <h3>🎤 Voice Notes</h3>
+  <button id="recordButton"
+   onpointerdown="startRecording(event)"
+   onpointerup="stopRecording()"
+   onpointercancel="stopRecording()"
+   onlostpointercapture="stopRecording()"
+   oncontextmenu="return false">
+   Hold to Record
+  </button>
+  <p id="recordStatus" class="muted">
+   Hold the button to record. Release to send.
+  </p>
+ </div>
+</section>
+
 <section id="news">
  <div class="card">
   <h2>INCO News</h2>
@@ -117,7 +159,6 @@ footer{text-align:center;color:#7e91ad;padding:25px}
   <textarea id="articleContent" placeholder="Write your article"></textarea>
   <input id="articleImage" placeholder="Image URL (optional)">
   <button onclick="submitArticle()">Submit Article</button>
-  <p class="muted">Articles may require an editor or admin to publish them.</p>
  </div>
 </section>
 
@@ -167,18 +208,17 @@ footer{text-align:center;color:#7e91ad;padding:25px}
  <div class="card">
   <h2>🔴 INCO LIVE</h2>
   <p>LIVE sessions are stored in your existing Supabase database.</p>
-  <p class="muted">Real camera broadcasting and watching require a secure LiveKit token service. This page will not claim a broadcast has started until that service is connected.</p>
+  <p class="muted">Real camera broadcasting requires a secure LiveKit token service.</p>
   <div id="liveSessions">Loading live sessions...</div>
-  <p class="muted">Your existing live_sessions and live_comments tables are preserved.</p>
+  <p class="muted">Existing live_sessions and live_comments tables are preserved.</p>
  </div>
 </section>
 
 <section id="voice">
  <div class="card">
   <h2>📞 INCO Voice</h2>
-  <p>Voice calling requires a secure call-signalling service and a working call interface.</p>
-  <p class="muted">Low Data Mode and voice-call controls are not activated until that service is connected.</p>
-  <p>Your existing database will not be replaced.</p>
+  <p>Voice calling requires a secure call-signalling service.</p>
+  <p class="muted">Voice notes are available in INCO Messages.</p>
  </div>
 </section>
 
@@ -186,42 +226,77 @@ footer{text-align:center;color:#7e91ad;padding:25px}
  <div class="card">
   <h2>⭐ INCO Premium</h2>
   <p>INCO will support Free and Premium accounts.</p>
-  <p class="muted">Payment processing must be connected to a secure payment provider before users can pay or receive Premium status. No payment is being collected by this page.</p>
+  <p class="muted">Payment processing requires a secure payment provider.</p>
  </div>
 </section>
 
 </main>
+
 <footer>INCO Browser · Connecting people worldwide 🌍</footer>
 
 <script>
-/* INCO SUPABASE CONNECTION */
-const SUPABASE_URL = "https://zvrbkmvoyofnasqssnhu.supabase.co";
-const SUPABASE_KEY = "sb_publishable_GgUFgvk2DLQx_w2Jzbbkpw_kcix85oQ";
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+/* SUPABASE */
 
-let currentUser = null;
-let myProfile = null;
+const SUPABASE_URL="https://zvrbkmvoyofnasqssnhu.supabase.co";
+const SUPABASE_KEY="sb_publishable_GgUFgvk2DLQx_w2Jzbbkpw_kcix85oQ";
 
-const get = id => document.getElementById(id);
-const say = (id, message) => { get(id).textContent = message; };
+const db=window.supabase.createClient(
+ SUPABASE_URL,
+ SUPABASE_KEY
+);
+
+let currentUser=null;
+let myProfile=null;
+
+const get=id=>document.getElementById(id);
+const say=(id,message)=>{
+ get(id).textContent=message;
+};
+
+function escapeHTML(s){
+ return String(s??"").replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",
+ '"':"&quot;","'":"&#39;"
+ }[c]));
+}
+
+function safeURL(s){
+ try{
+  const u=new URL(s);
+  return ["http:","https:"].includes(u.protocol)?u.href:"#";
+ }catch{return "#"}
+}
+
+/* NAVIGATION */
 
 function showPage(page){
- document.querySelectorAll("main section").forEach(s=>s.classList.remove("active"));
+ document.querySelectorAll("main section")
+  .forEach(s=>s.classList.remove("active"));
+
  get(page).classList.add("active");
- if(page==="community") loadFeed();
- if(page==="news") loadNews();
- if(page==="profile") loadProfile();
- if(page==="saved") renderSaved();
- if(page==="home") renderShortcuts();
- if(page==="search") renderHistory("searchHistory");
- if(page==="live") loadLive();
+
+ if(page==="community")loadFeed();
+ if(page==="news")loadNews();
+ if(page==="profile")loadProfile();
+ if(page==="saved")renderSaved();
+ if(page==="home")renderShortcuts();
+ if(page==="search")renderHistory("searchHistory");
+ if(page==="live")loadLive();
+ if(page==="chat"){
+  if(!currentUser)say("chatStatus","Please login first.");
+ }
 }
 
-function localGet(key, fallback=[]){
- try{return JSON.parse(localStorage.getItem(key)) || fallback}
+/* LOCAL DATA */
+
+function localGet(key,fallback=[]){
+ try{return JSON.parse(localStorage.getItem(key))||fallback}
  catch{return fallback}
 }
-function localSet(key,value){localStorage.setItem(key,JSON.stringify(value))}
+
+function localSet(key,value){
+ localStorage.setItem(key,JSON.stringify(value));
+}
 
 function addHistory(value){
  let h=localGet("inco_history");
@@ -229,13 +304,19 @@ function addHistory(value){
  localSet("inco_history",h.slice(0,100));
 }
 
+/* BROWSER */
+
 function searchWeb(id){
  let value=get(id).value.trim();
  if(!value)return;
+
  let url;
- if(/^https?:\/\//i.test(value)) url=value;
- else if(value.includes(".")&&!value.includes(" ")) url="https://"+value;
+
+ if(/^https?:\/\//i.test(value))url=value;
+ else if(value.includes(".")&&!value.includes(" "))
+  url="https://"+value;
  else url=get("engine").value+encodeURIComponent(value);
+
  addHistory(value);
  window.open(url,"_blank","noopener");
  renderHistory("searchHistory");
@@ -244,96 +325,173 @@ function searchWeb(id){
 function addShortcut(){
  let name=get("shortcutName").value.trim();
  let url=get("shortcutUrl").value.trim();
+
  if(!name||!url)return alert("Enter a name and website address.");
+
  if(!/^https?:\/\//i.test(url))url="https://"+url;
+
  let list=localGet("inco_shortcuts");
  list.push({name,url});
  localSet("inco_shortcuts",list);
+
  get("shortcutName").value="";
  get("shortcutUrl").value="";
+
  renderShortcuts();
 }
+
 function renderShortcuts(){
  let list=localGet("inco_shortcuts");
- get("shortcuts").innerHTML=list.map((x,i)=>
- `<div class="item"><a href="${safeURL(x.url)}" target="_blank" rel="noopener">${escapeHTML(x.name)}</a>
- <button onclick="removeShortcut(${i})">Remove</button></div>`).join("") || "No websites added yet.";
-}
-function removeShortcut(i){
- let a=localGet("inco_shortcuts");a.splice(i,1);localSet("inco_shortcuts",a);renderShortcuts();
+
+ get("shortcuts").innerHTML=list.map((x,i)=>`
+ <div class="item">
+ <a href="${safeURL(x.url)}" target="_blank" rel="noopener">${escapeHTML(x.name)}</a>
+ <button onclick="removeShortcut(${i})">Remove</button>
+ </div>
+ `).join("")||"No websites added yet.";
 }
 
-function escapeHTML(s){
- return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-function safeURL(s){
- try{let u=new URL(s);return ["http:","https:"].includes(u.protocol)?u.href:"#"}catch{return "#"}
+function removeShortcut(i){
+ let a=localGet("inco_shortcuts");
+ a.splice(i,1);
+ localSet("inco_shortcuts",a);
+ renderShortcuts();
 }
 
 /* ACCOUNT */
+
 async function signUp(){
  const email=get("email").value.trim();
  const password=get("password").value;
- if(!email||password.length<6)return say("authStatus","Enter a valid email and password of at least 6 characters.");
+
+ if(!email||password.length<6)
+  return say("authStatus","Enter a valid email and a password of at least 6 characters.");
+
  say("authStatus","Creating account...");
- const {data,error}=await db.auth.signUp({email,password});
- if(error)return say("authStatus",error.message);
- if(data.user && data.session){
-  currentUser=data.user;
-  await ensureProfile();
-  say("authStatus","Account created. You are signed in.");
-  await refreshApp();
- }else{
-  say("authStatus","Account created. Check your email to confirm, then log in.");
+
+ try{
+  const {data,error}=await db.auth.signUp({email,password});
+
+  if(error)return say("authStatus",error.message);
+
+  if(data.user&&data.session){
+   currentUser=data.user;
+   await ensureProfile();
+   say("authStatus","Account created successfully.");
+   await refreshApp();
+  }else{
+   say("authStatus","Account created. Check your email for confirmation before logging in.");
+  }
+ }catch(e){
+  say("authStatus",e.message);
  }
 }
 
 async function signIn(){
- const {data,error}=await db.auth.signInWithPassword({
-  email:get("email").value.trim(),
-  password:get("password").value
- });
- if(error)return say("authStatus",error.message);
- currentUser=data.user;
- await ensureProfile();
- say("authStatus","Login successful.");
- await refreshApp();
+ const email=get("email").value.trim();
+ const password=get("password").value;
+
+ if(!email||!password)
+  return say("authStatus","Enter your email and password.");
+
+ say("authStatus","Signing in...");
+
+ try{
+  const {data,error}=await db.auth.signInWithPassword({
+   email,password
+  });
+
+  if(error)return say("authStatus",error.message);
+
+  currentUser=data.user;
+
+  await ensureProfile();
+
+  say("authStatus","Login successful.");
+  await refreshApp();
+
+ }catch(e){
+  say("authStatus",e.message);
+ }
 }
 
 async function resetPassword(){
  const email=get("email").value.trim();
- if(!email)return say("authStatus","Enter your email address first.");
+
+ if(!email)return say("authStatus","Enter your email first.");
+
  const {error}=await db.auth.resetPasswordForEmail(email,{
   redirectTo:location.origin+location.pathname
  });
+
  say("authStatus",error?error.message:"Password reset email requested. Check your inbox.");
 }
 
 async function signOut(){
  const {error}=await db.auth.signOut();
+
  if(error)return say("authStatus",error.message);
- currentUser=null;myProfile=null;
+
+ if(chatChannel){
+  await db.removeChannel(chatChannel);
+  chatChannel=null;
+ }
+
+ currentUser=null;
+ myProfile=null;
+ chatReceiver=null;
+
  say("accountStatus","Not signed in");
  say("authStatus","You have logged out.");
+
  get("feed").innerHTML="";
+ get("chatMessages").textContent="Please login to use messages.";
 }
+
+/* PROFILE SETUP */
 
 async function ensureProfile(){
  if(!currentUser)return;
- const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();
- if(error){console.error(error);return}
- if(data){myProfile=data;return}
- const username=(currentUser.email||"inco_user").split("@")[0];
+
+ const {data,error}=await db.from("profiles")
+  .select("*")
+  .eq("id",currentUser.id)
+  .maybeSingle();
+
+ if(error){
+  console.error(error);
+  return;
+ }
+
+ if(data){
+  myProfile=data;
+  return;
+ }
+
+ const username=(currentUser.email||"inco_user")
+  .split("@")[0]+"_"+currentUser.id.slice(0,6);
+
  const result=await db.from("profiles").insert({
-  id:currentUser.id,username,bio:"Welcome to INCO!"
+  id:currentUser.id,
+  username,
+  bio:"Welcome to INCO!"
  }).select().single();
- if(!result.error)myProfile=result.data;
+
+ if(result.error){
+  console.error(result.error);
+  say("authStatus","Account signed in, but profile setup failed: "+result.error.message);
+ }else{
+  myProfile=result.data;
+ }
 }
 
 async function refreshApp(){
  if(!currentUser)return;
+
  await ensureProfile();
+
  get("accountStatus").textContent=currentUser.email||"Signed in";
+
  await loadProfile();
  await loadFeed();
  await loadNews();
@@ -341,30 +499,47 @@ async function refreshApp(){
 }
 
 /* COMMUNITY POSTS */
+
 async function createPost(){
  if(!currentUser)return alert("Please log in first.");
+
  const content=get("postText").value.trim();
  const file=get("postMedia").files[0];
- if(!content&&!file)return alert("Write something or select a photo/video.");
+
+ if(!content&&!file)return alert("Write something or select media.");
+
  say("postStatus","Publishing...");
+
  let media_url=null;
 
  if(file){
-  if(file.size>30*1024*1024)return say("postStatus","Media must be 30 MB or smaller.");
+  if(file.size>30*1024*1024)
+   return say("postStatus","Media must be 30 MB or smaller.");
+
   const ext=file.name.split(".").pop().replace(/[^a-zA-Z0-9]/g,"");
   const path=currentUser.id+"/"+Date.now()+"."+ext;
-  const up=await db.storage.from("inco-posts").upload(path,file,{upsert:false});
+
+  const up=await db.storage.from("inco-posts")
+   .upload(path,file,{upsert:false});
+
   if(up.error)return say("postStatus","Upload failed: "+up.error.message);
-  const publicResult=db.storage.from("inco-posts").getPublicUrl(path);
-  media_url=publicResult.data.publicUrl;
+
+  media_url=db.storage.from("inco-posts")
+   .getPublicUrl(path).data.publicUrl;
  }
 
  const {error}=await db.from("posts").insert({
-  user_id:currentUser.id,content,media_url,status:"published"
+  user_id:currentUser.id,
+  content,
+  media_url,
+  status:"published"
  });
+
  if(error)return say("postStatus","Post failed: "+error.message);
+
  get("postText").value="";
  get("postMedia").value="";
+
  say("postStatus","Post published.");
  await loadFeed();
 }
@@ -372,37 +547,56 @@ async function createPost(){
 async function loadFeed(){
  const box=get("feed");
  box.innerHTML="Loading posts...";
+
  const {data,error}=await db.from("posts")
   .select("id,user_id,content,media_url,status,created_at")
   .order("created_at",{ascending:false}).limit(50);
- if(error){box.textContent="Could not load posts: "+error.message;return}
- if(!data.length){box.textContent="No posts yet. Be the first to share.";return}
+
+ if(error){
+  box.textContent="Could not load posts: "+error.message;
+  return;
+ }
+
+ if(!data.length){
+  box.textContent="No posts yet. Be the first to share.";
+  return;
+ }
+
  const ids=[...new Set(data.map(p=>p.user_id))];
- const profiles=await db.from("profiles").select("id,username,avatar_url").in("id",ids);
+
+ const profiles=await db.from("profiles")
+  .select("id,username,avatar_url").in("id",ids);
+
  const map={};
  (profiles.data||[]).forEach(p=>map[p.id]=p);
+
  box.innerHTML="";
+
  for(const post of data){
   const profile=map[post.user_id]||{};
   const card=document.createElement("div");
   card.className="card post";
+
   const media=post.media_url?(
    /\.(mp4|webm|mov|m4v)(\?|$)/i.test(post.media_url)
    ?`<video controls src="${safeURL(post.media_url)}"></video>`
    :`<img src="${safeURL(post.media_url)}" alt="Post media">`
   ):"";
+
   card.innerHTML=`
    <b>${escapeHTML(profile.username||"INCO user")}</b>
-   <p>${escapeHTML(post.content||"")}</p>${media}
+   <p>${escapeHTML(post.content||"")}</p>
+   ${media}
    <p class="muted">${new Date(post.created_at).toLocaleString()}</p>
    <button data-like="${post.id}">Like</button>
    <button data-comment="${post.id}">Comments</button>
    <button data-save="${post.id}">Save</button>
    ${currentUser&&post.user_id===currentUser.id?`<button data-delete="${post.id}">Delete</button>`:""}
-   <div id="comments-${post.id}"></div>
   `;
+
   box.appendChild(card);
  }
+
  box.querySelectorAll("[data-like]").forEach(b=>b.onclick=()=>toggleLike(b.dataset.like));
  box.querySelectorAll("[data-comment]").forEach(b=>b.onclick=()=>commentPrompt(b.dataset.comment));
  box.querySelectorAll("[data-save]").forEach(b=>b.onclick=()=>savePost(b.dataset.save));
@@ -411,114 +605,204 @@ async function loadFeed(){
 
 async function toggleLike(postId){
  if(!currentUser)return alert("Please log in first.");
- const found=await db.from("likes").select("id").eq("post_id",postId).eq("user_id",currentUser.id).maybeSingle();
+
+ const found=await db.from("likes").select("id")
+  .eq("post_id",postId)
+  .eq("user_id",currentUser.id)
+  .maybeSingle();
+
  if(found.error)return alert(found.error.message);
+
  if(found.data){
   const {error}=await db.from("likes").delete().eq("id",found.data.id);
   if(error)alert(error.message);
  }else{
-  const {error}=await db.from("likes").insert({post_id:postId,user_id:currentUser.id});
+  const {error}=await db.from("likes").insert({
+   post_id:postId,user_id:currentUser.id
+  });
   if(error)alert(error.message);
  }
 }
 
 async function commentPrompt(postId){
  if(!currentUser)return alert("Please log in first.");
+
  const content=prompt("Write your comment:");
  if(!content||!content.trim())return;
+
  const {error}=await db.from("comments").insert({
-  post_id:postId,user_id:currentUser.id,content:content.trim()
+  post_id:postId,
+  user_id:currentUser.id,
+  content:content.trim()
  });
+
  if(error)return alert(error.message);
+
  alert("Comment posted.");
 }
 
 async function deletePost(id){
  if(!currentUser||!confirm("Delete this post?"))return;
- const {error}=await db.from("posts").delete().eq("id",id).eq("user_id",currentUser.id);
+
+ const {error}=await db.from("posts")
+  .delete().eq("id",id).eq("user_id",currentUser.id);
+
  if(error)return alert(error.message);
+
  await loadFeed();
  await loadProfile();
 }
 
 /* BOOKMARKS */
+
 function savePost(id){
  let a=localGet("inco_bookmarks");
+
  if(!a.includes(id))a.push(id);
+
  localSet("inco_bookmarks",a);
  alert("Post saved on this device.");
 }
+
 async function renderSaved(){
  const ids=localGet("inco_bookmarks");
- get("bookmarks").innerHTML=ids.map(id=>`<div class="item">Post ID: ${escapeHTML(id)}</div>`).join("")||"No saved posts yet.";
+
+ get("bookmarks").innerHTML=ids
+  .map(id=>`<div class="item">Post ID: ${escapeHTML(id)}</div>`)
+  .join("")||"No saved posts yet.";
+
  renderHistory("history");
 }
+
 function renderHistory(id){
  const a=localGet("inco_history");
- get(id).innerHTML=a.map(x=>`<div class="item">${escapeHTML(x.value)} <span class="muted">${escapeHTML(x.time)}</span></div>`).join("")||"No history yet.";
+
+ get(id).innerHTML=a.map(x=>`
+ <div class="item">
+ ${escapeHTML(x.value)}
+ <span class="muted">${escapeHTML(x.time)}</span>
+ </div>
+ `).join("")||"No history yet.";
 }
-function clearHistory(){localSet("inco_history",[]);renderSaved();renderHistory("searchHistory")}
+
+function clearHistory(){
+ localSet("inco_history",[]);
+ renderSaved();
+ renderHistory("searchHistory");
+}
 
 /* PROFILE */
+
 async function loadProfile(){
  if(!currentUser)return;
- const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();
- if(error){say("profileStatus",error.message);return}
+
+ const {data,error}=await db.from("profiles")
+  .select("*").eq("id",currentUser.id).maybeSingle();
+
+ if(error){
+  say("profileStatus",error.message);
+  return;
+ }
+
  myProfile=data;
+
  get("profileUsername").value=data?.username||"";
  get("profileBio").value=data?.bio||"";
+
  if(data?.avatar_url)get("avatarPreview").src=data.avatar_url;
- const {data:posts,error:postError}=await db.from("posts").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:false});
- get("myPosts").innerHTML=postError?escapeHTML(postError.message):(posts||[]).map(p=>`<div class="item">${escapeHTML(p.content||"Post")} <span class="muted">${new Date(p.created_at).toLocaleDateString()}</span></div>`).join("")||"You have not posted yet.";
+
+ const {data:posts,error:postError}=await db.from("posts")
+  .select("*")
+  .eq("user_id",currentUser.id)
+  .order("created_at",{ascending:false});
+
+ get("myPosts").innerHTML=postError
+  ?escapeHTML(postError.message)
+  :(posts||[]).map(p=>`
+   <div class="item">
+   ${escapeHTML(p.content||"Post")}
+   <span class="muted">${new Date(p.created_at).toLocaleDateString()}</span>
+   </div>
+  `).join("")||"You have not posted yet.";
 }
 
 async function saveProfile(){
  if(!currentUser)return alert("Please log in first.");
+
+ const username=get("profileUsername").value.trim();
+
+ if(!username)return alert("Enter a username.");
+
  const {error}=await db.from("profiles").update({
-  username:get("profileUsername").value.trim(),
+  username,
   bio:get("profileBio").value.trim()
  }).eq("id",currentUser.id);
+
  say("profileStatus",error?error.message:"Profile updated.");
+
  if(!error)await loadProfile();
 }
 
 async function uploadAvatar(){
  if(!currentUser)return alert("Please log in first.");
+
  const file=get("avatarFile").files[0];
+
  if(!file)return alert("Choose a picture first.");
  if(file.size>5*1024*1024)return alert("Choose a picture under 5 MB.");
+
  const ext=file.name.split(".").pop().replace(/[^a-zA-Z0-9]/g,"");
  const path=currentUser.id+"/avatar-"+Date.now()+"."+ext;
- const up=await db.storage.from("inco-avatars").upload(path,file,{upsert:true});
+
+ const up=await db.storage.from("inco-avatars")
+  .upload(path,file,{upsert:true});
+
  if(up.error)return say("profileStatus",up.error.message);
- const url=db.storage.from("inco-avatars").getPublicUrl(path).data.publicUrl;
- const {error}=await db.from("profiles").update({avatar_url:url}).eq("id",currentUser.id);
+
+ const url=db.storage.from("inco-avatars")
+  .getPublicUrl(path).data.publicUrl;
+
+ const {error}=await db.from("profiles")
+  .update({avatar_url:url}).eq("id",currentUser.id);
+
  if(error)return say("profileStatus",error.message);
+
  get("avatarPreview").src=url;
  say("profileStatus","Profile picture updated.");
 }
 
 /* NEWS */
+
 async function loadNews(){
  const box=get("newsFeed");
+
  const {data,error}=await db.from("news_articles")
   .select("id,author_id,title,category,content,image_url,views,created_at")
   .order("created_at",{ascending:false}).limit(30);
- if(error){box.textContent="Could not load news: "+error.message;return}
+
+ if(error){
+  box.textContent="Could not load news: "+error.message;
+  return;
+ }
+
  box.innerHTML=(data||[]).map(a=>`
   <div class="card">
    <h3>${escapeHTML(a.title)}</h3>
    <p class="muted">${escapeHTML(a.category||"News")} · ${new Date(a.created_at).toLocaleDateString()}</p>
    ${a.image_url?`<img class="post" src="${safeURL(a.image_url)}" alt="News image">`:""}
    <p>${escapeHTML(a.content)}</p>
-  </div>`).join("")||"No news articles yet.";
+  </div>
+ `).join("")||"No news articles yet.";
 }
 
 async function submitArticle(){
  if(!currentUser)return alert("Please log in first.");
+
  const title=get("articleTitle").value.trim();
  const content=get("articleContent").value.trim();
+
  if(!title||!content)return alert("Enter a title and article.");
+
  const {error}=await db.from("news_articles").insert({
   author_id:currentUser.id,
   title,
@@ -526,41 +810,388 @@ async function submitArticle(){
   content,
   image_url:get("articleImage").value.trim()||null
  });
+
  if(error)return alert("Article submission failed: "+error.message);
+
  alert("Article submitted.");
  await loadNews();
 }
 
-/* LIVE SESSION LIST */
+/* LIVE */
+
 async function loadLive(){
  const box=get("liveSessions");
+
  const {data,error}=await db.from("live_sessions")
   .select("id,host_id,title,room_name,status,started_at")
   .order("started_at",{ascending:false}).limit(20);
- if(error){box.textContent="Could not load LIVE sessions: "+error.message;return}
+
+ if(error){
+  box.textContent="Could not load LIVE sessions: "+error.message;
+  return;
+ }
+
  box.innerHTML=(data||[]).map(s=>`
-  <div class="item"><b>${escapeHTML(s.title||"INCO LIVE")}</b>
-  <span class="muted">${escapeHTML(s.status||"")}</span></div>
+  <div class="item">
+   <b>${escapeHTML(s.title||"INCO LIVE")}</b>
+   <span class="muted">${escapeHTML(s.status||"")}</span>
+  </div>
  `).join("")||"No live sessions at the moment.";
 }
 
-/* STARTUP */
-async function startApp(){
- const {data}=await db.auth.getSession();
- currentUser=data.session?.user||null;
- if(currentUser)await refreshApp();
- renderShortcuts();
- renderHistory("searchHistory");
- db.auth.onAuthStateChange((_event,session)=>{
-  currentUser=session?.user||null;
-  if(currentUser){
-   setTimeout(()=>refreshApp(),0);
-  }else{
-   get("accountStatus").textContent="Not signed in";
-  }
- });
+/* INCO PRIVATE MESSAGING */
+
+let chatReceiver=null;
+let chatChannel=null;
+let recorder=null;
+let voiceChunks=[];
+let recording=false;
+let recordingStream=null;
+let voiceUploadInProgress=false;
+
+async function openChat(){
+ if(!currentUser)return say("chatStatus","Please login first.");
+
+ const username=get("chatUsername").value.trim();
+
+ if(!username)return say("chatStatus","Enter the person's username.");
+
+ say("chatStatus","Finding user...");
+
+ const {data,error}=await db.from("profiles")
+  .select("id,username")
+  .eq("username",username)
+  .maybeSingle();
+
+ if(error)return say("chatStatus",error.message);
+
+ if(!data)return say("chatStatus","User not found. Check the exact username.");
+
+ if(data.id===currentUser.id)
+  return say("chatStatus","You cannot chat with yourself.");
+
+ chatReceiver=data.id;
+
+ say("chatStatus","Connected to "+data.username);
+
+ if(chatChannel){
+  await db.removeChannel(chatChannel);
+  chatChannel=null;
+ }
+
+ await loadChatMessages();
+
+ chatChannel=db.channel("inco-chat-"+currentUser.id)
+  .on("postgres_changes",{
+   event:"INSERT",
+   schema:"public",
+   table:"messages"
+  },payload=>{
+   const m=payload.new;
+
+   if(
+    (m.sender_id===currentUser.id && m.receiver_id===chatReceiver) ||
+    (m.sender_id===chatReceiver && m.receiver_id===currentUser.id)
+   ){
+    loadChatMessages();
+   }
+  })
+  .on("postgres_changes",{
+   event:"UPDATE",
+   schema:"public",
+   table:"messages"
+  },payload=>{
+   const m=payload.new;
+
+   if(
+    (m.sender_id===currentUser.id && m.receiver_id===chatReceiver) ||
+    (m.sender_id===chatReceiver && m.receiver_id===currentUser.id)
+   ){
+    loadChatMessages();
+   }
+  })
+  .subscribe(status=>{
+   if(status==="SUBSCRIBED"){
+    say("chatStatus","Connected. Messages update in real time.");
+   }
+   if(status==="CHANNEL_ERROR"){
+    say("chatStatus","Realtime connection failed. Check Supabase Realtime settings.");
+   }
+  });
 }
+
+async function sendChatMessage(){
+ if(!currentUser)return alert("Please login first.");
+ if(!chatReceiver)return alert("Open a chat first.");
+
+ const content=get("chatText").value.trim();
+
+ if(!content)return;
+
+ const button=document.querySelector("#chat button[onclick='sendChatMessage()']");
+ button.disabled=true;
+
+ const {error}=await db.from("messages").insert({
+  sender_id:currentUser.id,
+  receiver_id:chatReceiver,
+  content
+ });
+
+ button.disabled=false;
+
+ if(error)return alert("Message failed: "+error.message);
+
+ get("chatText").value="";
+ await loadChatMessages();
+}
+
+async function loadChatMessages(){
+ if(!currentUser||!chatReceiver)return;
+
+ const box=get("chatMessages");
+
+ const {data,error}=await db.from("messages")
+  .select("*")
+  .or(
+   `and(sender_id.eq.${currentUser.id},receiver_id.eq.${chatReceiver}),and(sender_id.eq.${chatReceiver},receiver_id.eq.${currentUser.id})`
+  )
+  .order("created_at",{ascending:true})
+  .limit(200);
+
+ if(error){
+  box.textContent="Could not load messages: "+error.message;
+  return;
+ }
+
+ box.innerHTML="";
+
+ for(const m of data||[]){
+  const mine=m.sender_id===currentUser.id;
+
+  const item=document.createElement("div");
+  item.className="chat-message"+(mine?" mine":"");
+
+  if(m.content.startsWith("VOICE:")){
+   const path=m.content.substring(6);
+
+   const {data:audioData,error:audioError}=await db.storage
+    .from("chat-voice")
+    .createSignedUrl(path,3600);
+
+   if(!audioError&&audioData){
+    const audio=document.createElement("audio");
+    audio.controls=true;
+    audio.src=audioData.signedUrl;
+    item.appendChild(audio);
+   }else{
+    item.textContent="Voice note unavailable. Check storage permissions.";
+   }
+  }else{
+   item.appendChild(document.createTextNode(m.content));
+  }
+
+  const time=document.createElement("small");
+
+  time.textContent=new Date(m.created_at).toLocaleString()+
+   (mine?(m.read_at?" · ✓✓ Read":" · ✓ Sent"):" · Received");
+
+  item.appendChild(time);
+  box.appendChild(item);
+
+  if(!mine&&!m.read_at){
+   markMessageRead(m.id);
+  }
+ }
+
+ box.scrollTop=box.scrollHeight;
+}
+
+async function markMessageRead(messageId){
+ const {error}=await db.from("messages")
+  .update({read_at:new Date().toISOString()})
+  .eq("id",messageId)
+  .eq("receiver_id",currentUser.id)
+  .is("read_at",null);
+
+ if(error)console.error("Read receipt:",error.message);
+}
+
+/* VOICE NOTE RECORDING */
+
+async function startRecording(event){
+ if(event)event.preventDefault();
+
+ if(recording||voiceUploadInProgress)return;
+
+ if(!currentUser||!chatReceiver){
+  say("recordStatus","Open a chat first.");
+  return;
+ }
+
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+  say("recordStatus","Microphone requires HTTPS and browser support.");
+  return;
+ }
+
+ try{
+  recordingStream=await navigator.mediaDevices.getUserMedia({
+   audio:true
+  });
+
+  const mimeTypes=[
+   "audio/webm;codecs=opus",
+   "audio/webm",
+   "audio/mp4"
+  ];
+
+  const supported=mimeTypes.find(t=>
+   MediaRecorder.isTypeSupported(t)
+  );
+
+  recorder=new MediaRecorder(
+   recordingStream,
+   supported?{mimeType:supported}:{}
+  );
+
+  voiceChunks=[];
+
+  recorder.ondataavailable=e=>{
+   if(e.data&&e.data.size>0)voiceChunks.push(e.data);
+  };
+
+  recorder.onstop=uploadVoiceNote;
+
+  recorder.start();
+
+  recording=true;
+
+  get("recordButton").classList.add("recording");
+  get("recordButton").textContent="🔴 Recording...";
+  say("recordStatus","Recording. Release to send your voice note.");
+
+ }catch(error){
+  say("recordStatus","Microphone error: "+error.message);
+  if(recordingStream){
+   recordingStream.getTracks().forEach(t=>t.stop());
+   recordingStream=null;
+  }
+ }
+}
+
+function stopRecording(){
+ if(!recording||!recorder)return;
+
+ recording=false;
+
+ get("recordButton").classList.remove("recording");
+ get("recordButton").textContent="Hold to Record";
+
+ if(recorder.state!=="inactive"){
+  recorder.stop();
+ }
+
+ if(recordingStream){
+  recordingStream.getTracks().forEach(t=>t.stop());
+  recordingStream=null;
+ }
+
+ say("recordStatus","Uploading voice note...");
+}
+
+async function uploadVoiceNote(){
+ if(!currentUser||!chatReceiver)return;
+
+ voiceUploadInProgress=true;
+
+ const button=get("recordButton");
+ button.disabled=true;
+
+ try{
+  const type=recorder.mimeType||"audio/webm";
+  const blob=new Blob(voiceChunks,{type});
+
+  if(blob.size===0){
+   say("recordStatus","No audio recorded. Try again.");
+   return;
+  }
+
+  if(blob.size>15*1024*1024){
+   say("recordStatus","Voice note is too large.");
+   return;
+  }
+
+  const extension=type.includes("mp4")?"m4a":"webm";
+  const path=currentUser.id+"/"+crypto.randomUUID()+"."+extension;
+
+  const {error:uploadError}=await db.storage
+   .from("chat-voice")
+   .upload(path,blob,{
+    contentType:type,
+    upsert:false
+   });
+
+  if(uploadError){
+   say("recordStatus","Upload failed: "+uploadError.message);
+   return;
+  }
+
+  const {error:messageError}=await db.from("messages").insert({
+   sender_id:currentUser.id,
+   receiver_id:chatReceiver,
+   content:"VOICE:"+path
+  });
+
+  if(messageError){
+   say("recordStatus","Voice uploaded but message failed: "+messageError.message);
+   return;
+  }
+
+  say("recordStatus","Voice note sent successfully!");
+  await loadChatMessages();
+
+ }catch(error){
+  say("recordStatus","Voice note error: "+error.message);
+ }finally{
+  voiceUploadInProgress=false;
+  button.disabled=false;
+  voiceChunks=[];
+ }
+}
+
+/* STARTUP */
+
+async function startApp(){
+ try{
+  const {data,error}=await db.auth.getSession();
+
+  if(error){
+   say("authStatus",error.message);
+  }
+
+  currentUser=data?.session?.user||null;
+
+  if(currentUser)await refreshApp();
+
+  renderShortcuts();
+  renderHistory("searchHistory");
+
+  db.auth.onAuthStateChange((event,session)=>{
+   currentUser=session?.user||null;
+
+   if(currentUser){
+    setTimeout(()=>refreshApp(),0);
+   }else{
+    get("accountStatus").textContent="Not signed in";
+   }
+  });
+
+ }catch(error){
+  console.error("INCO startup:",error);
+ }
+}
+
 startApp();
+
 </script>
 </body>
 </html>
