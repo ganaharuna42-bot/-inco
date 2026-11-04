@@ -6,943 +6,563 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>INCO Browser</title>
 
+<!-- SUPABASE SCRIPT: YES, IT IS INCLUDED -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://alwingulla.com/88/tag.min.js"
-data-zone="12129987" async data-cfasync="false"></script>
 
 <style>
 *{box-sizing:border-box}
-body{
- margin:0;background:#080808;color:white;
- font-family:Arial,sans-serif;padding-bottom:75px
-}
-header{
- padding:20px;text-align:center;
- border-bottom:1px solid #292929
-}
-.logo{font-size:38px;font-weight:900}
-.logo span{color:#2d7bff}
-.sub{color:#777;font-size:11px;letter-spacing:2px}
-nav{
- display:flex;overflow-x:auto;gap:7px;
- padding:12px;background:#111;
- position:sticky;top:0;z-index:5
-}
-nav button{
- flex-shrink:0;background:#222;color:#aaa;
- padding:10px 14px
-}
-nav button.active{background:#2d7bff;color:white}
-button{
- border:0;border-radius:20px;
- padding:10px 15px;background:#2d7bff;
- color:white;font-weight:bold;cursor:pointer
-}
-input,textarea,select{
- width:100%;padding:13px;margin:6px 0;
- border:1px solid #333;border-radius:10px;
- background:#1b1b1d;color:white;font-size:15px
-}
-textarea{min-height:90px;resize:vertical}
-.page{display:none;padding:15px}
-.page.active{display:block}
-.panel,.post,.news{
- background:#151515;border:1px solid #292929;
- border-radius:15px;padding:15px;margin-bottom:14px
-}
-h3{margin-top:0}
-.muted{color:#888;font-size:12px}
+body{margin:0;background:#080d18;color:#edf3ff;font-family:Arial,sans-serif}
+header{background:#101a2c;padding:15px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5;border-bottom:1px solid #263b5c}
+.logo{font-size:23px;font-weight:bold;color:#56aaff}
+button{background:#1678db;color:white;border:0;padding:11px 14px;border-radius:9px;cursor:pointer;margin:3px}
+button:hover{background:#075bb0}
+input,textarea,select{width:100%;padding:12px;margin:6px 0;background:#111d31;border:1px solid #304563;border-radius:8px;color:white}
+textarea{min-height:85px}
+nav{display:flex;gap:5px;overflow-x:auto;background:#101a2c;padding:8px;position:sticky;top:57px;z-index:4}
+nav button{white-space:nowrap}
+main{max-width:850px;margin:auto;padding:12px}
+section{display:none}
+section.active{display:block}
+.card{background:#111d31;border:1px solid #263b5c;border-radius:13px;padding:15px;margin:12px 0}
+.muted{color:#9eb0c9;font-size:13px}
+.post img,.post video{width:100%;max-height:420px;object-fit:contain;border-radius:10px;margin-top:8px;background:#050910}
+a{color:#65b5ff}
 .row{display:flex;gap:8px;align-items:center}
-.row button{white-space:nowrap}
-.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.actions button{font-size:12px;padding:9px 12px}
-.post img,.post video,.news img{
- width:100%;max-height:350px;object-fit:contain;
- border-radius:10px;margin-top:10px;background:#000
-}
-.avatar{
- width:40px;height:40px;border-radius:50%;
- object-fit:cover;background:#333
-}
-.bottom{
- position:fixed;bottom:0;left:0;right:0;
- background:#111;padding:13px;text-align:center;
- border-top:1px solid #333;z-index:10
-}
-a{color:#64a0ff}
-.hidden{display:none!important}
-#message{padding:10px;color:#75aaff}
+.row>*{flex:1}
+.avatar{width:65px;height:65px;border-radius:50%;object-fit:cover;background:#263b5c}
+.hidden{display:none}
+.item{padding:10px;border-bottom:1px solid #263b5c}
+footer{text-align:center;color:#7e91ad;padding:25px}
 </style>
 </head>
 
 <body>
-
 <header>
- <div class="logo">🛡️ INCO<span>.</span></div>
- <div class="sub">OWN BOSS BROWSER</div>
- <div id="accountStatus" class="muted">Connecting...</div>
+ <div class="logo">🛡️ INCO</div>
+ <div id="accountStatus" class="muted">Not signed in</div>
 </header>
 
 <nav>
- <button class="active" onclick="page('home',this)">Home</button>
- <button onclick="page('community',this)">Community</button>
- <button onclick="page('news',this)">News</button>
- <button onclick="page('search',this)">Search</button>
- <button onclick="page('saved',this)">Saved</button>
- <button onclick="page('profile',this)">Profile</button>
- <button onclick="page('account',this)">Account</button>
+ <button onclick="showPage('home')">Home</button>
+ <button onclick="showPage('community')">Community</button>
+ <button onclick="showPage('news')">News</button>
+ <button onclick="showPage('search')">Search</button>
+ <button onclick="showPage('saved')">Saved</button>
+ <button onclick="showPage('profile')">Profile</button>
+ <button onclick="showPage('account')">Account</button>
+ <button onclick="showPage('live')">LIVE</button>
+ <button onclick="showPage('voice')">Voice</button>
+ <button onclick="showPage('premium')">Premium</button>
 </nav>
 
-<div id="message"></div>
+<main>
 
-<!-- HOME -->
-<section id="home" class="page active">
- <div class="panel">
-  <h3>Welcome to INCO</h3>
-  <p>Your World, Your Browser.</p>
-  <p class="muted">Search the web and explore your community.</p>
-  <button onclick="page('search')">Start Searching</button>
-  <button onclick="page('community')">Explore Community</button>
- </div>
-
- <h3>Speed Dial</h3>
- <div id="shortcuts"></div>
-
- <div class="panel">
-  <h3>Add Website</h3>
-  <input id="siteName" placeholder="Website name">
-  <input id="siteUrl" placeholder="Website address">
+<section id="home" class="active">
+ <div class="card">
+  <h2>Welcome to INCO 🌍</h2>
+  <p>Your browser and community in one place.</p>
+  <h3>Quick websites</h3>
+  <div id="shortcuts"></div>
+  <input id="shortcutName" placeholder="Website name">
+  <input id="shortcutUrl" placeholder="Website address, e.g. https://example.com">
   <button onclick="addShortcut()">Add Website</button>
+ </div>
+ <div class="card">
+  <h3>INCO Browser</h3>
+  <input id="homeSearch" placeholder="Search the web or enter a website">
+  <button onclick="searchWeb('homeSearch')">Search / Open</button>
  </div>
 </section>
 
-<!-- SEARCH -->
-<section id="search" class="page">
- <div class="panel">
-  <h3>INCO Search</h3>
+<section id="search">
+ <div class="card">
+  <h2>Search the web</h2>
   <select id="engine">
-   <option value="https://search.yahoo.com/search?p=">Yahoo</option>
    <option value="https://www.google.com/search?q=">Google</option>
+   <option value="https://search.yahoo.com/search?p=">Yahoo</option>
    <option value="https://www.bing.com/search?q=">Bing</option>
    <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
   </select>
-  <form onsubmit="searchWeb(event)">
-   <input id="searchText"
-   placeholder="Search or enter website address" required>
-   <button>Search</button>
-  </form>
+  <input id="webSearch" placeholder="Search or enter website address">
+  <button onclick="searchWeb('webSearch')">Go</button>
+  <p class="muted">Website pages open in your browser. Some websites do not allow embedding inside another app.</p>
+ </div>
+ <div class="card">
+  <h3>Recent history</h3>
+  <div id="searchHistory"></div>
  </div>
 </section>
 
-<!-- COMMUNITY -->
-<section id="community" class="page">
- <div class="panel">
-  <h3>Create a post</h3>
-  <textarea id="postText" placeholder="What's happening?"></textarea>
+<section id="community">
+ <div class="card">
+  <h2>Community</h2>
+  <textarea id="postText" placeholder="What would you like to share?"></textarea>
   <input type="file" id="postMedia" accept="image/*,video/*">
   <button onclick="createPost()">Publish Post</button>
+  <p id="postStatus" class="muted"></p>
  </div>
- <h3>Community Feed</h3>
- <div id="feed">Loading posts...</div>
+ <div id="feed"></div>
 </section>
 
-<!-- NEWS -->
-<section id="news" class="page">
- <h3>INCO News</h3>
- <div id="newsList">Loading news...</div>
+<section id="news">
+ <div class="card">
+  <h2>INCO News</h2>
+  <p class="muted">News articles published on INCO.</p>
+  <div id="newsFeed">Loading news...</div>
+ </div>
+ <div class="card">
+  <h3>Submit an article</h3>
+  <input id="articleTitle" placeholder="Article title">
+  <input id="articleCategory" placeholder="Category">
+  <textarea id="articleContent" placeholder="Write your article"></textarea>
+  <input id="articleImage" placeholder="Image URL (optional)">
+  <button onclick="submitArticle()">Submit Article</button>
+  <p class="muted">Articles may require an editor or admin to publish them.</p>
+ </div>
 </section>
 
-<!-- SAVED -->
-<section id="saved" class="page">
- <h3>⭐ Bookmarks</h3>
- <div id="bookmarks"></div>
- <h3>🕘 Browsing History</h3>
- <div id="history"></div>
- <button onclick="clearHistory()">Clear History</button>
+<section id="saved">
+ <div class="card">
+  <h2>Bookmarks</h2>
+  <div id="bookmarks"></div>
+ </div>
+ <div class="card">
+  <h2>Browsing history</h2>
+  <div id="history"></div>
+  <button onclick="clearHistory()">Clear History</button>
+ </div>
 </section>
 
-<!-- PROFILE -->
-<section id="profile" class="page">
- <div class="panel">
-  <h3>My Profile</h3>
-  <img id="avatar" class="avatar"
-  src="" alt="Profile picture">
-  <p id="profileName">Not logged in</p>
+<section id="profile">
+ <div class="card">
+  <h2>My Profile</h2>
+  <img id="avatarPreview" class="avatar" alt="Profile picture">
   <input type="file" id="avatarFile" accept="image/*">
-  <button onclick="uploadAvatar()">Update Profile Picture</button>
-  <p class="muted">Your profile picture is stored in INCO Supabase Storage.</p>
+  <button onclick="uploadAvatar()">Upload Profile Picture</button>
+  <input id="profileUsername" placeholder="Username">
+  <textarea id="profileBio" placeholder="Your bio"></textarea>
+  <button onclick="saveProfile()">Save Profile</button>
+  <p id="profileStatus" class="muted"></p>
  </div>
- <h3>My Posts</h3>
- <div id="myPosts"></div>
+ <div class="card">
+  <h3>My Posts</h3>
+  <div id="myPosts"></div>
+ </div>
 </section>
 
-<!-- ACCOUNT -->
-<section id="account" class="page">
- <div class="panel" id="authPanel">
-  <h3>INCO Account</h3>
-  <input id="displayName" placeholder="Your name">
+<section id="account">
+ <div class="card">
+  <h2>INCO Account</h2>
   <input id="email" type="email" placeholder="Email address">
   <input id="password" type="password" placeholder="Password">
-  <button onclick="signup()">Create Account</button>
-  <button onclick="login()">Login</button>
-  <button onclick="resetPassword()">Forgot Password?</button>
- </div>
-
- <div class="panel hidden" id="loggedPanel">
-  <h3>Your Account</h3>
-  <p id="userEmail"></p>
-  <button onclick="logout()">Logout</button>
+  <button onclick="signUp()">Create Account</button>
+  <button onclick="signIn()">Login</button>
+  <button onclick="resetPassword()">Forgot Password</button>
+  <button onclick="signOut()">Logout</button>
+  <p id="authStatus" class="muted"></p>
  </div>
 </section>
 
-<div class="bottom">
- INCO by Bhig Buga • Your World, Your Browser
-</div>
+<section id="live">
+ <div class="card">
+  <h2>🔴 INCO LIVE</h2>
+  <p>LIVE sessions are stored in your existing Supabase database.</p>
+  <p class="muted">Real camera broadcasting and watching require a secure LiveKit token service. This page will not claim a broadcast has started until that service is connected.</p>
+  <div id="liveSessions">Loading live sessions...</div>
+  <p class="muted">Your existing live_sessions and live_comments tables are preserved.</p>
+ </div>
+</section>
+
+<section id="voice">
+ <div class="card">
+  <h2>📞 INCO Voice</h2>
+  <p>Voice calling requires a secure call-signalling service and a working call interface.</p>
+  <p class="muted">Low Data Mode and voice-call controls are not activated until that service is connected.</p>
+  <p>Your existing database will not be replaced.</p>
+ </div>
+</section>
+
+<section id="premium">
+ <div class="card">
+  <h2>⭐ INCO Premium</h2>
+  <p>INCO will support Free and Premium accounts.</p>
+  <p class="muted">Payment processing must be connected to a secure payment provider before users can pay or receive Premium status. No payment is being collected by this page.</p>
+ </div>
+</section>
+
+</main>
+<footer>INCO Browser · Connecting people worldwide 🌍</footer>
 
 <script>
-// SUPABASE CONNECTION
-const SUPABASE_URL =
-"https://zvrbkmvoyofnasqssnhu.supabase.co";
+/* INCO SUPABASE CONNECTION */
+const SUPABASE_URL = "https://zvrbkmvoyofnasqssnhu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_GgUFgvk2DLQx_w2Jzbbkpw_kcix85oQ";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const SUPABASE_KEY =
-"sb_publishable_GgUFgvk2DLQx_w2Jzbbkpw_kcix85oQ";
+let currentUser = null;
+let myProfile = null;
 
-const db = window.supabase.createClient(
- SUPABASE_URL,SUPABASE_KEY
-);
+const get = id => document.getElementById(id);
+const say = (id, message) => { get(id).textContent = message; };
 
-let currentUser=null;
-
-// HELPERS
-function msg(text){
- document.getElementById("message").textContent=text;
+function showPage(page){
+ document.querySelectorAll("main section").forEach(s=>s.classList.remove("active"));
+ get(page).classList.add("active");
+ if(page==="community") loadFeed();
+ if(page==="news") loadNews();
+ if(page==="profile") loadProfile();
+ if(page==="saved") renderSaved();
+ if(page==="home") renderShortcuts();
+ if(page==="search") renderHistory("searchHistory");
+ if(page==="live") loadLive();
 }
 
-function esc(value){
- return String(value||"").replace(/[&<>"']/g,c=>({
- "&":"&amp;","<":"&lt;",">":"&gt;",
- '"':"&quot;","'":"&#39;"
- })[c]);
+function localGet(key, fallback=[]){
+ try{return JSON.parse(localStorage.getItem(key)) || fallback}
+ catch{return fallback}
+}
+function localSet(key,value){localStorage.setItem(key,JSON.stringify(value))}
+
+function addHistory(value){
+ let h=localGet("inco_history");
+ h.unshift({value,time:new Date().toLocaleString()});
+ localSet("inco_history",h.slice(0,100));
 }
 
-function page(name,button){
- document.querySelectorAll(".page").forEach(p=>
- p.classList.remove("active"));
- document.getElementById(name).classList.add("active");
-
- document.querySelectorAll("nav button").forEach(b=>
- b.classList.remove("active"));
-
- if(button)button.classList.add("active");
-
- if(name==="community")loadFeed();
- if(name==="news")loadNews();
- if(name==="saved")renderSaved();
- if(name==="profile")loadMyPosts();
-}
-
-// SEARCH
-function searchWeb(e){
- e.preventDefault();
- let value=document.getElementById("searchText").value.trim();
+function searchWeb(id){
+ let value=get(id).value.trim();
  if(!value)return;
-
  let url;
- if(/^https?:\/\//i.test(value)){
-  url=value;
- }else if(/^[\w.-]+\.[a-z]{2,}(\/.*)?$/i.test(value)){
-  url="https://"+value;
- }else{
-  url=document.getElementById("engine").value+
-  encodeURIComponent(value);
- }
-
- try{
-  const u=new URL(url);
-  if(!["http:","https:"].includes(u.protocol))throw Error();
-  visit(url);
- }catch(e){msg("Invalid website address.");}
-}
-
-function visit(url){
- let h=JSON.parse(localStorage.getItem("inco_history")||"[]");
- h.unshift({url,time:new Date().toLocaleString()});
- localStorage.setItem("inco_history",JSON.stringify(h.slice(0,100)));
+ if(/^https?:\/\//i.test(value)) url=value;
+ else if(value.includes(".")&&!value.includes(" ")) url="https://"+value;
+ else url=get("engine").value+encodeURIComponent(value);
+ addHistory(value);
  window.open(url,"_blank","noopener");
-}
-
-// SHORTCUTS
-const defaults=[
- ["📘","Facebook","https://facebook.com"],
- ["▶️","YouTube","https://youtube.com"],
- ["🎵","TikTok","https://tiktok.com"],
- ["🌐","Google","https://google.com"],
- ["✖️","X","https://x.com"],
- ["🛍️","Jumia","https://jumia.com.ng"]
-];
-
-function getShortcuts(){
- return JSON.parse(localStorage.getItem("inco_shortcuts")||"null")||defaults;
-}
-
-function renderShortcuts(){
- document.getElementById("shortcuts").innerHTML=
- getShortcuts().map((s,i)=>`
- <div class="panel">
- ${esc(s[0])} ${esc(s[1])}
- <button onclick="visit('${esc(s[2])}')">Open</button>
- <button onclick="removeShortcut(${i})">Remove</button>
- </div>`).join("");
+ renderHistory("searchHistory");
 }
 
 function addShortcut(){
- let name=document.getElementById("siteName").value.trim();
- let url=document.getElementById("siteUrl").value.trim();
- if(!name||!url)return msg("Enter website name and address.");
-
+ let name=get("shortcutName").value.trim();
+ let url=get("shortcutUrl").value.trim();
+ if(!name||!url)return alert("Enter a name and website address.");
  if(!/^https?:\/\//i.test(url))url="https://"+url;
-
- try{
-  const u=new URL(url);
-  if(!["http:","https:"].includes(u.protocol))throw Error();
- }catch(e){return msg("Invalid website address.");}
-
- let list=getShortcuts();
- list.push(["🌐",name,url]);
- localStorage.setItem("inco_shortcuts",JSON.stringify(list));
+ let list=localGet("inco_shortcuts");
+ list.push({name,url});
+ localSet("inco_shortcuts",list);
+ get("shortcutName").value="";
+ get("shortcutUrl").value="";
  renderShortcuts();
- msg("Shortcut added.");
 }
-
+function renderShortcuts(){
+ let list=localGet("inco_shortcuts");
+ get("shortcuts").innerHTML=list.map((x,i)=>
+ `<div class="item"><a href="${safeURL(x.url)}" target="_blank" rel="noopener">${escapeHTML(x.name)}</a>
+ <button onclick="removeShortcut(${i})">Remove</button></div>`).join("") || "No websites added yet.";
+}
 function removeShortcut(i){
- let list=getShortcuts();
- list.splice(i,1);
- localStorage.setItem("inco_shortcuts",JSON.stringify(list));
- renderShortcuts();
+ let a=localGet("inco_shortcuts");a.splice(i,1);localSet("inco_shortcuts",a);renderShortcuts();
 }
 
-// SAVED
-function saveBookmark(url){
- let list=JSON.parse(localStorage.getItem("inco_bookmarks")||"[]");
- if(!list.includes(url))list.unshift(url);
- localStorage.setItem("inco_bookmarks",JSON.stringify(list));
- renderSaved();
- msg("Bookmark saved.");
+function escapeHTML(s){
+ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function safeURL(s){
+ try{let u=new URL(s);return ["http:","https:"].includes(u.protocol)?u.href:"#"}catch{return "#"}
 }
 
-function renderSaved(){
- let list=JSON.parse(localStorage.getItem("inco_bookmarks")||"[]");
- document.getElementById("bookmarks").innerHTML=list.map((u,i)=>`
- <div class="panel">
- <a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a>
- <button onclick="removeBookmark(${i})">Remove</button>
- </div>`).join("")||"No bookmarks yet.";
-
- let history=JSON.parse(localStorage.getItem("inco_history")||"[]");
- document.getElementById("history").innerHTML=history.map(h=>`
- <div class="panel">${esc(h.url)}
- <p class="muted">${esc(h.time)}</p></div>`).join("")||"No history yet.";
-}
-
-function removeBookmark(i){
- let list=JSON.parse(localStorage.getItem("inco_bookmarks")||"[]");
- list.splice(i,1);
- localStorage.setItem("inco_bookmarks",JSON.stringify(list));
- renderSaved();
-}
-
-function clearHistory(){
- localStorage.removeItem("inco_history");
- renderSaved();
-}
-
-// AUTHENTICATION
-async function signup(){
- let name=document.getElementById("displayName").value.trim();
- let email=document.getElementById("email").value.trim();
- let password=document.getElementById("password").value;
-
- if(!name||!email||password.length<8)
- return msg("Enter your name, email and a password of at least 8 characters.");
-
- msg("Creating account...");
-
- const {data,error}=await db.auth.signUp({
-  email,password,
-  options:{data:{display_name:name}}
- });
-
- if(error)return msg(error.message);
-
- if(data.user){
-  if(data.session){
-   currentUser=data.user;
-   await ensureProfile();
-   updateAccount();
-  }
-  msg(data.session?
-  "Account created successfully.":
-  "Check your email to confirm your account.");
+/* ACCOUNT */
+async function signUp(){
+ const email=get("email").value.trim();
+ const password=get("password").value;
+ if(!email||password.length<6)return say("authStatus","Enter a valid email and password of at least 6 characters.");
+ say("authStatus","Creating account...");
+ const {data,error}=await db.auth.signUp({email,password});
+ if(error)return say("authStatus",error.message);
+ if(data.user && data.session){
+  currentUser=data.user;
+  await ensureProfile();
+  say("authStatus","Account created. You are signed in.");
+  await refreshApp();
+ }else{
+  say("authStatus","Account created. Check your email to confirm, then log in.");
  }
 }
 
-async function login(){
- let email=document.getElementById("email").value.trim();
- let password=document.getElementById("password").value;
-
- msg("Logging in...");
-
+async function signIn(){
  const {data,error}=await db.auth.signInWithPassword({
-  email,password
+  email:get("email").value.trim(),
+  password:get("password").value
  });
-
- if(error)return msg(error.message);
-
+ if(error)return say("authStatus",error.message);
  currentUser=data.user;
  await ensureProfile();
- updateAccount();
- msg("Welcome to INCO!");
- loadFeed();
+ say("authStatus","Login successful.");
+ await refreshApp();
 }
 
 async function resetPassword(){
- let email=document.getElementById("email").value.trim();
- if(!email)return msg("Enter your email first.");
-
+ const email=get("email").value.trim();
+ if(!email)return say("authStatus","Enter your email address first.");
  const {error}=await db.auth.resetPasswordForEmail(email,{
   redirectTo:location.origin+location.pathname
  });
-
- msg(error?error.message:"Password reset email requested.");
+ say("authStatus",error?error.message:"Password reset email requested. Check your inbox.");
 }
 
-async function logout(){
- await db.auth.signOut();
- currentUser=null;
- updateAccount();
- msg("Logged out.");
+async function signOut(){
+ const {error}=await db.auth.signOut();
+ if(error)return say("authStatus",error.message);
+ currentUser=null;myProfile=null;
+ say("accountStatus","Not signed in");
+ say("authStatus","You have logged out.");
+ get("feed").innerHTML="";
 }
 
 async function ensureProfile(){
  if(!currentUser)return;
- const {error}=await db.from("profiles").upsert({
-  id:currentUser.id
- },{onConflict:"id"});
- if(error)msg("Profile setup: "+error.message);
+ const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();
+ if(error){console.error(error);return}
+ if(data){myProfile=data;return}
+ const username=(currentUser.email||"inco_user").split("@")[0];
+ const result=await db.from("profiles").insert({
+  id:currentUser.id,username,bio:"Welcome to INCO!"
+ }).select().single();
+ if(!result.error)myProfile=result.data;
 }
 
-function updateAccount(){
- let logged=!!currentUser;
-
- document.getElementById("accountStatus").textContent=
- logged?"Signed in":"Guest";
-
- document.getElementById("authPanel").classList.toggle("hidden",logged);
- document.getElementById("loggedPanel").classList.toggle("hidden",!logged);
-
- document.getElementById("userEmail").textContent=
- currentUser?.email||"";
-
- document.getElementById("profileName").textContent=
- currentUser?.user_metadata?.display_name||currentUser?.email||"Guest";
-
- if(logged)loadAvatar();
- else document.getElementById("avatar").removeAttribute("src");
+async function refreshApp(){
+ if(!currentUser)return;
+ await ensureProfile();
+ get("accountStatus").textContent=currentUser.email||"Signed in";
+ await loadProfile();
+ await loadFeed();
+ await loadNews();
+ await loadLive();
 }
 
-async function loadAvatar(){
- const {data}=await db.from("profiles")
- .select("avatar_url").eq("id",currentUser.id).maybeSingle();
-
- if(data?.avatar_url)
- document.getElementById("avatar").src=data.avatar_url;
-}
-
-// AVATAR
-async function uploadAvatar(){
- if(!currentUser)return msg("Login first.");
-
- const file=document.getElementById("avatarFile").files[0];
- if(!file)return msg("Choose a picture.");
-
- if(!file.type.startsWith("image/")||file.size>5*1024*1024)
- return msg("Choose an image smaller than 5 MB.");
-
- msg("Uploading picture...");
-
- const path=currentUser.id+"/"+Date.now()+"_"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-
- const {error}=await db.storage.from("inco-avatars")
- .upload(path,file,{upsert:true});
-
- if(error)return msg(error.message);
-
- const {data}=db.storage.from("inco-avatars").getPublicUrl(path);
-
- const result=await db.from("profiles").upsert({
-  id:currentUser.id,avatar_url:data.publicUrl
- });
-
- if(result.error)return msg(result.error.message);
-
- loadAvatar();
- msg("Profile picture updated.");
-}
-
-// POSTS
+/* COMMUNITY POSTS */
 async function createPost(){
- if(!currentUser)return msg("Login to publish posts.");
-
- const content=document.getElementById("postText").value.trim();
- const file=document.getElementById("postMedia").files[0];
-
- if(!content&&!file)return msg("Write something or choose media.");
-
+ if(!currentUser)return alert("Please log in first.");
+ const content=get("postText").value.trim();
+ const file=get("postMedia").files[0];
+ if(!content&&!file)return alert("Write something or select a photo/video.");
+ say("postStatus","Publishing...");
  let media_url=null;
 
  if(file){
-  if(!["image/","video/"].some(t=>file.type.startsWith(t)))
-  return msg("Choose an image or video.");
-
-  if(file.size>10*1024*1024)
-  return msg("Media limit is 10 MB.");
-
-  const path=currentUser.id+"/"+Date.now()+"_"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-
-  const upload=await db.storage.from("inco-posts")
-  .upload(path,file);
-
-  if(upload.error)return msg(upload.error.message);
-
-  media_url=db.storage.from("inco-posts").getPublicUrl(path).data.publicUrl;
+  if(file.size>30*1024*1024)return say("postStatus","Media must be 30 MB or smaller.");
+  const ext=file.name.split(".").pop().replace(/[^a-zA-Z0-9]/g,"");
+  const path=currentUser.id+"/"+Date.now()+"."+ext;
+  const up=await db.storage.from("inco-posts").upload(path,file,{upsert:false});
+  if(up.error)return say("postStatus","Upload failed: "+up.error.message);
+  const publicResult=db.storage.from("inco-posts").getPublicUrl(path);
+  media_url=publicResult.data.publicUrl;
  }
-
- msg("Publishing...");
 
  const {error}=await db.from("posts").insert({
-  user_id:currentUser.id,
-  content,
-  media_url
+  user_id:currentUser.id,content,media_url,status:"published"
  });
-
- if(error)return msg(error.message);
-
- document.getElementById("postText").value="";
- document.getElementById("postMedia").value="";
- msg("Post published.");
- loadFeed();
+ if(error)return say("postStatus","Post failed: "+error.message);
+ get("postText").value="";
+ get("postMedia").value="";
+ say("postStatus","Post published.");
+ await loadFeed();
 }
 
-// FEED
 async function loadFeed(){
- const box=document.getElementById("feed");
-
- const {data:posts,error}=await db.from("posts")
- .select("*").order("created_at",{ascending:false}).limit(50);
-
- if(error){box.textContent=error.message;return;}
-
- if(!posts.length){box.textContent="No posts yet. Be the first!";return;}
-
- const ids=[...new Set(posts.map(p=>p.user_id))];
-
- const {data:profiles}=await db.from("profiles")
- .select("id,avatar_url").in("id",ids);
-
- const avatarMap=Object.fromEntries((profiles||[]).map(p=>[p.id,p.avatar_url]));
-
+ const box=get("feed");
+ box.innerHTML="Loading posts...";
+ const {data,error}=await db.from("posts")
+  .select("id,user_id,content,media_url,status,created_at")
+  .order("created_at",{ascending:false}).limit(50);
+ if(error){box.textContent="Could not load posts: "+error.message;return}
+ if(!data.length){box.textContent="No posts yet. Be the first to share.";return}
+ const ids=[...new Set(data.map(p=>p.user_id))];
+ const profiles=await db.from("profiles").select("id,username,avatar_url").in("id",ids);
+ const map={};
+ (profiles.data||[]).forEach(p=>map[p.id]=p);
  box.innerHTML="";
-
- for(const p of posts){
-  const {count}=await db.from("likes")
-  .select("*",{count:"exact",head:true}).eq("post_id",p.id);
-
-  const {data:mine}=currentUser?
-  await db.from("likes").select("id")
-  .eq("post_id",p.id).eq("user_id",currentUser.id).limit(1):
-  {data:[]};
-
-  const div=document.createElement("div");
-  div.className="post";
-
-  const media=p.media_url?
-  (/\.(mp4|webm|mov)(\?|$)/i.test(p.media_url)?
-  `<video controls src="${esc(p.media_url)}"></video>`:
-  `<img src="${esc(p.media_url)}" alt="Post media">`):"";
-
-  div.innerHTML=`
-   <div class="row">
-    <img class="avatar" src="${esc(avatarMap[p.user_id]||"")}" alt="">
-    <div>
-     <b>${p.user_id===currentUser?.id?"You":"INCO Member"}</b>
-     <div class="muted">${esc(new Date(p.created_at).toLocaleString())}</div>
-    </div>
-   </div>
-   <p>${esc(p.content)}</p>
-   ${media}
-   <div class="actions">
-    <button data-like>${mine?.length?"Unlike":"Like"} (${count||0})</button>
-    <button data-comment>Comments</button>
-    <button data-follow>Follow</button>
-    <button data-report>Report</button>
-    ${p.user_id===currentUser?.id?'<button data-delete>Delete</button>':""}
-   </div>
-   <div data-comments></div>
-   <div data-comment-form class="hidden">
-    <input placeholder="Write a comment..." data-comment-text>
-    <button data-send>Send</button>
-   </div>
+ for(const post of data){
+  const profile=map[post.user_id]||{};
+  const card=document.createElement("div");
+  card.className="card post";
+  const media=post.media_url?(
+   /\.(mp4|webm|mov|m4v)(\?|$)/i.test(post.media_url)
+   ?`<video controls src="${safeURL(post.media_url)}"></video>`
+   :`<img src="${safeURL(post.media_url)}" alt="Post media">`
+  ):"";
+  card.innerHTML=`
+   <b>${escapeHTML(profile.username||"INCO user")}</b>
+   <p>${escapeHTML(post.content||"")}</p>${media}
+   <p class="muted">${new Date(post.created_at).toLocaleString()}</p>
+   <button data-like="${post.id}">Like</button>
+   <button data-comment="${post.id}">Comments</button>
+   <button data-save="${post.id}">Save</button>
+   ${currentUser&&post.user_id===currentUser.id?`<button data-delete="${post.id}">Delete</button>`:""}
+   <div id="comments-${post.id}"></div>
   `;
-
-  div.querySelector("[data-like]").onclick=()=>toggleLike(p.id);
-  div.querySelector("[data-comment]").onclick=async()=>{
-   const form=div.querySelector("[data-comment-form]");
-   form.classList.toggle("hidden");
-   await loadComments(p.id,div.querySelector("[data-comments]"));
-  };
-  div.querySelector("[data-send]").onclick=()=>{
-   const input=div.querySelector("[data-comment-text]");
-   sendComment(p.id,input.value);
-  };
-  div.querySelector("[data-follow]").onclick=()=>followUser(p.user_id);
-  div.querySelector("[data-report]").onclick=()=>reportPost(p.id);
-  const del=div.querySelector("[data-delete]");
-  if(del)del.onclick=()=>deletePost(p.id);
-
-  box.appendChild(div);
+  box.appendChild(card);
  }
+ box.querySelectorAll("[data-like]").forEach(b=>b.onclick=()=>toggleLike(b.dataset.like));
+ box.querySelectorAll("[data-comment]").forEach(b=>b.onclick=()=>commentPrompt(b.dataset.comment));
+ box.querySelectorAll("[data-save]").forEach(b=>b.onclick=()=>savePost(b.dataset.save));
+ box.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>deletePost(b.dataset.delete));
 }
 
 async function toggleLike(postId){
- if(!currentUser)return msg("Login first.");
-
- const {data}=await db.from("likes").select("id")
- .eq("post_id",postId).eq("user_id",currentUser.id).maybeSingle();
-
- const result=data?
- await db.from("likes").delete().eq("id",data.id):
- await db.from("likes").insert({
-  post_id:postId,user_id:currentUser.id
- });
-
- if(result.error)return msg(result.error.message);
- loadFeed();
+ if(!currentUser)return alert("Please log in first.");
+ const found=await db.from("likes").select("id").eq("post_id",postId).eq("user_id",currentUser.id).maybeSingle();
+ if(found.error)return alert(found.error.message);
+ if(found.data){
+  const {error}=await db.from("likes").delete().eq("id",found.data.id);
+  if(error)alert(error.message);
+ }else{
+  const {error}=await db.from("likes").insert({post_id:postId,user_id:currentUser.id});
+  if(error)alert(error.message);
+ }
 }
 
-async function sendComment(postId,value){
- if(!currentUser)return msg("Login first.");
- value=value.trim();
- if(!value)return msg("Write a comment.");
-
+async function commentPrompt(postId){
+ if(!currentUser)return alert("Please log in first.");
+ const content=prompt("Write your comment:");
+ if(!content||!content.trim())return;
  const {error}=await db.from("comments").insert({
-  post_id:postId,user_id:currentUser.id,content:value
+  post_id:postId,user_id:currentUser.id,content:content.trim()
  });
-
- if(error)return msg(error.message);
- msg("Comment added.");
- loadFeed();
-}
-
-async function loadComments(postId,box){
- const {data,error}=await db.from("comments")
- .select("*").eq("post_id",postId)
- .order("created_at",{ascending:true});
-
- if(error){box.textContent=error.message;return;}
-
- box.innerHTML=(data||[]).map(c=>`
- <div class="panel">
- ${c.user_id===currentUser?.id?"You":"INCO Member"}:
- ${esc(c.content)}
- </div>`).join("")||"No comments yet.";
-}
-
-async function followUser(id){
- if(!currentUser)return msg("Login first.");
- if(id===currentUser.id)return msg("This is your own post.");
-
- const {data}=await db.from("follows").select("id")
- .eq("follower_id",currentUser.id)
- .eq("following_id",id).maybeSingle();
-
- const result=data?
- await db.from("follows").delete().eq("id",data.id):
- await db.from("follows").insert({
-  follower_id:currentUser.id,following_id:id
- });
-
- msg(result.error?result.error.message:
- data?"Unfollowed.":"Following.");
-}
-
-async function reportPost(id){
- if(!currentUser)return msg("Login first.");
-
- const reason=prompt("Why are you reporting this post?");
- if(!reason?.trim())return;
-
- const {error}=await db.from("reports").insert({
-  reporter_id:currentUser.id,
-  post_id:id,reason:reason.trim()
- });
-
- msg(error?error.message:"Report submitted.");
+ if(error)return alert(error.message);
+ alert("Comment posted.");
 }
 
 async function deletePost(id){
  if(!currentUser||!confirm("Delete this post?"))return;
-
- const {error}=await db.from("posts").delete()
- .eq("id",id).eq("user_id",currentUser.id);
-
- msg(error?error.message:"Post deleted.");
- loadFeed();
+ const {error}=await db.from("posts").delete().eq("id",id).eq("user_id",currentUser.id);
+ if(error)return alert(error.message);
+ await loadFeed();
+ await loadProfile();
 }
 
-async function loadMyPosts(){
- if(!currentUser){
-  document.getElementById("myPosts").textContent="Login first.";
-  return;
- }
+/* BOOKMARKS */
+function savePost(id){
+ let a=localGet("inco_bookmarks");
+ if(!a.includes(id))a.push(id);
+ localSet("inco_bookmarks",a);
+ alert("Post saved on this device.");
+}
+async function renderSaved(){
+ const ids=localGet("inco_bookmarks");
+ get("bookmarks").innerHTML=ids.map(id=>`<div class="item">Post ID: ${escapeHTML(id)}</div>`).join("")||"No saved posts yet.";
+ renderHistory("history");
+}
+function renderHistory(id){
+ const a=localGet("inco_history");
+ get(id).innerHTML=a.map(x=>`<div class="item">${escapeHTML(x.value)} <span class="muted">${escapeHTML(x.time)}</span></div>`).join("")||"No history yet.";
+}
+function clearHistory(){localSet("inco_history",[]);renderSaved();renderHistory("searchHistory")}
 
- const {data,error}=await db.from("posts")
- .select("*").eq("user_id",currentUser.id)
- .order("created_at",{ascending:false});
-
- document.getElementById("myPosts").innerHTML=
- error?esc(error.message):
- (data||[]).map(p=>`
- <div class="post">
- ${esc(p.content)}
- <div class="muted">${esc(p.created_at)}</div>
- </div>`).join("")||"You have not published any posts.";
+/* PROFILE */
+async function loadProfile(){
+ if(!currentUser)return;
+ const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();
+ if(error){say("profileStatus",error.message);return}
+ myProfile=data;
+ get("profileUsername").value=data?.username||"";
+ get("profileBio").value=data?.bio||"";
+ if(data?.avatar_url)get("avatarPreview").src=data.avatar_url;
+ const {data:posts,error:postError}=await db.from("posts").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:false});
+ get("myPosts").innerHTML=postError?escapeHTML(postError.message):(posts||[]).map(p=>`<div class="item">${escapeHTML(p.content||"Post")} <span class="muted">${new Date(p.created_at).toLocaleDateString()}</span></div>`).join("")||"You have not posted yet.";
 }
 
-// NEWS
+async function saveProfile(){
+ if(!currentUser)return alert("Please log in first.");
+ const {error}=await db.from("profiles").update({
+  username:get("profileUsername").value.trim(),
+  bio:get("profileBio").value.trim()
+ }).eq("id",currentUser.id);
+ say("profileStatus",error?error.message:"Profile updated.");
+ if(!error)await loadProfile();
+}
+
+async function uploadAvatar(){
+ if(!currentUser)return alert("Please log in first.");
+ const file=get("avatarFile").files[0];
+ if(!file)return alert("Choose a picture first.");
+ if(file.size>5*1024*1024)return alert("Choose a picture under 5 MB.");
+ const ext=file.name.split(".").pop().replace(/[^a-zA-Z0-9]/g,"");
+ const path=currentUser.id+"/avatar-"+Date.now()+"."+ext;
+ const up=await db.storage.from("inco-avatars").upload(path,file,{upsert:true});
+ if(up.error)return say("profileStatus",up.error.message);
+ const url=db.storage.from("inco-avatars").getPublicUrl(path).data.publicUrl;
+ const {error}=await db.from("profiles").update({avatar_url:url}).eq("id",currentUser.id);
+ if(error)return say("profileStatus",error.message);
+ get("avatarPreview").src=url;
+ say("profileStatus","Profile picture updated.");
+}
+
+/* NEWS */
 async function loadNews(){
- const box=document.getElementById("newsList");
-
+ const box=get("newsFeed");
  const {data,error}=await db.from("news_articles")
- .select("*").eq("status","published")
- .order("created_at",{ascending:false}).limit(30);
-
- if(error){box.textContent=error.message;return;}
-
- box.innerHTML=(data||[]).map(n=>`
- <article class="news">
- <div class="muted">${esc(n.category)}</div>
- <h3>${esc(n.title)}</h3>
- ${n.image_url?`<img src="${esc(n.image_url)}" alt="">`:""}
- <p>${esc(n.content)}</p>
- <div class="muted">${esc(n.created_at)}</div>
- </article>`).join("")||"No published news yet.";
+  .select("id,author_id,title,category,content,image_url,views,created_at")
+  .order("created_at",{ascending:false}).limit(30);
+ if(error){box.textContent="Could not load news: "+error.message;return}
+ box.innerHTML=(data||[]).map(a=>`
+  <div class="card">
+   <h3>${escapeHTML(a.title)}</h3>
+   <p class="muted">${escapeHTML(a.category||"News")} · ${new Date(a.created_at).toLocaleDateString()}</p>
+   ${a.image_url?`<img class="post" src="${safeURL(a.image_url)}" alt="News image">`:""}
+   <p>${escapeHTML(a.content)}</p>
+  </div>`).join("")||"No news articles yet.";
 }
 
-// START
-async function start(){
+async function submitArticle(){
+ if(!currentUser)return alert("Please log in first.");
+ const title=get("articleTitle").value.trim();
+ const content=get("articleContent").value.trim();
+ if(!title||!content)return alert("Enter a title and article.");
+ const {error}=await db.from("news_articles").insert({
+  author_id:currentUser.id,
+  title,
+  category:get("articleCategory").value.trim(),
+  content,
+  image_url:get("articleImage").value.trim()||null
+ });
+ if(error)return alert("Article submission failed: "+error.message);
+ alert("Article submitted.");
+ await loadNews();
+}
+
+/* LIVE SESSION LIST */
+async function loadLive(){
+ const box=get("liveSessions");
+ const {data,error}=await db.from("live_sessions")
+  .select("id,host_id,title,room_name,status,started_at")
+  .order("started_at",{ascending:false}).limit(20);
+ if(error){box.textContent="Could not load LIVE sessions: "+error.message;return}
+ box.innerHTML=(data||[]).map(s=>`
+  <div class="item"><b>${escapeHTML(s.title||"INCO LIVE")}</b>
+  <span class="muted">${escapeHTML(s.status||"")}</span></div>
+ `).join("")||"No live sessions at the moment.";
+}
+
+/* STARTUP */
+async function startApp(){
  const {data}=await db.auth.getSession();
  currentUser=data.session?.user||null;
-
- if(currentUser)await ensureProfile();
-
- updateAccount();
+ if(currentUser)await refreshApp();
  renderShortcuts();
- renderSaved();
- loadFeed();
-}
-
-db.auth.onAuthStateChange((event,session)=>{
- currentUser=session?.user||null;
- updateAccount();
-});
-
-start();
-</script>
-
-<!-- INCO NEWS MANAGEMENT - WITH YOUR SUPABASE CONNECTED -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<script>
-(function(){
-
-// YOUR INCO SUPABASE CONNECTION - ADDED
-const SUPABASE_URL = "https://zvrbkmvoyofnasqssnhu.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_GgUFgvk2DLQx_w2Jzbbkpw_kcix85oQ";
-if(!window.db){
-  window.db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-}
-const db = window.db;
-
-// Ensure currentUser is set
-if(typeof window.currentUser === 'undefined'){
-  window.currentUser = null;
-  db.auth.getSession().then(({data})=>{
-    window.currentUser = data.session?.user || null;
-  });
-  db.auth.onAuthStateChange((e,s)=>{
-    window.currentUser = s?.user || null;
-  });
-}
-
-const nav = document.querySelector("nav");
-const section = document.createElement("section");
-
-section.id = "newsAdmin";
-section.className = "page";
-section.innerHTML = `
-<div class="panel">
-<h3>🌍 INCO Newsroom</h3>
-<p class="muted">Global News Publishing Centre</p>
-<div id="newsRole">Checking account...</div>
-</div>
-
-<div class="panel" id="newsEditor">
-<h3>Write an Article</h3>
-<input id="articleTitle" placeholder="News headline">
-<select id="articleCategory">
-<option>World</option>
-<option>Nigeria</option>
-<option>Africa</option>
-<option>Europe</option>
-<option>Asia</option>
-<option>America</option>
-<option>Politics</option>
-<option>Business</option>
-<option>Technology</option>
-<option>Sports</option>
-<option>Entertainment</option>
-<option>Science</option>
-<option>Health</option>
-</select>
-<input id="articleImage" placeholder="Article image URL (optional)">
-<textarea id="articleContent" placeholder="Write your original news article..."></textarea>
-<button id="submitArticle">Submit Article</button>
-</div>
-
-<h3>News Articles & Submissions</h3>
-<div id="adminArticles">Loading...</div>
-`;
-
-const bottom = document.querySelector(".bottom") || document.querySelector("nav") || document.body;
-document.body.insertBefore(section, bottom);
-
-const navButton = document.createElement("button");
-navButton.textContent = "Newsroom";
-navButton.onclick = function(){
- if(typeof page === 'function') page("newsAdmin",navButton);
- else { document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById('newsAdmin').style.display='block'; }
- loadNewsAdmin();
-};
-if(nav) nav.appendChild(navButton);
-
-async function getRole(){
- if(!window.currentUser) return "guest";
- const {data,error} = await db.from("profiles").select("role").eq("id",window.currentUser.id).maybeSingle();
- if(error) throw error;
- return data?.role || "member";
-}
-
-window.loadNewsAdmin = async function(){
- const roleBox = document.getElementById("newsRole");
- const list = document.getElementById("adminArticles");
- const editor = document.getElementById("newsEditor");
-
- if(!window.currentUser){
- roleBox.textContent="Please login first.";
- editor.classList.add("hidden");
- if(editor.style) editor.style.display="none";
- list.textContent="Login to continue.";
- return;
- }
-
- try{
- const role = await getRole();
- roleBox.textContent = "Your role: "+role;
-
- if(!["admin","editor"].includes(role)){
- if(editor.classList) editor.classList.add("hidden");
- if(editor.style) editor.style.display="none";
- list.textContent="You do not have newsroom permission. Go to Supabase > profiles > change role to admin";
- return;
- }
-
- if(editor.classList) editor.classList.remove("hidden");
- if(editor.style) editor.style.display="block";
-
- const {data,error} = await db.from("news_articles").select("*").order("created_at",{ascending:false});
- if(error) throw error;
-
- list.innerHTML="";
- if(!data?.length){
- list.textContent="No articles yet.";
- return;
- }
-
- data.forEach(article=>{
-   const card=document.createElement("div");
-   card.className="post";
-   card.innerHTML=`
-   <h3>${article.title}</h3>
-   <p>${article.category}</p>
-   <p>${article.content}</p>
-   <p class="muted">Status: ${article.status}</p>
-   `;
-   if(role==="admin"){
-     const publish=document.createElement("button");
-     publish.textContent="Publish";
-     publish.onclick=()=>publishNews(article.id);
-     const remove=document.createElement("button");
-     remove.textContent="Delete";
-     remove.style.marginLeft="8px";
-     remove.onclick=()=>deleteNews(article.id);
-     card.append(publish,remove);
-   }
-   list.appendChild(card);
+ renderHistory("searchHistory");
+ db.auth.onAuthStateChange((_event,session)=>{
+  currentUser=session?.user||null;
+  if(currentUser){
+   setTimeout(()=>refreshApp(),0);
+  }else{
+   get("accountStatus").textContent="Not signed in";
+  }
  });
-
- }catch(error){
- roleBox.textContent="Error: "+error.message;
- }
-};
-
-document.getElementById("submitArticle").onclick = async function(){
- if(!window.currentUser) return msg("Login first.");
- const role=await getRole();
- if(!["admin","editor"].includes(role)) return msg("Newsroom permission required.");
- const title=document.getElementById("articleTitle").value.trim();
- const content=document.getElementById("articleContent").value.trim();
- const category=document.getElementById("articleCategory").value;
- const image=document.getElementById("articleImage").value.trim();
- if(!title||!content) return msg("Enter headline and article.");
- if(image){
-   try{ const url=new URL(image); if(!["http:","https:"].includes(url.protocol)) throw Error(); }catch(e){ return msg("Enter a valid image URL."); }
- }
- msg("Submitting article...");
- const {error}=await db.from("news_articles").insert({
- title, content, category, image_url:image||null, author_id:window.currentUser.id, status:role==="admin"?"published":"pending"
- });
- if(error) return msg(error.message);
- document.getElementById("articleTitle").value="";
- document.getElementById("articleContent").value="";
- document.getElementById("articleImage").value="";
- msg(role==="admin"?"News published.":"Article submitted for approval.");
- loadNewsAdmin();
-};
-
-window.publishNews=async function(id){
- const {error}=await db.from("news_articles").update({status:"published"}).eq("id",id);
- if(error) return msg(error.message);
- msg("Article published.");
- loadNewsAdmin();
-};
-
-window.deleteNews=async function(id){
- if(!confirm("Delete this article?"))return;
- const {error}=await db.from("news_articles").delete().eq("id",id);
- if(error) return msg(error.message);
- msg("Article deleted.");
- loadNewsAdmin();
-};
-
-})();
+}
+startApp();
 </script>
+</body>
+</html>
+
 
