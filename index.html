@@ -231,7 +231,39 @@ footer{text-align:center;color:#7e91ad;padding:25px}
   <p class="muted">Payment processing requires a secure payment provider.</p>
  </div>
 </section>
+<!-- INCO AUTOMATIC INBOX -->
+<section id="inbox">
+ <div class="card">
+  <h2>📥 Message Inbox</h2>
+  <p class="muted">Your conversations and unread messages.</p>
+  <div id="inboxList">Loading inbox...</div>
+ </div>
+</section>
 
+<!-- INCO NOTIFICATIONS -->
+<section id="notifications">
+ <div class="card">
+  <h2>🔔 Notifications</h2>
+  <button onclick="markAllNotificationsRead()">Mark all as read</button>
+  <div id="notificationList">Loading notifications...</div>
+ </div>
+</section>
+
+<!-- INCO PUBLIC PEOPLE -->
+<section id="people">
+ <div class="card">
+  <h2>👥 Discover People</h2>
+  <input id="peopleSearch" placeholder="Search by exact username">
+  <button onclick="searchPeople()">Search</button>
+  <div id="peopleResults"></div>
+ </div>
+
+ <div class="card">
+  <h2>🌍 Public Profile</h2>
+  <div id="publicProfile">Search for someone to view their profile.</div>
+  <div id="publicPosts"></div>
+ </div>
+</section>
 </main>
 
 <footer>INCO Browser · Connecting people worldwide 🌍</footer>
