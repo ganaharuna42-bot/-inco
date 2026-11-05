@@ -1189,7 +1189,473 @@ async function uploadVoiceNote(){
   voiceUploadInProgress=false;
   button.disabled=false;
   voiceChunks=[];
+ }/* =================================
+   INCO SOCIAL ADDITIONS
+================================= */
+
+let socialChannel=null;
+let selectedPublicUser=null;
+
+/* AUTOMATIC MESSAGE INBOX */
+
+async function loadInbox(){
+
+ if(!currentUser)return;
+
+ const box=get("inboxList");
+ box.textContent="Loading conversations...";
+
+ const {data,error}=await db.from("messages")
+  .select("id,sender_id,receiver_id,content,read_at,created_at")
+  .or(
+   `sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`
+  )
+  .order("created_at",{ascending:false})
+  .limit(300);
+
+ if(error){
+  box.textContent=error.message;
+  return;
  }
+
+ const conversations={};
+
+ (data||[]).forEach(m=>{
+  const other=m.sender_id===currentUser.id
+   ?m.receiver_id:m.sender_id;
+
+  if(!conversations[other]){
+   conversations[other]={
+    message:m,
+    unread:0
+   };
+  }
+
+  if(m.receiver_id===currentUser.id&&!m.read_at){
+   conversations[other].unread++;
+  }
+ });
+
+ const ids=Object.keys(conversations);
+
+ if(!ids.length){
+  box.textContent="No conversations yet.";
+  get("inboxCount").textContent="0";
+  return;
+ }
+
+ const {data:profiles,error:profileError}=await db
+  .from("profiles")
+  .select("id,username,avatar_url")
+  .in("id",ids);
+
+ if(profileError){
+  box.textContent=profileError.message;
+  return;
+ }
+
+ const profileMap={};
+
+ (profiles||[]).forEach(p=>profileMap[p.id]=p);
+
+ let totalUnread=0;
+
+ box.innerHTML="";
+
+ ids.forEach(id=>{
+
+  const c=conversations[id];
+  const p=profileMap[id]||{};
+
+  totalUnread+=c.unread;
+
+  const item=document.createElement("div");
+  item.className="item";
+
+  const name=document.createElement("b");
+  name.textContent=p.username||"INCO user";
+
+  const message=document.createElement("p");
+  message.textContent=c.message.content.startsWith("VOICE:")
+   ?"🎤 Voice message"
+   :c.message.content;
+
+  const unread=document.createElement("span");
+  unread.className="muted";
+  unread.textContent=c.unread
+   ?" · "+c.unread+" unread":" · No unread messages";
+
+  const button=document.createElement("button");
+  button.textContent="Open Conversation";
+
+  button.onclick=()=>{
+   get("chatUsername").value=p.username||"";
+   showPage("chat");
+   openChat();
+  };
+
+  item.append(name,message,unread,button);
+  box.appendChild(item);
+
+ });
+
+ get("inboxCount").textContent=totalUnread;
+}
+
+/* NOTIFICATIONS */
+
+async function loadNotifications(){
+
+ if(!currentUser)return;
+
+ const box=get("notificationList");
+ box.textContent="Loading notifications...";
+
+ const {data,error}=await db.from("notifications")
+  .select("*")
+  .eq("user_id",currentUser.id)
+  .order("created_at",{ascending:false})
+  .limit(100);
+
+ if(error){
+  box.textContent=error.message;
+  return;
+ }
+
+ const notifications=data||[];
+
+ const unread=notifications.filter(n=>!n.is_read).length;
+
+ get("notificationCount").textContent=unread;
+
+ if(!notifications.length){
+  box.textContent="No notifications yet.";
+  return;
+ }
+
+ const actorIds=[
+  ...new Set(notifications.map(n=>n.actor_id).filter(Boolean))
+ ];
+
+ let actors={};
+
+ if(actorIds.length){
+
+  const result=await db.from("profiles")
+   .select("id,username")
+   .in("id",actorIds);
+
+  if(result.error){
+   box.textContent=result.error.message;
+   return;
+  }
+
+  (result.data||[]).forEach(p=>actors[p.id]=p.username);
+ }
+
+ box.innerHTML="";
+
+ notifications.forEach(n=>{
+
+  const item=document.createElement("div");
+  item.className="item";
+
+  const actor=actors[n.actor_id]||"An INCO user";
+
+  const title=document.createElement("b");
+  title.textContent=actor;
+
+  const content=document.createElement("p");
+  content.textContent=n.content||(
+   n.type==="like"?"Liked your post":
+   n.type==="comment"?"Commented on your post":
+   n.type==="follow"?"Started following you":
+   n.type==="message"?"Sent you a message":
+   "New notification"
+  );
+
+  const time=document.createElement("small");
+  time.className="muted";
+  time.textContent=new Date(n.created_at).toLocaleString();
+
+  item.append(title,content,time);
+
+  if(!n.is_read){
+   item.style.borderLeft="3px solid #1678db";
+  }
+
+  box.appendChild(item);
+
+ });
+
+}
+
+/* MARK NOTIFICATIONS READ */
+
+async function markAllNotificationsRead(){
+
+ if(!currentUser)return;
+
+ const {error}=await db.from("notifications")
+  .update({is_read:true})
+  .eq("user_id",currentUser.id)
+  .eq("is_read",false);
+
+ if(error)return alert(error.message);
+
+ await loadNotifications();
+}
+
+/* SEARCH PUBLIC USERS */
+
+async function searchPeople(){
+
+ if(!currentUser)return alert("Please login first.");
+
+ const username=get("peopleSearch").value.trim();
+
+ if(username.length<2)
+  return alert("Enter at least 2 characters.");
+
+ const box=get("peopleResults");
+ box.textContent="Searching...";
+
+ const {data,error}=await db.from("profiles")
+  .select("id,username,display_name,avatar_url,bio")
+  .ilike("username","%"+username+"%")
+  .neq("id",currentUser.id)
+  .limit(20);
+
+ if(error){
+  box.textContent=error.message;
+  return;
+ }
+
+ box.innerHTML="";
+
+ if(!data.length){
+  box.textContent="No users found.";
+  return;
+ }
+
+ data.forEach(p=>{
+
+  const item=document.createElement("div");
+  item.className="item";
+
+  const name=document.createElement("b");
+  name.textContent=p.username;
+
+  const bio=document.createElement("p");
+  bio.textContent=p.bio||"INCO member";
+
+  const button=document.createElement("button");
+  button.textContent="View Profile";
+
+  button.onclick=()=>viewPublicProfile(p.id);
+
+  item.append(name,bio,button);
+  box.appendChild(item);
+
+ });
+
+}
+
+/* VIEW PUBLIC PROFILE */
+
+async function viewPublicProfile(userId){
+
+ selectedPublicUser=userId;
+
+ const box=get("publicProfile");
+ const postsBox=get("publicPosts");
+
+ box.textContent="Loading profile...";
+ postsBox.textContent="Loading posts...";
+
+ const {data:p,error}=await db.from("profiles")
+  .select("*")
+  .eq("id",userId)
+  .maybeSingle();
+
+ if(error||!p){
+  box.textContent=error?.message||"Profile not found.";
+  return;
+ }
+
+ box.innerHTML="";
+
+ if(p.avatar_url){
+  const avatar=document.createElement("img");
+  avatar.className="avatar";
+  avatar.src=safeURL(p.avatar_url);
+  avatar.alt="Profile picture";
+  box.appendChild(avatar);
+ }
+
+ const name=document.createElement("h3");
+ name.textContent=p.display_name||p.username;
+
+ const username=document.createElement("p");
+ username.textContent="@"+p.username;
+
+ const bio=document.createElement("p");
+ bio.textContent=p.bio||"No bio yet.";
+
+ box.append(name,username,bio);
+
+ const followButton=document.createElement("button");
+ followButton.textContent="Loading follow status...";
+
+ box.appendChild(followButton);
+
+ const existing=await db.from("follows")
+  .select("id")
+  .eq("follower_id",currentUser.id)
+  .eq("following_id",userId)
+  .maybeSingle();
+
+ if(existing.error){
+  followButton.textContent="Follow status unavailable";
+  followButton.disabled=true;
+ }else{
+  followButton.textContent=existing.data?"Unfollow":"Follow";
+  followButton.onclick=()=>toggleFollow(userId);
+ }
+
+ const {data:posts,error:postError}=await db.from("posts")
+  .select("id,user_id,content,media_url,created_at")
+  .eq("user_id",userId)
+  .eq("status","published")
+  .order("created_at",{ascending:false})
+  .limit(50);
+
+ if(postError){
+  postsBox.textContent=postError.message;
+  return;
+ }
+
+ postsBox.innerHTML="<h3>Public Posts</h3>";
+
+ (posts||[]).forEach(post=>{
+
+  const card=document.createElement("div");
+  card.className="card post";
+
+  const content=document.createElement("p");
+  content.textContent=post.content||"";
+
+  card.appendChild(content);
+
+  if(post.media_url){
+
+   const media=safeURL(post.media_url);
+
+   if(/\.(mp4|webm|mov|m4v)(\?|$)/i.test(media)){
+    const video=document.createElement("video");
+    video.src=media;
+    video.controls=true;
+    card.appendChild(video);
+   }else{
+    const image=document.createElement("img");
+    image.src=media;
+    image.alt="Post image";
+    card.appendChild(image);
+   }
+
+  }
+
+  postsBox.appendChild(card);
+
+ });
+
+ if(!posts.length){
+  postsBox.textContent="No public posts yet.";
+ }
+
+}
+
+/* FOLLOW / UNFOLLOW */
+
+async function toggleFollow(userId){
+
+ if(!currentUser)return alert("Please login first.");
+
+ if(userId===currentUser.id)
+  return alert("You cannot follow yourself.");
+
+ const existing=await db.from("follows")
+  .select("id")
+  .eq("follower_id",currentUser.id)
+  .eq("following_id",userId)
+  .maybeSingle();
+
+ if(existing.error)return alert(existing.error.message);
+
+ if(existing.data){
+
+  const {error}=await db.from("follows")
+   .delete()
+   .eq("follower_id",currentUser.id)
+   .eq("following_id",userId);
+
+  if(error)return alert(error.message);
+
+ }else{
+
+  const {error}=await db.from("follows")
+   .insert({
+    follower_id:currentUser.id,
+    following_id:userId
+   });
+
+  if(error)return alert(error.message);
+
+ }
+
+ await viewPublicProfile(userId);
+
+}
+
+/* REALTIME SOCIAL UPDATES */
+
+async function setupSocialRealtime(){
+
+ if(!currentUser)return;
+
+ if(socialChannel){
+  await db.removeChannel(socialChannel);
+  socialChannel=null;
+ }
+
+ socialChannel=db.channel("inco-social-"+currentUser.id)
+
+ .on("postgres_changes",{
+  event:"*",
+  schema:"public",
+  table:"notifications",
+  filter:"user_id=eq."+currentUser.id
+ },()=>{
+  loadNotifications();
+  loadInbox();
+ })
+
+ .on("postgres_changes",{
+  event:"*",
+  schema:"public",
+  table:"messages"
+ },()=>{
+  loadInbox();
+ })
+
+ .subscribe();
+
+ await loadInbox();
+ await loadNotifications();
+
+}
+
+/* END INCO SOCIAL ADDITIONS */
 }
 
 /* STARTUP */
