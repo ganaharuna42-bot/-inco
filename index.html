@@ -70,7 +70,33 @@ Get INCO Session
 </button>
 /div></section>
 <section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Live session listings from your existing Supabase database.</p><p class="muted">Real camera broadcasting, viewer chat and host controls need a secure LiveKit token service. This page does not pretend broadcasting is active without it.</p><div id="liveSessions">Loading live sessions...</div></div></section>
-<section id="voice"><div class="card"><h2>📞 INCO Voice</h2><p>Voice and video calling need a secure call-signalling service. Voice notes are available in Messages.</p></div></section>
+
+<section id="voice">
+  <div class="card">
+    <h2>📞 INCO Voice</h2>
+
+    <p>Connect with friends using INCO voice and video calls.</p>
+
+    <p id="voiceStatus" class="muted">
+      Ready to connect.
+    </p>
+
+    <button onclick="testLiveKitConnection()">
+      Test LiveKit Connection
+    </button>
+
+    <button onclick="startIncoCall()">
+      Start Voice Call
+    </button>
+
+    <button onclick="startIncoVideoCall()">
+      Start Video Call
+    </button>
+
+    <div id="callArea"></div>
+  </div>
+</section>
+
 <section id="premium"><div class="card"><h2>⭐ INCO Premium</h2><p>Free and Premium account area.</p><p class="muted">Payment processing must be connected through a secure payment provider. Never put payment secret keys in this HTML.</p></div></section>
 </main>
 <footer>INCO Browser · Connecting people worldwide 🌍</footer>
