@@ -418,43 +418,39 @@ async function startApp(){
  }catch(e){console.error("INCO startup:",e);say("authStatus","Startup error: "+e.message);}
 }
 
+
 async function testLiveKitConnection() {
-  const status = document.getElementById("accountStatus");
+  const status = document.getElementById("voiceStatus");
 
   try {
-    status.textContent = "Connecting to LiveKit...";
+    status.textContent = "Connecting...";
 
     const { data: { session }, error: sessionError } =
       await db.auth.getSession();
 
     if (sessionError) throw sessionError;
-
-    if (!session) {
-      throw new Error("Please login to INCO first");
-    }
+    if (!session) throw new Error("Please login first.");
 
     const { data, error } = await db.functions.invoke(
       "rapid-action",
       {
-        body: {
-          roomName: "inco-test-room"
-        }
+        body: { roomName: "inco-test-room" }
       }
     );
 
     if (error) throw error;
-
     if (!data?.token || !data?.serverUrl) {
       throw new Error(data?.error || "LiveKit token missing");
     }
 
-    status.textContent = "LiveKit token ready";
-    alert("SUCCESS! INCO connected to LiveKit.");
+    status.textContent = "LiveKit token generated successfully.";
+
+    alert("INCO successfully received a LiveKit token!");
 
   } catch (error) {
-    status.textContent = "Connection failed";
-    alert("Connection error: " + error.message);
-    console.error(error);
+    status.textContent = "Connection failed: " + error.message;
+    alert(error.message);
+
   }
 }
 
@@ -462,5 +458,4 @@ startApp();
 </script>
 </body>
 </html>
-
 
