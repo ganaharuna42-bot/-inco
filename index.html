@@ -65,6 +65,9 @@ footer{text-align:center;color:#7e91ad;padding:25px}
 Get INCO Session
 </button>
 <p id="accountStatus" class="muted"></p>
+<button onclick="testLiveKitConnection()">
+  Test LiveKit Connection
+</button>
 /div></section>
 <section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Live session listings from your existing Supabase database.</p><p class="muted">Real camera broadcasting, viewer chat and host controls need a secure LiveKit token service. This page does not pretend broadcasting is active without it.</p><div id="liveSessions">Loading live sessions...</div></div></section>
 <section id="voice"><div class="card"><h2>📞 INCO Voice</h2><p>Voice and video calling need a secure call-signalling service. Voice notes are available in Messages.</p></div></section>
@@ -388,6 +391,47 @@ async function startApp(){
  if(currentUser)await refreshApp();else get("accountStatus").textContent="Not signed in";
  }catch(e){console.error("INCO startup:",e);say("authStatus","Startup error: "+e.message);}
 }
+
+async function testLiveKitConnection() {
+  const status = document.getElementById("accountStatus");
+
+  try {
+    status.textContent = "Connecting to LiveKit...";
+
+    const { data: { session }, error: sessionError } =
+      await db.auth.getSession();
+
+    if (sessionError) throw sessionError;
+
+    if (!session) {
+      throw new Error("Please login to INCO first");
+    }
+
+    const { data, error } = await db.functions.invoke(
+      "rapid-action",
+      {
+        body: {
+          roomName: "inco-test-room"
+        }
+      }
+    );
+
+    if (error) throw error;
+
+    if (!data?.token || !data?.serverUrl) {
+      throw new Error(data?.error || "LiveKit token missing");
+    }
+
+    status.textContent = "LiveKit token ready";
+    alert("SUCCESS! INCO connected to LiveKit.");
+
+  } catch (error) {
+    status.textContent = "Connection failed";
+    alert("Connection error: " + error.message);
+    console.error(error);
+  }
+}
+
 startApp();
 </script>
 </body>
