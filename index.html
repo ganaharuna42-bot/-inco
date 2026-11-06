@@ -64,9 +64,28 @@ footer{text-align:center;color:#7e91ad;padding:25px}
 <section id="account"><div class="card"><h2>INCO Account</h2><input id="email" type="email" autocomplete="email" placeholder="Email address"><input id="password" type="password" autocomplete="current-password" placeholder="Password"><button onclick="signUp()">Create Account</button><button onclick="signIn()">Login</button><button onclick="resetPassword()">Forgot Password</button><button onclick="signOut()">Logout</button><p id="authStatus" class="muted"></p>< <button onclick="checkIncoSession()">
 Get INCO Session
 </button>
-<p id="accountStatus" class="muted"></p>
-<button onclick="testLiveKitConnection()">
-  Test LiveKit Connection
+<section id="account">
+  <div class="card">
+    <h2>INCO Account</h2>
+
+    <input id="email" type="email"
+      autocomplete="email" placeholder="Email address">
+
+    <input id="password" type="password"
+      autocomplete="current-password" placeholder="Password">
+
+    <button onclick="signUp()">Create Account</button>
+    <button onclick="signIn()">Login</button>
+    <button onclick="resetPassword()">Forgot Password</button>
+    <button onclick="signOut()">Logout</button>
+
+    <p id="authStatus" class="muted"></p>
+
+    <button onclick="checkIncoSession()">
+      Get INCO Session
+    </button>
+  </div>
+</section>
 </button>
 /div></section>
 <section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Live session listings from your existing Supabase database.</p><p class="muted">Real camera broadcasting, viewer chat and host controls need a secure LiveKit token service. This page does not pretend broadcasting is active without it.</p><div id="liveSessions">Loading live sessions...</div></div></section>
