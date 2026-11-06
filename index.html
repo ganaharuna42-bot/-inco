@@ -351,6 +351,32 @@ async function setupSocialRealtime(){
  .subscribe();
  await Promise.allSettled([loadInbox(),loadNotifications()]);
 }
+async function checkIncoSession(){
+  const status = document.getElementById("accountStatus");
+
+  try {
+    const {data, error} = await db.auth.getSession();
+
+    if(error) throw error;
+
+    const token = data.session?.access_token;
+
+    if(!token){
+      status.textContent = "No active session";
+      alert("Please login to INCO first.");
+      return;
+    }
+
+    status.textContent = "INCO session active";
+
+    await navigator.clipboard.writeText(token);
+
+    alert("Session token copied. Keep it private!");
+
+  } catch(error) {
+    alert("Session check failed: " + error.message);
+  }
+}
 async function startApp(){
  try{const {data,error}=await db.auth.getSession();if(error)say("authStatus",error.message);currentUser=data?.session?.user||null;
  renderShortcuts();renderHistory("searchHistory");
