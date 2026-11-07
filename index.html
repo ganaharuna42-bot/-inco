@@ -639,6 +639,307 @@ async function joinIncoLive(session){
  try{await connectToLiveKit(session.room_name,true,"liveStatus");}
  catch(e){say("liveStatus","Could not join LIVE: "+e.message);}
 }
+/* INCO MONETIZATION SECTION
+   Paste this entire block immediately ABOVE the existing startApp(); line.
+   Keep your existing index.html and all its current code. */
+
+(function addIncoMonetizationSection() {
+  const nav = document.querySelector("nav");
+  const main = document.querySelector("main");
+  if (!main) {
+    console.error("INCO Monetization: could not find the main page container.");
+    return;
+  }
+
+  // Add one navigation button for the complete Monetization area.
+  if (nav && !document.getElementById("incoMonetizationNav")) {
+    const button = document.createElement("button");
+    button.id = "incoMonetizationNav";
+    button.type = "button";
+    button.textContent = "💰 Monetization";
+    button.onclick = () => showPage("monetization");
+    const settingsButton = [...nav.querySelectorAll("button")]
+      .find(b => /settings/i.test(b.textContent || ""));
+    if (settingsButton) nav.insertBefore(button, settingsButton);
+    else nav.appendChild(button);
+  }
+
+  // Avoid creating the section twice if the block is accidentally pasted twice.
+  if (document.getElementById("monetization")) return;
+
+  const section = document.createElement("section");
+  section.id = "monetization";
+  section.innerHTML = `
+    <div class="card">
+      <h2>💰 INCO Monetization</h2>
+      <p class="muted">Manage your creator page and advertising requests from one place.</p>
+      <div class="item">
+        <b>Monetization status</b>
+        <p id="monetizationEligibility" class="muted">Checking your account...</p>
+      </div>
+      <div class="item">
+        <b>Creator page</b>
+        <p id="monetizationCreatorStatus" class="muted">Not checked yet.</p>
+      </div>
+      <div class="item">
+        <b>Advertising requests</b>
+        <p id="monetizationAdCount" class="muted">Not checked yet.</p>
+      </div>
+      <div class="item">
+        <b>Creator earnings</b>
+        <p class="muted">No earnings are being calculated yet. This will become active after a verified revenue system is connected.</p>
+      </div>
+      <div class="item">
+        <b>Payments and payouts</b>
+        <p class="muted">Not connected. No bank, card, or payout details are collected here.</p>
+      </div>
+      <div class="item">
+        <b>Performance reports</b>
+        <p class="muted">Views, clicks, and revenue reports will be available after analytics and ad delivery are connected.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎨 Creator Studio</h3>
+      <p class="muted">Create or update your creator profile.</p>
+      <label for="incoCreatorDisplayName">Display name</label>
+      <input id="incoCreatorDisplayName" maxlength="60" placeholder="Your creator name">
+      <label for="incoCreatorSlug">Creator username</label>
+      <input id="incoCreatorSlug" maxlength="40" placeholder="example-creator">
+      <p class="muted">Use 3–40 lowercase letters, numbers, or hyphens.</p>
+      <label for="incoCreatorBio">Creator bio</label>
+      <textarea id="incoCreatorBio" maxlength="500" placeholder="Tell people what you create"></textarea>
+      <button id="incoSaveCreator" type="button" onclick="incoSaveCreatorPage()">Save Creator Page</button>
+      <p id="incoCreatorMessage" class="muted" aria-live="polite"></p>
+    </div>
+
+    <div class="card">
+      <h3>📣 Advertise on INCO</h3>
+      <p class="muted">Submit an advertising request for review. This does not publish an advert or take payment.</p>
+      <label for="incoAdBusiness">Business / organization name</label>
+      <input id="incoAdBusiness" maxlength="120" placeholder="Business name">
+      <label for="incoAdWebsite">Website (optional)</label>
+      <input id="incoAdWebsite" maxlength="500" placeholder="https://example.com">
+      <label for="incoAdDescription">What would you like to advertise?</label>
+      <textarea id="incoAdDescription" maxlength="2000" placeholder="Describe the advert"></textarea>
+      <label for="incoAdBudget">Proposed budget (number only)</label>
+      <input id="incoAdBudget" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="e.g. 100">
+      <p class="muted">Currency is not configured in the current database. Do not send money through this form.</p>
+      <button id="incoSubmitAd" type="button" onclick="incoSubmitAdRequest()">Submit Advertising Request</button>
+      <p id="incoAdMessage" class="muted" aria-live="polite"></p>
+      <h4>My advertising requests</h4>
+      <div id="incoMyAdRequests" class="muted">Log in to view your requests.</div>
+    </div>
+
+    <div class="card">
+      <h3>📊 Earnings and reports</h3>
+      <p class="muted">This area is reserved for future verified earnings, ad performance, and revenue reports. It will not show made-up figures.</p>
+    </div>
+
+    <div class="card">
+      <h3>🏦 Payment settings</h3>
+      <p class="muted">Payment provider and payout setup are not connected yet. No payment details are requested or stored by this section.</p>
+    </div>
+  `;
+
+  const settingsSection = document.getElementById("settings");
+  if (settingsSection && settingsSection.parentElement === main) {
+    main.insertBefore(section, settingsSection);
+  } else {
+    main.appendChild(section);
+  }
+})();
+
+function incoSetMonetizationMessage(id, message) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = message;
+}
+
+async function incoLoadMonetization() {
+  if (!currentUser) {
+    incoSetMonetizationMessage("monetizationEligibility", "Please log in to view your monetization area.");
+    incoSetMonetizationMessage("monetizationCreatorStatus", "Log in required.");
+    incoSetMonetizationMessage("monetizationAdCount", "Log in required.");
+    const list = document.getElementById("incoMyAdRequests");
+    if (list) list.textContent = "Please log in to view your requests.";
+    return;
+  }
+
+  incoSetMonetizationMessage("monetizationEligibility", "Your account is signed in. Monetization approval and payout eligibility are not yet connected.");
+  incoSetMonetizationMessage("monetizationCreatorStatus", "Loading creator page...");
+  incoSetMonetizationMessage("monetizationAdCount", "Loading advertising requests...");
+
+  try {
+    const [creatorResult, adsResult] = await Promise.all([
+      db.from("creator_pages")
+        .select("id,display_name,slug,bio")
+        .eq("user_id", currentUser.id)
+        .maybeSingle(),
+      db.from("ad_requests")
+        .select("id,business_name,website,ad_description,proposed_budget,status,created_at")
+        .eq("user_id", currentUser.id)
+        .order("created_at", { ascending: false })
+        .limit(50)
+    ]);
+
+    if (creatorResult.error) throw new Error("Creator page: " + creatorResult.error.message);
+    if (adsResult.error) throw new Error("Advertising requests: " + adsResult.error.message);
+
+    const creator = creatorResult.data;
+    const ads = adsResult.data || [];
+
+    const displayName = document.getElementById("incoCreatorDisplayName");
+    const slug = document.getElementById("incoCreatorSlug");
+    const bio = document.getElementById("incoCreatorBio");
+    if (displayName) displayName.value = creator?.display_name || (myProfile?.username || "");
+    if (slug) slug.value = creator?.slug || "";
+    if (bio) bio.value = creator?.bio || "";
+
+    incoSetMonetizationMessage(
+      "monetizationCreatorStatus",
+      creator ? "Creator page saved: " + creator.display_name : "No creator page yet. Create one below."
+    );
+    incoSetMonetizationMessage(
+      "monetizationAdCount",
+      ads.length + " advertising request(s) submitted. No adverts have been published and no payments have been taken."
+    );
+
+    const list = document.getElementById("incoMyAdRequests");
+    if (list) {
+      list.replaceChildren();
+      if (!ads.length) {
+        list.textContent = "You have not submitted any advertising requests.";
+      } else {
+        ads.forEach(request => {
+          const item = document.createElement("div");
+          item.className = "item";
+          const heading = document.createElement("b");
+          heading.textContent = request.business_name || "Advertising request";
+          const status = document.createElement("p");
+          status.textContent = "Status: " + (request.status || "pending");
+          const description = document.createElement("p");
+          description.textContent = request.ad_description || "";
+          const budget = document.createElement("p");
+          budget.className = "muted";
+          budget.textContent = "Proposed amount: " + request.proposed_budget + " (currency not specified)";
+          const date = document.createElement("p");
+          date.className = "muted";
+          date.textContent = request.created_at ? new Date(request.created_at).toLocaleString() : "";
+          item.append(heading, status, description, budget, date);
+          list.appendChild(item);
+        });
+      }
+    }
+  } catch (error) {
+    incoSetMonetizationMessage("monetizationCreatorStatus", "Could not load creator information.");
+    incoSetMonetizationMessage("monetizationAdCount", "Could not load advertising requests.");
+    const list = document.getElementById("incoMyAdRequests");
+    if (list) list.textContent = error.message || "Could not load monetization data.";
+  }
+}
+
+async function incoSaveCreatorPage() {
+  if (!currentUser) return incoSetMonetizationMessage("incoCreatorMessage", "Please log in first.");
+
+  const display_name = document.getElementById("incoCreatorDisplayName").value.trim();
+  const slug = document.getElementById("incoCreatorSlug").value.trim().toLowerCase();
+  const bio = document.getElementById("incoCreatorBio").value.trim();
+
+  if (!display_name) return incoSetMonetizationMessage("incoCreatorMessage", "Enter a display name.");
+  if (!/^[a-z0-9-]{3,40}$/.test(slug)) {
+    return incoSetMonetizationMessage("incoCreatorMessage", "Username must be 3–40 characters: lowercase letters, numbers, or hyphens.");
+  }
+
+  const button = document.getElementById("incoSaveCreator");
+  button.disabled = true;
+  incoSetMonetizationMessage("incoCreatorMessage", "Saving creator page...");
+
+  try {
+    const { data: existing, error: readError } = await db.from("creator_pages")
+      .select("id").eq("user_id", currentUser.id).maybeSingle();
+    if (readError) throw readError;
+
+    const payload = { user_id: currentUser.id, display_name, slug, bio };
+    const result = existing
+      ? await db.from("creator_pages").update({ display_name, slug, bio }).eq("user_id", currentUser.id)
+      : await db.from("creator_pages").insert(payload);
+
+    if (result.error) {
+      if (result.error.code === "23505") throw new Error("That username is already taken. Choose another one.");
+      throw result.error;
+    }
+
+    incoSetMonetizationMessage("incoCreatorMessage", "Creator page saved successfully.");
+    await incoLoadMonetization();
+  } catch (error) {
+    incoSetMonetizationMessage("incoCreatorMessage", "Save failed: " + (error.message || "Unknown error"));
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function incoSubmitAdRequest() {
+  if (!currentUser) return incoSetMonetizationMessage("incoAdMessage", "Please log in first.");
+
+  const business_name = document.getElementById("incoAdBusiness").value.trim();
+  const websiteInput = document.getElementById("incoAdWebsite").value.trim();
+  const ad_description = document.getElementById("incoAdDescription").value.trim();
+  const proposed_budget = Number(document.getElementById("incoAdBudget").value);
+
+  if (!business_name) return incoSetMonetizationMessage("incoAdMessage", "Enter a business or organization name.");
+  if (!ad_description) return incoSetMonetizationMessage("incoAdMessage", "Describe what you want to advertise.");
+  if (!Number.isFinite(proposed_budget) || proposed_budget <= 0) {
+    return incoSetMonetizationMessage("incoAdMessage", "Enter a proposed budget greater than zero.");
+  }
+
+  let website = null;
+  if (websiteInput) {
+    try {
+      const candidate = /^https?:\/\//i.test(websiteInput) ? websiteInput : "https://" + websiteInput;
+      const parsed = new URL(candidate);
+      if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("Invalid website");
+      website = parsed.href;
+    } catch (_) {
+      return incoSetMonetizationMessage("incoAdMessage", "Enter a valid website address.");
+    }
+  }
+
+  const button = document.getElementById("incoSubmitAd");
+  button.disabled = true;
+  incoSetMonetizationMessage("incoAdMessage", "Submitting request...");
+
+  try {
+    const { error } = await db.from("ad_requests").insert({
+      user_id: currentUser.id,
+      business_name,
+      website,
+      ad_description,
+      proposed_budget
+    });
+    if (error) throw error;
+
+    document.getElementById("incoAdBusiness").value = "";
+    document.getElementById("incoAdWebsite").value = "";
+    document.getElementById("incoAdDescription").value = "";
+    document.getElementById("incoAdBudget").value = "";
+    incoSetMonetizationMessage("incoAdMessage", "Request submitted. No payment was taken and no advert was published.");
+    await incoLoadMonetization();
+  } catch (error) {
+    incoSetMonetizationMessage("incoAdMessage", "Submission failed: " + (error.message || "Unknown error"));
+  } finally {
+    button.disabled = false;
+  }
+}
+
+/* Add monetization loading while preserving the app's existing page navigation. */
+if (typeof showPage === "function") {
+  const incoPreviousShowPage = showPage;
+  showPage = function(page) {
+    incoPreviousShowPage(page);
+    if (page === "monetization") incoLoadMonetization();
+  };
+}
+
 startApp();
 </script>
 </body>
