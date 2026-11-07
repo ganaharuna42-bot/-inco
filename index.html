@@ -15,7 +15,7 @@ nav{display:flex;gap:5px;overflow-x:auto;background:#101a2c;padding:8px;position
 nav button{white-space:nowrap}
 button{background:#1678db;color:white;border:0;padding:11px 14px;border-radius:9px;cursor:pointer;margin:3px}
 button:disabled{opacity:.5;cursor:not-allowed}
-input,textarea,select{width:100%;;padding:12px;margin:6px 0;background:#111d31;border:1px solid #304563;border-radius:8px;color:white}
+input,textarea,select{width:100%;padding:12px;margin:6px 0;background:#111d31;border:1px solid #304563;border-radius:8px;color:white}
 textarea{min-height:85px}
 main{max-width:850px;margin:auto;padding:12px}
 section{display:none}
@@ -42,13 +42,26 @@ footer{text-align:center;color:#7e91ad;padding:25px}
 .call-controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .call-controls button{flex:1;min-width:105px}
 .badge{display:inline-block;background:#263b5c;padding:3px 8px;border-radius:20px;font-size:12px}
-@media(max-width:520px){header{padding:11px}.logo{font-size:20px}main{padding:7px}.card{padding:12px}.row{flex-wrap:wrap}}
+.setting-row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid #263b5c}
+.setting-row>div{flex:1;min-width:0}
+.setting-row input[type=checkbox]{width:22px;height:22px;flex:0 0 22px;accent-color:#1678db}
+.setting-row select{max-width:150px}
+.settings-note{background:#0b1525;border:1px solid #304563;border-radius:9px;padding:11px;margin:10px 0}
+body.inco-light{background:#f2f5fa;color:#172235}
+body.inco-light header,body.inco-light nav{background:#e1eaf5;border-color:#c5d2e2}
+body.inco-light .card{background:#fff;border-color:#cbd6e4}
+body.inco-light input,body.inco-light textarea,body.inco-light select{background:#fff;color:#172235;border-color:#bac9dc}
+body.inco-light .item{border-color:#d6dfeb}
+body.inco-light .settings-note{background:#f3f7fc;border-color:#cbd6e4}
+body.inco-light .muted{color:#53657d}
+body.inco-light footer{color:#53657d}
+@media(max-width:520px){header{padding:11px}.logo{font-size:20px}main{padding:7px}.card{padding:12px}.row{flex-wrap:wrap}.setting-row{align-items:flex-start}}
 </style>
 </head>
 <body>
 <header><div class="logo">🛡️ INCO</div><div id="accountStatus" class="muted">Checking account...</div></header>
 <nav>
-<button onclick="showPage('home')">Home</button><button onclick="showPage('community')">Community</button><button onclick="showPage('chat')">Messages</button><button onclick="showPage('inbox')">📥 Inbox <span id="inboxCount">0</span></button><button onclick="showPage('notifications')">🔔 Alerts <span id="notificationCount">0</span></button><button onclick="showPage('people')">People</button><button onclick="showPage('news')">News</button><button onclick="showPage('search')">Search</button><button onclick="showPage('saved')">Saved</button><button onclick="showPage('profile')">Profile</button><button onclick="showPage('account')">Account</button><button onclick="showPage('live')">LIVE</button><button onclick="showPage('voice')">Voice</button><button onclick="showPage('premium')">Premium</button>
+<button onclick="showPage('home')">Home</button><button onclick="showPage('community')">Community</button><button onclick="showPage('chat')">Messages</button><button onclick="showPage('inbox')">📥 Inbox <span id="inboxCount">0</span></button><button onclick="showPage('notifications')">🔔 Alerts <span id="notificationCount">0</span></button><button onclick="showPage('people')">People</button><button onclick="showPage('news')">News</button><button onclick="showPage('search')">Search</button><button onclick="showPage('saved')">Saved</button><button onclick="showPage('profile')">Profile</button><button onclick="showPage('account')">Account</button><button onclick="showPage('live')">LIVE</button><button onclick="showPage('voice')">Voice</button><button onclick="showPage('premium')">Premium</button><button onclick="showPage('settings')">⚙️ Settings</button>
 </nav>
 <main>
 <section id="home" class="active">
@@ -66,16 +79,50 @@ footer{text-align:center;color:#7e91ad;padding:25px}
 <section id="saved"><div class="card"><h2>Saved Posts</h2><div id="bookmarks"></div></div><div class="card"><h2>Browsing history</h2><div id="history"></div><button onclick="clearHistory()">Clear History</button></div></section>
 <section id="profile"><div class="card"><h2>My Profile</h2><img id="avatarPreview" class="avatar" alt="Profile picture"><input type="file" id="avatarFile" accept="image/*"><button onclick="uploadAvatar()">Upload Profile Picture</button><input id="profileUsername" placeholder="Username"><textarea id="profileBio" placeholder="Your bio"></textarea><button onclick="saveProfile()">Save Profile</button><p id="profileStatus" class="muted"></p></div><div class="card"><h3>My Posts</h3><div id="myPosts"></div></div></section>
 <section id="account"><div class="card"><h2>INCO Account</h2><input id="email" type="email" autocomplete="email" placeholder="Email address"><input id="password" type="password" autocomplete="current-password" placeholder="Password"><button onclick="signUp()">Create Account</button><button onclick="signIn()">Login</button><button onclick="resetPassword()">Forgot Password</button><button onclick="signOut()">Logout</button><p id="authStatus" class="muted"></p></div></section>
-<section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Start a live broadcast or join another user's live session.</p>
-<input id="liveTitle" maxlength="100" placeholder="What is your live about?">
-<button id="startLiveButton" onclick="startIncoLive()">Start Live Broadcast</button>
-<p id="liveStatus" class="muted">Your camera and microphone will be requested when you start.</p><div id="liveCallArea"></div></div>
-<div class="card"><h3>Live sessions</h3><div id="liveSessions">Loading live sessions...</div></div></section>
-<section id="voice"><div class="card"><h2>📞 INCO Voice</h2><p>Call another INCO user by their exact username.</p>
-<input id="callUsername" placeholder="Enter the other person's exact username">
-<div class="call-controls"><button onclick="startIncoCall()">Start Voice Call</button><button onclick="startIncoVideoCall()">Start Video Call</button></div>
-<p id="voiceStatus" class="muted">Ready. Keep this page open to receive incoming calls.</p><div id="callArea"></div></div></section>
+<section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Start a live broadcast or join another user's live session.</p><input id="liveTitle" maxlength="100" placeholder="What is your live about?"><button id="startLiveButton" onclick="startIncoLive()">Start Live Broadcast</button><p id="liveStatus" class="muted">Your camera and microphone will be requested when you start.</p><div id="liveCallArea"></div></div><div class="card"><h3>Live sessions</h3><div id="liveSessions">Loading live sessions...</div></div></section>
+<section id="voice"><div class="card"><h2>📞 INCO Voice</h2><p>Call another INCO user by their exact username.</p><input id="callUsername" placeholder="Enter the other person's exact username"><div class="call-controls"><button onclick="startIncoCall()">Start Voice Call</button><button onclick="startIncoVideoCall()">Start Video Call</button></div><p id="voiceStatus" class="muted">Ready. Keep this page open to receive incoming calls.</p><div id="callArea"></div></div></section>
 <section id="premium"><div class="card"><h2>⭐ INCO Premium</h2><p>Free and Premium account area.</p><p class="muted">Payment processing must be connected through a secure payment provider. Never put payment secret keys in this HTML.</p></div></section>
+
+<section id="settings">
+<div class="card">
+<h2>⚙️ INCO Settings</h2>
+<p class="muted">Manage your app preferences and account security.</p>
+</div>
+<div class="card">
+<h3>🎨 Appearance</h3>
+<div class="setting-row"><div><b>App theme</b><div class="muted">Choose how INCO looks on this device.</div></div><select id="settingTheme" onchange="saveIncoSettings()"><option value="dark">Dark</option><option value="light">Light</option></select></div>
+</div>
+<div class="card">
+<h3>🔔 Notifications</h3>
+<div class="setting-row"><div><b>Show in-app alert badge</b><div class="muted">Show the unread count beside Alerts.</div></div><input id="settingAlertBadge" type="checkbox" onchange="saveIncoSettings()"></div>
+<p id="settingsStatus" class="muted">Settings are stored on this device.</p>
+</div>
+<div class="card">
+<h3>🔐 Account security</h3>
+<p class="muted">Change the password for your signed-in INCO account.</p>
+<input id="settingsNewPassword" type="password" autocomplete="new-password" placeholder="New password (at least 6 characters)">
+<input id="settingsConfirmPassword" type="password" autocomplete="new-password" placeholder="Confirm new password">
+<button onclick="changeAccountPassword()">Update Password</button>
+<p id="passwordSettingsStatus" class="muted"></p>
+<button onclick="showPage('account')">Open Account / Login</button>
+<button onclick="signOut()">Logout of INCO</button>
+</div>
+<div class="card">
+<h3>🧹 Browser data</h3>
+<p class="muted">These actions affect saved browser data on this device only.</p>
+<button onclick="clearHistoryFromSettings()">Clear Browsing History</button>
+<button onclick="clearShortcuts()">Remove All Quick Websites</button>
+</div>
+<div class="card">
+<h3>🛡️ Privacy information</h3>
+<p class="muted">Your profile and posts are controlled by your Supabase database policies. This version does not yet include server-enforced private profiles or a synced blocked-users list. A setting saved only on this phone cannot secure your account for other users.</p>
+</div>
+<div class="card">
+<h3>ℹ️ About INCO</h3>
+<p>INCO Browser · Connecting people worldwide 🌍</p>
+<p class="muted">Settings version 1.0 · Your existing INCO features remain available from the navigation menu.</p>
+</div>
+</section>
 </main>
 <footer>INCO Browser · Connecting people worldwide 🌍</footer>
 <script>
@@ -91,11 +138,50 @@ let activeLiveRowId=null,activeLiveHost=false;
 const LIVEKIT_TOKEN_FUNCTION=SUPABASE_URL+"/functions/v1/rapid-action";
 const LIVEKIT_FALLBACK_URL="wss://inco-lxwoqwtx.livekit.cloud";
 const get=id=>document.getElementById(id);
-const say=(id,msg)=>{const el=get(id);if(el)el.textContent=msg};
+const say=(id,msg)=>{const el=get(id);if(el)el.textContent=msg;};
 function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function safeURL(s){try{const u=new URL(s,location.href);return ["http:","https:"].includes(u.protocol)?u.href:"#";}catch{return "#";}}
 function localGet(k,f=[]){try{const x=JSON.parse(localStorage.getItem(k));return Array.isArray(x)?x:f;}catch{return f;}}
 function localSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){console.warn(e);}}
+const INCO_SETTINGS_KEY="inco_app_settings_v1";
+function getIncoSettings(){
+ try{return Object.assign({theme:"dark",alertBadge:true},JSON.parse(localStorage.getItem(INCO_SETTINGS_KEY)||"{}"));}
+ catch{return {theme:"dark",alertBadge:true};}
+}
+function applyIncoSettings(){
+ const settings=getIncoSettings();
+ document.body.classList.toggle("inco-light",settings.theme==="light");
+ const theme=get("settingTheme"),badge=get("settingAlertBadge");
+ if(theme)theme.value=settings.theme;
+ if(badge)badge.checked=!!settings.alertBadge;
+ if(!settings.alertBadge&&get("notificationCount"))get("notificationCount").textContent="•";
+}
+function saveIncoSettings(){
+ const settings={theme:get("settingTheme")?.value==="light"?"light":"dark",alertBadge:!!get("settingAlertBadge")?.checked};
+ try{localStorage.setItem(INCO_SETTINGS_KEY,JSON.stringify(settings));applyIncoSettings();say("settingsStatus","Settings saved on this device.");}
+ catch(e){say("settingsStatus","Could not save settings: "+e.message);}
+}
+function clearHistoryFromSettings(){
+ if(!confirm("Clear browsing history saved on this device?"))return;
+ localSet("inco_history",[]);renderHistory("history");renderHistory("searchHistory");say("settingsStatus","Browsing history cleared on this device.");
+}
+function clearShortcuts(){
+ if(!confirm("Remove all quick websites saved on this device?"))return;
+ localSet("inco_shortcuts",[]);renderShortcuts();say("settingsStatus","Quick websites removed.");
+}
+async function changeAccountPassword(){
+ if(!currentUser)return say("passwordSettingsStatus","Please log in first.");
+ const password=get("settingsNewPassword").value,confirmPassword=get("settingsConfirmPassword").value;
+ if(password.length<6)return say("passwordSettingsStatus","Use a password with at least 6 characters.");
+ if(password!==confirmPassword)return say("passwordSettingsStatus","The passwords do not match.");
+ say("passwordSettingsStatus","Updating password...");
+ try{
+  const {error}=await db.auth.updateUser({password});
+  if(error)return say("passwordSettingsStatus","Password update failed: "+error.message);
+  get("settingsNewPassword").value="";get("settingsConfirmPassword").value="";
+  say("passwordSettingsStatus","Password updated successfully.");
+ }catch(e){say("passwordSettingsStatus","Password update failed: "+e.message);}
+}
 function showPage(page){
  const section=get(page);if(!section)return;
  document.querySelectorAll("main section").forEach(s=>s.classList.remove("active"));section.classList.add("active");
@@ -103,6 +189,7 @@ function showPage(page){
  if(page==="news")loadNews();if(page==="profile")loadProfile();if(page==="saved")renderSaved();
  if(page==="search")renderHistory("searchHistory");if(page==="live")loadLive();
  if(page==="inbox")loadInbox();if(page==="notifications")loadNotifications();
+ if(page==="settings"){applyIncoSettings();say("settingsStatus","Settings are stored on this device.");}
  if(page==="people"&&!currentUser)say("peopleResults","Please login to discover people.");
  if(page==="chat"&&!currentUser)say("chatStatus","Please login first.");
 }
@@ -167,8 +254,7 @@ async function ensureProfile(){
 async function refreshApp(){
  if(!currentUser)return;await ensureProfile();get("accountStatus").textContent=currentUser.email||"Signed in";
  await Promise.allSettled([loadProfile(),loadFeed(),loadNews(),loadLive(),loadInbox(),loadNotifications()]);
- await setupSocialRealtime();
-  await setupCallSignaling();
+ await setupSocialRealtime();await setupCallSignaling();
 }
 async function createPost(){
  if(!currentUser)return alert("Please log in first.");
@@ -324,62 +410,31 @@ async function startRecording(event){
  if(!currentUser||!chatReceiver){say("recordStatus","Open a chat first.");return;}
  if(!window.isSecureContext){say("recordStatus","Microphone needs a secure HTTPS connection. Open INCO using its https address.");return;}
  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){say("recordStatus","This browser does not support microphone recording. Update Chrome and try again.");return;}
- recordingStartPending=true;
- recordingCancelled=false;
- say("recordStatus","Requesting microphone permission... Keep holding the button.");
+ recordingStartPending=true;recordingCancelled=false;say("recordStatus","Requesting microphone permission... Keep holding the button.");
  try{
   let stream;
-  try{
-   stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
-  }catch(firstError){
-   if(recordingCancelled)throw firstError;
-   stream=await navigator.mediaDevices.getUserMedia({audio:true});
-  }
+  try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});}
+  catch(firstError){if(recordingCancelled)throw firstError;stream=await navigator.mediaDevices.getUserMedia({audio:true});}
   if(recordingCancelled){stream.getTracks().forEach(t=>t.stop());recordingStartPending=false;say("recordStatus","Recording cancelled. Hold the button and keep holding until recording starts.");return;}
-  recordingStream=stream;
-  const types=["audio/webm;codecs=opus","audio/webm","audio/mp4"];
-  const mime=types.find(t=>MediaRecorder.isTypeSupported(t));
-  recorder=new MediaRecorder(stream,mime?{mimeType:mime}:{});
-  voiceChunks=[];
+  recordingStream=stream;const types=["audio/webm;codecs=opus","audio/webm","audio/mp4"];const mime=types.find(t=>MediaRecorder.isTypeSupported(t));
+  recorder=new MediaRecorder(stream,mime?{mimeType:mime}:{});voiceChunks=[];
   recorder.ondataavailable=e=>{if(e.data?.size)voiceChunks.push(e.data);};
   recorder.onerror=e=>{console.error("INCO voice recorder:",e.error||e);say("recordStatus","Recording stopped because the microphone had a problem. Please try again.");};
-  recorder.onstop=uploadVoiceNote;
-  recorder.start();
-  recording=true;
-  recordingStartPending=false;
-  get("recordButton").classList.add("recording");
-  get("recordButton").textContent="🔴 Recording...";
-  say("recordStatus","Recording. Release to send.");
+  recorder.onstop=uploadVoiceNote;recorder.start();recording=true;recordingStartPending=false;
+  get("recordButton").classList.add("recording");get("recordButton").textContent="🔴 Recording...";say("recordStatus","Recording. Release to send.");
  }catch(e){
-  recordingStartPending=false;
-  if(recordingStream)recordingStream.getTracks().forEach(t=>t.stop());
-  recordingStream=null;
-  const name=e?.name||"";
-  if(name==="NotAllowedError"||name==="PermissionDeniedError"){
-   say("recordStatus","Microphone permission is blocked. Allow Microphone for this site in Chrome settings, then reload INCO and try again.");
-  }else if(name==="NotFoundError"||name==="DevicesNotFoundError"){
-   say("recordStatus","No microphone was found on this device.");
-  }else if(name==="NotReadableError"||name==="TrackStartError"){
-   say("recordStatus","Microphone is busy or unavailable. Close other apps using the microphone, then try again.");
-  }else if(!recordingCancelled){
-   say("recordStatus","Microphone unavailable. Check Chrome microphone permission and try again.");
-  }
+  recordingStartPending=false;if(recordingStream)recordingStream.getTracks().forEach(t=>t.stop());recordingStream=null;const name=e?.name||"";
+  if(name==="NotAllowedError"||name==="PermissionDeniedError")say("recordStatus","Microphone permission is blocked. Allow Microphone for this site in Chrome settings, then reload INCO and try again.");
+  else if(name==="NotFoundError"||name==="DevicesNotFoundError")say("recordStatus","No microphone was found on this device.");
+  else if(name==="NotReadableError"||name==="TrackStartError")say("recordStatus","Microphone is busy or unavailable. Close other apps using the microphone, then try again.");
+  else if(!recordingCancelled)say("recordStatus","Microphone unavailable. Check Chrome microphone permission and try again.");
   console.warn("INCO microphone:",e);
  }
 }
 function stopRecording(){
- if(recordingStartPending){
-  recordingCancelled=true;
-  say("recordStatus","Permission request cancelled. Hold the button until recording starts, then release to send.");
-  return;
- }
- if(!recording||!recorder)return;
- recording=false;
- get("recordButton").classList.remove("recording");
- get("recordButton").textContent="Hold to Record";
- if(recorder.state!=="inactive")recorder.stop();
- if(recordingStream){recordingStream.getTracks().forEach(t=>t.stop());recordingStream=null;}
- say("recordStatus","Uploading voice note...");
+ if(recordingStartPending){recordingCancelled=true;say("recordStatus","Permission request cancelled. Hold the button until recording starts, then release to send.");return;}
+ if(!recording||!recorder)return;recording=false;get("recordButton").classList.remove("recording");get("recordButton").textContent="Hold to Record";
+ if(recorder.state!=="inactive")recorder.stop();if(recordingStream){recordingStream.getTracks().forEach(t=>t.stop());recordingStream=null;}say("recordStatus","Uploading voice note...");
 }
 async function uploadVoiceNote(){
  if(!currentUser||!chatReceiver)return;voiceUploadInProgress=true;const button=get("recordButton");button.disabled=true;
@@ -405,7 +460,7 @@ async function loadNotifications(){
  if(!currentUser)return say("notificationList","Please login first.");const box=get("notificationList");box.textContent="Loading notifications...";
  const {data,error}=await db.from("notifications").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(100);
  if(error){box.textContent="Notifications unavailable: "+error.message;get("notificationCount").textContent="0";return;}
- const rows=data||[],unread=rows.filter(n=>!n.is_read).length;get("notificationCount").textContent=String(unread);if(!rows.length){box.textContent="No notifications yet.";return;}
+ const rows=data||[],unread=rows.filter(n=>!n.is_read).length;get("notificationCount").textContent=getIncoSettings().alertBadge?String(unread):"•";if(!rows.length){box.textContent="No notifications yet.";return;}
  const ids=[...new Set(rows.map(n=>n.actor_id).filter(Boolean))];let actors={};if(ids.length){const r=await db.from("profiles").select("id,username").in("id",ids);if(r.error){box.textContent=r.error.message;return;}(r.data||[]).forEach(p=>actors[p.id]=p.username);}
  box.innerHTML="";rows.forEach(n=>{const item=document.createElement("div");item.className="item";if(!n.is_read)item.style.borderLeft="3px solid #1678db";const b=document.createElement("b");b.textContent=actors[n.actor_id]||"An INCO user";const p=document.createElement("p");p.textContent=n.content||(n.type==="like"?"Liked your post":n.type==="comment"?"Commented on your post":n.type==="follow"?"Started following you":n.type==="message"?"Sent you a message":"New notification");const t=document.createElement("small");t.className="muted";t.textContent=n.created_at?new Date(n.created_at).toLocaleString():"";item.append(b,p,t);box.append(item);});
 }
@@ -441,7 +496,7 @@ async function setupSocialRealtime(){
 }
 async function startApp(){
  try{const {data,error}=await db.auth.getSession();if(error)say("authStatus",error.message);currentUser=data?.session?.user||null;
- renderShortcuts();renderHistory("searchHistory");
+ renderShortcuts();renderHistory("searchHistory");applyIncoSettings();
  db.auth.onAuthStateChange((event,session)=>{currentUser=session?.user||null;if(currentUser)setTimeout(()=>refreshApp(),0);else{get("accountStatus").textContent="Not signed in";if(socialChannel){db.removeChannel(socialChannel);socialChannel=null;}}});
  if(currentUser)await refreshApp();else get("accountStatus").textContent="Not signed in";
  }catch(e){console.error("INCO startup:",e);say("authStatus","Startup error: "+e.message);}
@@ -584,11 +639,11 @@ async function joinIncoLive(session){
  try{await connectToLiveKit(session.room_name,true,"liveStatus");}
  catch(e){say("liveStatus","Could not join LIVE: "+e.message);}
 }
-
 startApp();
 </script>
 </body>
 </html>
+
 
 
 
