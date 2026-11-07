@@ -37,6 +37,10 @@ footer{text-align:center;color:#7e91ad;padding:25px}
 #recordButton{background:#d62828;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 #recordButton.recording{background:#8b0000;box-shadow:0 0 12px #ff3333}
 .status{padding:8px}
+.call-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px}
+.call-video{width:100%;min-height:150px;max-height:340px;background:#030711;border:1px solid #304563;border-radius:12px;object-fit:contain}
+.call-controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.call-controls button{flex:1;min-width:105px}
 .badge{display:inline-block;background:#263b5c;padding:3px 8px;border-radius:20px;font-size:12px}
 @media(max-width:520px){header{padding:11px}.logo{font-size:20px}main{padding:7px}.card{padding:12px}.row{flex-wrap:wrap}}
 </style>
@@ -62,8 +66,15 @@ footer{text-align:center;color:#7e91ad;padding:25px}
 <section id="saved"><div class="card"><h2>Saved Posts</h2><div id="bookmarks"></div></div><div class="card"><h2>Browsing history</h2><div id="history"></div><button onclick="clearHistory()">Clear History</button></div></section>
 <section id="profile"><div class="card"><h2>My Profile</h2><img id="avatarPreview" class="avatar" alt="Profile picture"><input type="file" id="avatarFile" accept="image/*"><button onclick="uploadAvatar()">Upload Profile Picture</button><input id="profileUsername" placeholder="Username"><textarea id="profileBio" placeholder="Your bio"></textarea><button onclick="saveProfile()">Save Profile</button><p id="profileStatus" class="muted"></p></div><div class="card"><h3>My Posts</h3><div id="myPosts"></div></div></section>
 <section id="account"><div class="card"><h2>INCO Account</h2><input id="email" type="email" autocomplete="email" placeholder="Email address"><input id="password" type="password" autocomplete="current-password" placeholder="Password"><button onclick="signUp()">Create Account</button><button onclick="signIn()">Login</button><button onclick="resetPassword()">Forgot Password</button><button onclick="signOut()">Logout</button><p id="authStatus" class="muted"></p></div></section>
-<section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Live session listings from your existing Supabase database.</p><p class="muted">Real camera broadcasting, viewer chat and host controls need a secure LiveKit token service. This page does not pretend broadcasting is active without it.</p><div id="liveSessions">Loading live sessions...</div></div></section>
-<section id="voice"><div class="card"><h2>📞 INCO Voice</h2><p>Connect with friends using INCO voice and video calls.</p><p id="voiceStatus" class="muted">Voice calls coming soon.</p><button onclick="startIncoCall()">Start Voice Call</button><button onclick="startIncoVideoCall()">Start Video Call</button><div id="callArea"></div></div></section>
+<section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Start a live broadcast or join another user's live session.</p>
+<input id="liveTitle" maxlength="100" placeholder="What is your live about?">
+<button id="startLiveButton" onclick="startIncoLive()">Start Live Broadcast</button>
+<p id="liveStatus" class="muted">Your camera and microphone will be requested when you start.</p><div id="liveCallArea"></div></div>
+<div class="card"><h3>Live sessions</h3><div id="liveSessions">Loading live sessions...</div></div></section>
+<section id="voice"><div class="card"><h2>📞 INCO Voice</h2><p>Call another INCO user by their exact username.</p>
+<input id="callUsername" placeholder="Enter the other person's exact username">
+<div class="call-controls"><button onclick="startIncoCall()">Start Voice Call</button><button onclick="startIncoVideoCall()">Start Video Call</button></div>
+<p id="voiceStatus" class="muted">Ready. Keep this page open to receive incoming calls.</p><div id="callArea"></div></div></section>
 <section id="premium"><div class="card"><h2>⭐ INCO Premium</h2><p>Free and Premium account area.</p><p class="muted">Payment processing must be connected through a secure payment provider. Never put payment secret keys in this HTML.</p></div></section>
 </main>
 <footer>INCO Browser · Connecting people worldwide 🌍</footer>
@@ -75,6 +86,10 @@ const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let currentUser=null,myProfile=null,chatReceiver=null,chatChannel=null,socialChannel=null;
 let recorder=null,voiceChunks=[],recording=false,recordingStream=null,voiceUploadInProgress=false,selectedPublicUser=null;
 let recordingStartPending=false,recordingCancelled=false;
+let liveKitModule=null,activeRoom=null,activeRoomName=null,activeCallChannel=null,incomingCall=null;
+let activeLiveRowId=null,activeLiveHost=false;
+const LIVEKIT_TOKEN_FUNCTION=SUPABASE_URL+"/functions/v1/rapid-action";
+const LIVEKIT_FALLBACK_URL="wss://inco-lxwoqwtx.livekit.cloud";
 const get=id=>document.getElementById(id);
 const say=(id,msg)=>{const el=get(id);if(el)el.textContent=msg};
 function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -133,6 +148,7 @@ async function resetPassword(){
  say("authStatus",error?error.message:"Password reset email requested. Check your inbox.");
 }
 async function signOut(){
+  if(activeRoom)await endIncoCall();if(activeCallChannel){await db.removeChannel(activeCallChannel);activeCallChannel=null;}
  if(chatChannel){await db.removeChannel(chatChannel);chatChannel=null;}if(socialChannel){await db.removeChannel(socialChannel);socialChannel=null;}
  const {error}=await db.auth.signOut();if(error)return say("authStatus",error.message);
  currentUser=null;myProfile=null;chatReceiver=null;say("accountStatus","Not signed in");say("authStatus","You have logged out.");
@@ -152,6 +168,7 @@ async function refreshApp(){
  if(!currentUser)return;await ensureProfile();get("accountStatus").textContent=currentUser.email||"Signed in";
  await Promise.allSettled([loadProfile(),loadFeed(),loadNews(),loadLive(),loadInbox(),loadNotifications()]);
  await setupSocialRealtime();
+  await setupCallSignaling();
 }
 async function createPost(){
  if(!currentUser)return alert("Please log in first.");
@@ -258,9 +275,19 @@ async function submitArticle(){
  say("articleStatus",error?"Submission failed: "+error.message:"Article submitted.");if(!error){get("articleTitle").value="";get("articleContent").value="";await loadNews();}
 }
 async function loadLive(){
- const box=get("liveSessions");const {data,error}=await db.from("live_sessions").select("id,host_id,title,room_name,status,started_at").order("started_at",{ascending:false}).limit(20);
- if(error){box.textContent="Could not load LIVE sessions: "+error.message;return;}box.innerHTML="";
- (data||[]).forEach(s=>{const d=document.createElement("div");d.className="item";const b=document.createElement("b");b.textContent=s.title||"INCO LIVE";const st=document.createElement("span");st.className="badge";st.textContent=s.status||"Status unavailable";d.append(b,st);box.append(d);});if(!data?.length)box.textContent="No live sessions at the moment.";
+ const box=get("liveSessions");if(!box)return;
+ const {data,error}=await db.from("live_sessions").select("id,host_id,title,room_name,status,started_at").order("started_at",{ascending:false}).limit(30);
+ if(error){box.textContent="Could not load LIVE sessions: "+error.message;return;}
+ box.innerHTML="";
+ const active=(data||[]).filter(s=>String(s.status||"").toLowerCase()==="live");
+ if(!active.length){box.textContent="No live sessions at the moment.";return;}
+ for(const s of active){
+  const d=document.createElement("div");d.className="item";
+  const b=document.createElement("b");b.textContent=s.title||"INCO LIVE";
+  const st=document.createElement("span");st.className="badge";st.textContent="LIVE";
+  const join=document.createElement("button");join.textContent="Join Live";join.onclick=()=>joinIncoLive(s);
+  d.append(b,document.createTextNode(" "),st,join);box.append(d);
+ }
 }
 async function openChat(){
  if(!currentUser)return say("chatStatus","Please login first.");const username=get("chatUsername").value.trim();if(!username)return say("chatStatus","Enter the person's username.");
@@ -419,12 +446,149 @@ async function startApp(){
  if(currentUser)await refreshApp();else get("accountStatus").textContent="Not signed in";
  }catch(e){console.error("INCO startup:",e);say("authStatus","Startup error: "+e.message);}
 }
-function startIncoCall(){say("voiceStatus","Voice calls coming soon. We are preparing INCO Voice.");}
-function startIncoVideoCall(){say("voiceStatus","Video calls coming soon. We are preparing INCO Video.");}
+async function getLiveKit(){
+ if(!liveKitModule)liveKitModule=await import("https://cdn.jsdelivr.net/npm/livekit-client@2/+esm");
+ return liveKitModule;
+}
+async function getLiveKitToken(roomName){
+ if(!currentUser)throw new Error("Please log in first.");
+ const {data,error}=await db.auth.getSession();if(error)throw error;
+ const sessionToken=data?.session?.access_token;if(!sessionToken)throw new Error("Your session expired. Please log in again.");
+ const response=await fetch(LIVEKIT_TOKEN_FUNCTION,{method:"POST",headers:{"Authorization":"Bearer "+sessionToken,"apikey":SUPABASE_KEY,"Content-Type":"application/json"},body:JSON.stringify({roomName})});
+ let result={};try{result=await response.json();}catch{}
+ if(!response.ok||!result.token)throw new Error(result.error||"Could not get a LiveKit token (HTTP "+response.status+").");
+ return {token:result.token,serverUrl:result.serverUrl||LIVEKIT_FALLBACK_URL};
+}
+function makeRoomName(otherId){
+ return ("inco_call_"+[currentUser.id,otherId].sort().join("_")+"_"+Date.now()).replace(/[^a-zA-Z0-9_-]/g,"").slice(0,100);
+}
+async function sendCallSignal(userId,event,payload){
+ const channel=db.channel("inco-call-"+userId,{config:{broadcast:{self:false}}});
+ await new Promise((resolve,reject)=>{
+  let done=false;const finish=(err)=>{if(done)return;done=true;clearTimeout(timer);db.removeChannel(channel);err?reject(err):resolve();};
+  const timer=setTimeout(()=>finish(new Error("Call notification timed out. Check Supabase Realtime.")),10000);
+  channel.on("broadcast",{event:"_ready"},()=>{});
+  channel.subscribe(status=>{
+   if(status==="SUBSCRIBED")channel.send({type:"broadcast",event,payload}).then(result=>finish(result==="error"?new Error("Could not send call notification."):null));
+   else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")finish(new Error("Call notifications are unavailable. Check Supabase Realtime."));
+  });
+ });
+}
+async function setupCallSignaling(){
+ if(!currentUser)return;
+ if(activeCallChannel){await db.removeChannel(activeCallChannel);activeCallChannel=null;}
+ activeCallChannel=db.channel("inco-call-"+currentUser.id,{config:{broadcast:{self:false}}})
+ .on("broadcast",{event:"call-invite"},({payload})=>showIncomingCall(payload))
+ .on("broadcast",{event:"call-cancel"},({payload})=>{if(incomingCall?.roomName===payload?.roomName){incomingCall=null;renderIncomingCall();say("voiceStatus","Caller cancelled the call.");}})
+ .on("broadcast",{event:"call-decline"},({payload})=>{if(activeRoomName===payload?.roomName)say("voiceStatus","The other user declined the call.");})
+ .on("broadcast",{event:"call-accept"},({payload})=>{if(activeRoomName===payload?.roomName)connectToLiveKit(payload.roomName,payload.video,"voiceStatus");})
+ .subscribe();
+}
+function showIncomingCall(payload){
+ if(!currentUser||!payload?.roomName||!payload?.fromId)return;
+ incomingCall=payload;renderIncomingCall();say("voiceStatus",(payload.fromName||"An INCO user")+" is calling you.");
+}
+function renderIncomingCall(){
+ const area=get("callArea");if(!area)return;
+ const old=area.querySelector(".incoming-call");if(old)old.remove();if(!incomingCall)return;
+ const card=document.createElement("div");card.className="card incoming-call";
+ const title=document.createElement("b");title.textContent=(incomingCall.fromName||"INCO user")+" is calling ("+(incomingCall.video?"video":"voice")+")";
+ const accept=document.createElement("button");accept.textContent="Accept";accept.onclick=acceptIncomingCall;
+ const decline=document.createElement("button");decline.textContent="Decline";decline.onclick=declineIncomingCall;
+ card.append(title,accept,decline);area.prepend(card);
+}
+async function declineIncomingCall(){
+ if(!incomingCall)return;const c=incomingCall;incomingCall=null;renderIncomingCall();
+ try{await sendCallSignal(c.fromId,"call-decline",{roomName:c.roomName});}catch(e){console.warn(e);}
+ say("voiceStatus","Call declined.");
+}
+async function acceptIncomingCall(){
+ if(!incomingCall)return;const c=incomingCall;incomingCall=null;renderIncomingCall();
+ try{await sendCallSignal(c.fromId,"call-accept",{roomName:c.roomName,video:!!c.video});await connectToLiveKit(c.roomName,!!c.video,"voiceStatus");}
+ catch(e){say("voiceStatus","Could not accept call: "+e.message);}
+}
+async function startIncoCall(){await beginOutgoingCall(false);}
+async function startIncoVideoCall(){await beginOutgoingCall(true);}
+async function beginOutgoingCall(video){
+ if(!currentUser)return say("voiceStatus","Please log in first.");
+ const username=get("callUsername")?.value.trim();if(!username)return say("voiceStatus","Enter the other person's exact username.");
+ say("voiceStatus","Finding INCO user...");
+ try{
+  const {data,error}=await db.from("profiles").select("id,username").eq("username",username).maybeSingle();
+  if(error)throw error;if(!data)throw new Error("User not found. Check the exact username.");
+  if(data.id===currentUser.id)throw new Error("You cannot call yourself.");
+  const roomName=makeRoomName(data.id);activeRoomName=roomName;
+  await sendCallSignal(data.id,"call-invite",{roomName,fromId:currentUser.id,fromName:myProfile?.username||"INCO user",video});
+  say("voiceStatus","Calling "+username+"... Waiting for acceptance.");
+  get("callArea").innerHTML='<div class="card"><b>Calling '+escapeHTML(username)+'</b><p class="muted">Keep INCO open while waiting.</p><button onclick="cancelOutgoingCall()">Cancel Call</button></div>';
+ }catch(e){say("voiceStatus","Call could not start: "+e.message);}
+}
+async function cancelOutgoingCall(){
+ const roomName=activeRoomName,username=get("callUsername").value.trim();if(!roomName)return;
+ try{const {data}=await db.from("profiles").select("id").eq("username",username).maybeSingle();if(data?.id)await sendCallSignal(data.id,"call-cancel",{roomName});}catch(e){console.warn(e);}
+ activeRoomName=null;get("callArea").innerHTML="";say("voiceStatus","Call cancelled.");
+}
+async function connectToLiveKit(roomName,video,statusId){
+ if(!currentUser)throw new Error("Please log in first.");
+ if(activeRoom)await endIncoCall();
+ say(statusId,"Connecting to LiveKit...");
+ const LK=await getLiveKit(),credentials=await getLiveKitToken(roomName);
+ const room=new LK.Room({adaptiveStream:true,dynacast:true});activeRoom=room;activeRoomName=roomName;
+ const area=statusId==="liveStatus"?get("liveCallArea"):get("callArea");
+ area.innerHTML='<div class="card"><div class="call-grid"><div><p class="muted">Your camera</p><video id="incoLocalVideo" class="call-video" autoplay playsinline muted></video></div><div><p class="muted">Other participants</p><div id="incoRemoteMedia"></div></div></div><div class="call-controls"><button id="incoMuteButton">Mute microphone</button><button id="incoCameraButton">Turn camera off</button><button id="incoEndButton">End Call</button></div><p id="incoRoomStatus" class="muted">Connecting...</p></div>';
+ const localVideo=get("incoLocalVideo"),remote=get("incoRemoteMedia");
+ room.on(LK.RoomEvent.TrackSubscribed,(track,publication,participant)=>{
+  const el=track.attach();el.autoplay=true;el.playsInline=true;
+  if(track.kind==="video"){el.className="call-video";remote.append(el);}else{el.style.display="none";remote.append(el);}
+  say("incoRoomStatus",(participant.identity||"Participant")+" connected.");
+ });
+ room.on(LK.RoomEvent.TrackUnsubscribed,track=>track.detach().forEach(el=>el.remove()));
+ room.on(LK.RoomEvent.Disconnected,()=>{if(activeRoom===room){activeRoom=null;activeRoomName=null;say(statusId,"Call disconnected.");}});
+ await room.connect(credentials.serverUrl,credentials.token);
+ await room.localParticipant.setMicrophoneEnabled(true);
+ if(video){
+  await room.localParticipant.setCameraEnabled(true);
+  const publication=Array.from(room.localParticipant.videoTrackPublications.values()).find(p=>p.track);
+  if(publication?.track){const el=publication.track.attach();el.className="call-video";el.autoplay=true;el.playsInline=true;el.muted=true;localVideo.replaceWith(el);el.id="incoLocalVideo";}
+ }
+ get("incoMuteButton").onclick=async()=>{const on=room.localParticipant.isMicrophoneEnabled;await room.localParticipant.setMicrophoneEnabled(!on);get("incoMuteButton").textContent=on?"Unmute microphone":"Mute microphone";};
+ get("incoCameraButton").onclick=async()=>{const on=room.localParticipant.isCameraEnabled;await room.localParticipant.setCameraEnabled(!on);get("incoCameraButton").textContent=on?"Turn camera on":"Turn camera off";};
+ get("incoEndButton").onclick=endIncoCall;
+ say(statusId,video?"Video call connected.":"Voice call connected.");say("incoRoomStatus","Connected. You can now talk.");
+}
+async function endIncoCall(){
+ const room=activeRoom;activeRoom=null;activeRoomName=null;
+ if(room){try{await room.disconnect();}catch(e){console.warn(e);}}
+ if(get("callArea"))get("callArea").innerHTML="";
+ if(get("liveCallArea"))get("liveCallArea").innerHTML="";
+ say("voiceStatus","Call ended.");say("liveStatus","Live session ended.");
+ if(activeLiveHost&&activeLiveRowId){await db.from("live_sessions").update({status:"ended"}).eq("id",activeLiveRowId);activeLiveHost=false;activeLiveRowId=null;await loadLive();}
+}
+async function startIncoLive(){
+ if(!currentUser)return say("liveStatus","Please log in first.");
+ const title=get("liveTitle").value.trim()||"INCO LIVE";
+ const roomName=("inco_live_"+currentUser.id+"_"+Date.now()).replace(/[^a-zA-Z0-9_-]/g,"").slice(0,100);
+ say("liveStatus","Creating your live session...");
+ try{
+  const {data,error}=await db.from("live_sessions").insert({host_id:currentUser.id,title,room_name:roomName,status:"live",started_at:new Date().toISOString()}).select("id").single();
+  if(error)throw error;activeLiveRowId=data.id;activeLiveHost=true;
+  await connectToLiveKit(roomName,true,"liveStatus");await loadLive();
+ }catch(e){
+  if(activeLiveRowId){await db.from("live_sessions").update({status:"ended"}).eq("id",activeLiveRowId);activeLiveRowId=null;activeLiveHost=false;}
+  say("liveStatus","Could not start LIVE: "+e.message);
+ }
+}
+async function joinIncoLive(session){
+ if(!currentUser)return say("liveStatus","Please log in first.");
+ if(session.host_id===currentUser.id)return say("liveStatus","This is your own live session.");
+ try{await connectToLiveKit(session.room_name,true,"liveStatus");}
+ catch(e){say("liveStatus","Could not join LIVE: "+e.message);}
+}
 
 startApp();
 </script>
 </body>
 </html>
+
 
 
