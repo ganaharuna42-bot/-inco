@@ -910,72 +910,128 @@ async function toggleVoiceRecording(){
  await startRecording();
 }
 
-/* UPDATED MOBILE VOICE-NOTE RECORDING */
+function stopMicTracks(){
+ if(recordingStream){
+  recordingStream.getTracks().forEach(track=>{
+   try{track.stop();}catch(e){}
+  });
+  recordingStream=null;
+ }
+}
+
+function microphoneErrorMessage(e){
+ const name=e?.name||"";
+
+ if(name==="NotAllowedError"||name==="PermissionDeniedError"){
+  return "Microphone permission denied. Allow microphone access for INCO in Chrome.";
+ }
+
+ if(name==="NotReadableError"||name==="TrackStartError"||name==="AbortError"){
+  return "Android or Chrome cannot access the microphone right now. Close any app using the microphone, then try again.";
+ }
+
+ if(name==="NotFoundError"){
+  return "No microphone was detected.";
+ }
+
+ if(name==="OverconstrainedError"){
+  return "The microphone settings are not supported. Please try again.";
+ }
+
+ if(name==="SecurityError"||!window.isSecureContext){
+  return "Microphone access requires INCO's secure HTTPS website.";
+ }
+
+ if(name==="NotSupportedError"){
+  return "This browser cannot record audio in the required format.";
+ }
+
+ return "Microphone could not start. Please try again.";
+}
+
+async function toggleVoiceRecording(){
+ if(voiceUploadInProgress||recordingStartPending)return;
+
+ if(recording){
+  stopRecording();
+  return;
+ }
+
+ await startRecording();
+}
+
 async function startRecording(){
  if(recording||recordingStartPending||voiceUploadInProgress)return;
 
  if(!currentUser||!chatReceiver){
-  say("recordStatus","Open a chat first.");
+  say("recordStatus","Open a conversation first.");
+  return;
+ }
+
+ if(!window.isSecureContext){
+  say("recordStatus","Open INCO using its HTTPS website.");
   return;
  }
 
  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){
-  say("recordStatus","Your browser does not support voice recording. Open INCO in Chrome using its HTTPS website.");
+  say("recordStatus","Your browser does not support voice recording. Please use Chrome.");
   return;
  }
 
  recordingStartPending=true;
  voiceRecipient=chatReceiver;
- say("recordStatus","Requesting microphone permission...");
+ voiceChunks=[];
+
+ const button=get("recordButton");
+ button.disabled=true;
+ say("recordStatus","Connecting to microphone...");
 
  try{
-  try{
-   recordingStream=await navigator.mediaDevices.getUserMedia({
-    audio:{
-     echoCancellation:true,
-     noiseSuppression:true,
-     autoGainControl:true
-    }
-   });
-  }catch(firstError){
-   console.warn("INCO microphone fallback:",firstError);
-   recordingStream=await navigator.mediaDevices.getUserMedia({audio:true});
+  // Request the microphone once.
+  // Do not repeatedly request it after a hardware access error.
+  recordingStream=await navigator.mediaDevices.getUserMedia({
+   audio:true,
+   video:false
+  });
+
+  const audioTracks=recordingStream.getAudioTracks();
+
+  if(!audioTracks.length){
+   throw new Error("No microphone audio track was found.");
   }
 
   let mime="";
-  const types=[
+
+  const formats=[
    "audio/webm;codecs=opus",
    "audio/webm",
    "audio/mp4"
   ];
 
-  for(const t of types){
-   if(MediaRecorder.isTypeSupported(t)){
-    mime=t;
+  for(const format of formats){
+   if(MediaRecorder.isTypeSupported(format)){
+    mime=format;
     break;
    }
   }
 
-  recorder=mime?
-   new MediaRecorder(recordingStream,{mimeType:mime}):
-   new MediaRecorder(recordingStream);
+  recorder=mime
+   ?new MediaRecorder(recordingStream,{mimeType:mime})
+   :new MediaRecorder(recordingStream);
 
-  voiceChunks=[];
-
-  recorder.ondataavailable=e=>{
-   if(e.data&&e.data.size>0)voiceChunks.push(e.data);
-  };
-
-  recorder.onerror=e=>{
-   console.error("INCO recorder error:",e.error||e);
-   say("recordStatus","Recording error. Please try again.");
-  };
-
-  recorder.onstop=()=>{
-   if(recordingStream){
-    recordingStream.getTracks().forEach(t=>t.stop());
-    recordingStream=null;
+  recorder.ondataavailable=function(event){
+   if(event.data&&event.data.size>0){
+    voiceChunks.push(event.data);
    }
+  };
+
+  recorder.onerror=function(event){
+   console.error("INCO recorder error:",event.error||event);
+   say("recordStatus","Recording was interrupted. Please try again.");
+  };
+
+  recorder.onstop=function(){
+   stopMicTracks();
    uploadVoiceNote();
   };
 
@@ -984,77 +1040,76 @@ async function startRecording(){
   recording=true;
   recordingStartPending=false;
 
-  const button=get("recordButton");
+  button.disabled=false;
   button.classList.add("recording");
   button.textContent="⏹ Tap to Send";
 
-  say("recordStatus","Recording... Tap the button again to send your voice note.");
+  say("recordStatus","Recording... Tap again to send.");
 
  }catch(e){
-  console.error("INCO microphone start error:",e);
+  console.error("INCO microphone error:",e);
 
-  recordingStartPending=false;
+  stopMicTracks();
+
   recording=false;
+  recordingStartPending=false;
+  voiceChunks=[];
+  voiceRecipient=null;
+  recorder=null;
 
-  if(recordingStream){
-   recordingStream.getTracks().forEach(t=>t.stop());
-   recordingStream=null;
-  }
-
-  const button=get("recordButton");
+  button.disabled=false;
   button.classList.remove("recording");
   button.textContent="🎤 Tap to Record";
 
-  say("recordStatus",
-   "Recording could not start: "+
-   (e?.name||"Error")+" — "+
-   (e?.message||"Please try again.")
-  );
+  say("recordStatus",microphoneErrorMessage(e));
  }
 }
 
-/* UPDATED STOP: wait for recorder to finish before releasing microphone */
 function stopRecording(){
- if(recordingStartPending||!recording||!recorder)return;
+ if(!recording||recordingStartPending||!recorder)return;
 
  recording=false;
 
  const button=get("recordButton");
- button.classList.remove("recording");
- button.textContent="Uploading...";
  button.disabled=true;
+ button.classList.remove("recording");
+ button.textContent="Finishing...";
 
- say("recordStatus","Finishing recording and uploading...");
+ say("recordStatus","Finishing your voice note...");
 
  try{
   if(recorder.state!=="inactive"){
    recorder.stop();
   }else{
-   if(recordingStream){
-    recordingStream.getTracks().forEach(t=>t.stop());
-    recordingStream=null;
-   }
+   stopMicTracks();
    uploadVoiceNote();
   }
  }catch(e){
-  console.error("INCO stop recording:",e);
+  console.error("INCO stop error:",e);
 
-  if(recordingStream){
-   recordingStream.getTracks().forEach(t=>t.stop());
-   recordingStream=null;
-  }
+  stopMicTracks();
 
-  voiceUploadInProgress=false;
+  recording=false;
+  recordingStartPending=false;
+  voiceChunks=[];
+  voiceRecipient=null;
+  recorder=null;
+
   button.disabled=false;
   button.textContent="🎤 Tap to Record";
-  say("recordStatus","Could not finish recording: "+(e?.message||"Please try again."));
+
+  say("recordStatus","Could not finish recording. Please try again.");
  }
 }
 
 async function uploadVoiceNote(){
  const button=get("recordButton");
+
+ if(voiceUploadInProgress)return;
  voiceUploadInProgress=true;
  button.disabled=true;
+
+ let uploadedPath=null;
 
  try{
   const recipient=voiceRecipient;
@@ -1067,50 +1122,64 @@ async function uploadVoiceNote(){
   }
 
   if(blob.size>15*1024*1024){
-   say("recordStatus","Voice note is too large. Please record a shorter note.");
+   say("recordStatus","Voice note is too large. Record a shorter note.");
    return;
   }
 
   if(!currentUser||!recipient){
-   say("recordStatus","Your chat session changed. Please open the chat again.");
+   say("recordStatus","Please open your conversation again.");
    return;
   }
 
-  const ext=type.includes("mp4")?"m4a":"webm";
-  const path=currentUser.id+"/"+Date.now()+"."+ext;
+  const extension=type.includes("mp4")?"m4a":"webm";
+  const path=currentUser.id+"/"+Date.now()+"."+extension;
 
-  const {error:uploadError}=await db.storage.from("chat-voice").upload(path,blob,{contentType:type,upsert:false});
+  const upload=await db.storage
+   .from("chat-voice")
+   .upload(path,blob,{
+    contentType:type,
+    upsert:false
+   });
 
-  if(uploadError){
-   say("recordStatus","Voice upload failed: "+uploadError.message);
+  if(upload.error){
+   say("recordStatus","Voice upload failed: "+upload.error.message);
    return;
   }
 
-  const {error:messageError}=await db.from("messages").insert({sender_id:currentUser.id,receiver_id:recipient,content:"VOICE:"+path});
+  uploadedPath=path;
 
-  if(messageError){
-   say("recordStatus","Audio uploaded, but the message could not be sent: "+messageError.message);
+  const result=await db.from("messages").insert({
+   sender_id:currentUser.id,
+   receiver_id:recipient,
+   content:"VOICE:"+path
+  });
+
+  if(result.error){
+   // Remove the uploaded audio if its message could not be created.
+   await db.storage.from("chat-voice").remove([path]);
+   uploadedPath=null;
+   say("recordStatus","Message could not be sent: "+result.error.message);
    return;
   }
 
-  say("recordStatus","Voice note sent.");
+  say("recordStatus","Voice note sent successfully.");
+
   await loadChatMessages();
   await loadInbox();
 
  }catch(e){
   console.error("INCO voice upload:",e);
-  say("recordStatus","Voice note error: "+(e?.message||"Please try again."));
+  say("recordStatus","Voice upload error: "+(e?.message||"Please try again."));
+
  }finally{
+  stopMicTracks();
+
   voiceUploadInProgress=false;
   recording=false;
   recordingStartPending=false;
   voiceChunks=[];
   voiceRecipient=null;
-
-  if(recordingStream){
-   recordingStream.getTracks().forEach(t=>t.stop());
-   recordingStream=null;
-  }
+  recorder=null;
 
   button.disabled=false;
   button.classList.remove("recording");
