@@ -39,6 +39,18 @@ footer{text-align:center;color:#7e91ad;padding:25px}
 .status{padding:8px}
 .badge{display:inline-block;background:#263b5c;padding:3px 8px;border-radius:20px;font-size:12px}
 @media(max-width:520px){header{padding:11px}.logo{font-size:20px}main{padding:7px}.card{padding:12px}.row{flex-wrap:wrap}}
+#dailyQuestion{
+  border-left:4px solid #1678db;
+  background:#162944;
+  font-weight:bold;
+  line-height:1.6;
+}
+.post{
+  transition:background .2s;
+}
+.post:hover{
+  background:#14243a;
+}
 </style>
 </head>
 <body>
@@ -118,14 +130,39 @@ footer{text-align:center;color:#7e91ad;padding:25px}
 </section>
 
 <section id="community">
-<div class="card">
-<h2>Community</h2>
-<textarea id="postText" placeholder="What would you like to share?"></textarea>
-<input type="file" id="postMedia" accept="image/*,video/*">
-<button onclick="createPost()">Publish Post</button>
-<p id="postStatus" class="muted"></p>
-</div>
-<div id="feed"></div>
+  <div class="card">
+    <h2>🌍 INCO Community</h2>
+    <p class="muted">Share ideas, discover people and join conversations.</p>
+
+    <h3>🔥 Today's Community Question</h3>
+    <div id="dailyQuestion" class="card"></div>
+
+    <textarea id="postText" placeholder="What would you like to share with the world?"></textarea>
+    <input type="file" id="postMedia" accept="image/*,video/*">
+
+    <button onclick="createPost()">Publish Post</button>
+    <p id="postStatus" class="muted"></p>
+  </div>
+
+  <div class="card">
+    <h3>Explore Community</h3>
+    <div class="row">
+      <button onclick="setCommunitySort('latest')">Latest</button>
+      <button onclick="setCommunitySort('trending')">🔥 Trending</button>
+    </div>
+
+    <select id="communityTopic" onchange="loadFeed()">
+      <option value="all">All topics</option>
+      <option value="technology">Technology</option>
+      <option value="education">Education</option>
+      <option value="business">Business</option>
+      <option value="entertainment">Entertainment</option>
+      <option value="sports">Sports</option>
+      <option value="lifestyle">Lifestyle</option>
+    </select>
+  </div>
+
+  <div id="feed"></div>
 </section>
 
 <section id="chat">
@@ -531,7 +568,49 @@ async function refreshApp(){
  await setupSocialRealtime();
  renderEarn();
 }
+let communitySort="latest";
 
+const communityQuestions=[
+ "What new skill would you like to learn this month?",
+ "What is one idea that could improve your community?",
+ "What advice would you give someone starting a business?",
+ "What technology has made your life easier?",
+ "What makes a good friend?",
+ "What is one thing you wish more people understood?",
+ "What positive achievement are you proud of?"
+];
+
+function showDailyQuestion(){
+ const box=get("dailyQuestion");
+ if(!box)return;
+
+ const day=Math.floor(Date.now()/86400000);
+ const question=communityQuestions[day%communityQuestions.length];
+
+ box.textContent=question;
+}
+
+function setCommunitySort(sort){
+ communitySort=sort;
+ loadFeed();
+}
+
+function matchesCommunityTopic(post,topic){
+ if(topic==="all")return true;
+
+ const content=String(post.content||"").toLowerCase();
+
+ const words={
+  technology:["technology","tech","phone","computer","internet","app","software","ai"],
+  education:["school","education","learn","student","teacher","study","course"],
+  business:["business","money","businesses","selling","customer","entrepreneur"],
+  entertainment:["music","movie","film","comedy","entertainment","celebrity"],
+  sports:["football","basketball","sports","player","match","team"],
+  lifestyle:["life","food","travel","family","fashion","health","hobby"]
+ };
+
+ return (words[topic]||[]).some(word=>content.includes(word));
+}
 async function createPost(){
  if(!currentUser)return alert("Please log in first.");
  const content=get("postText").value.trim(),file=get("postMedia").files[0];
@@ -556,26 +635,71 @@ async function createPost(){
   await loadProfile();
  }catch(e){say("postStatus","Error: "+e.message);}
 }
-
 async function loadFeed(){
  const box=get("feed");
  if(!box)return;
- if(!currentUser){box.textContent="Login to load community posts.";return;}
- box.textContent="Loading posts...";
- const {data,error}=await db.from("posts").select("id,user_id,content,media_url,status,created_at").eq("status","published").order("created_at",{ascending:false}).limit(50);
- if(error){box.textContent="Could not load posts: "+error.message;return;}
- await renderPostList(box,data||[]);
-}
 
-async function loadHomeFeed(){
- const box=get("homeFeed");
- if(!box||!currentUser){
-  if(box)box.textContent="Login to see community posts.";
+ showDailyQuestion();
+ box.textContent="Loading community posts...";
+
+ let query=db.from("posts")
+  .select("id,user_id,content,media_url,status,created_at")
+  .eq("status","published")
+  .order("created_at",{ascending:false})
+  .limit(50);
+
+ const {data,error}=await query;
+
+ if(error){
+  box.textContent="Could not load posts: "+error.message;
   return;
  }
- const {data,error}=await db.from("posts").select("id,user_id,content,media_url,status,created_at").eq("status","published").order("created_at",{ascending:false}).limit(5);
- if(error){box.textContent=error.message;return;}
+
+ const topic=get("communityTopic")?.value||"all";
+ let posts=(data||[]).filter(p=>matchesCommunityTopic(p,topic));
+
+ if(communitySort==="trending"&&posts.length){
+  const ids=posts.map(p=>p.id);
+
+  const [likes,comments]=await Promise.all([
+   db.from("likes").select("post_id").in("post_id",ids),
+   db.from("comments").select("post_id").in("post_id",ids)
+  ]);
+
+  if(likes.error||comments.error){
+   box.textContent="Could not calculate trending posts. "+(likes.error||comments.error).message;
+   return;
+  }
+
+  const score={};
+
+  posts.forEach(p=>score[p.id]=0);
+  (likes.data||[]).forEach(x=>score[x.post_id]=(score[x.post_id]||0)+2);
+  (comments.data||[]).forEach(x=>score[x.post_id]=(score[x.post_id]||0)+3);
+
+  posts.sort((a,b)=>(score[b.id]||0)-(score[a.id]||0));
+ }
+
+ await renderPostList(box,posts);
+}
+}
+async function loadHomeFeed(){
+ const box=get("homeFeed");
+ if(!box)return;
+
+ const {data,error}=await db.from("posts")
+  .select("id,user_id,content,media_url,status,created_at")
+  .eq("status","published")
+  .order("created_at",{ascending:false})
+  .limit(5);
+
+ if(error){
+  box.textContent="Could not load community posts: "+error.message;
+  return;
+ }
+
  await renderPostList(box,data||[]);
+}
 }
 
 async function renderPostList(box,posts){
