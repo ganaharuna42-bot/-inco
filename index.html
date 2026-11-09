@@ -909,11 +909,12 @@ async function toggleVoiceRecording(){
  if(recording){stopRecording();return;}
  await startRecording();
 }
-
 function stopMicTracks(){
  if(recordingStream){
   recordingStream.getTracks().forEach(track=>{
-   try{track.stop();}catch(e){}
+   try{
+    track.stop();
+   }catch(e){}
   });
   recordingStream=null;
  }
@@ -927,7 +928,7 @@ function microphoneErrorMessage(e){
  }
 
  if(name==="NotReadableError"||name==="TrackStartError"||name==="AbortError"){
-  return "Android or Chrome cannot access the microphone right now. Close any app using the microphone, then try again.";
+  return "Chrome could not open the microphone. Please try again.";
  }
 
  if(name==="NotFoundError"){
@@ -935,7 +936,7 @@ function microphoneErrorMessage(e){
  }
 
  if(name==="OverconstrainedError"){
-  return "The microphone settings are not supported. Please try again.";
+  return "The microphone settings are not supported.";
  }
 
  if(name==="SecurityError"||!window.isSecureContext){
@@ -943,7 +944,7 @@ function microphoneErrorMessage(e){
  }
 
  if(name==="NotSupportedError"){
-  return "This browser cannot record audio in the required format.";
+  return "This browser cannot record audio.";
  }
 
  return "Microphone could not start. Please try again.";
@@ -974,7 +975,7 @@ async function startRecording(){
  }
 
  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){
-  say("recordStatus","Your browser does not support voice recording. Please use Chrome.");
+  say("recordStatus","Please use an updated version of Chrome.");
   return;
  }
 
@@ -983,12 +984,18 @@ async function startRecording(){
  voiceChunks=[];
 
  const button=get("recordButton");
- button.disabled=true;
+
+ if(button){
+  button.disabled=true;
+ }
+
  say("recordStatus","Connecting to microphone...");
 
  try{
-  // Request the microphone once.
-  // Do not repeatedly request it after a hardware access error.
+  // Release any microphone stream left by an earlier recording.
+  stopMicTracks();
+
+  // Request the microphone only once.
   recordingStream=await navigator.mediaDevices.getUserMedia({
    audio:true,
    video:false
@@ -997,7 +1004,7 @@ async function startRecording(){
   const audioTracks=recordingStream.getAudioTracks();
 
   if(!audioTracks.length){
-   throw new Error("No microphone audio track was found.");
+   throw new Error("No microphone audio track found.");
   }
 
   let mime="";
@@ -1027,12 +1034,42 @@ async function startRecording(){
 
   recorder.onerror=function(event){
    console.error("INCO recorder error:",event.error||event);
+   window.incoVoiceRecorderFailed=true;
    say("recordStatus","Recording was interrupted. Please try again.");
+
+   try{
+    if(recorder&&recorder.state!=="inactive"){
+     recorder.stop();
+    }
+   }catch(e){
+    stopMicTracks();
+   }
   };
 
+  window.incoVoiceRecorderFailed=false;
+
   recorder.onstop=function(){
+   const recordedType=recorder?.mimeType||"audio/webm";
+
    stopMicTracks();
-   uploadVoiceNote();
+
+   if(window.incoVoiceRecorderFailed){
+    voiceChunks=[];
+    voiceRecipient=null;
+    recorder=null;
+    recording=false;
+    recordingStartPending=false;
+    voiceUploadInProgress=false;
+
+    if(button){
+     button.disabled=false;
+     button.classList.remove("recording");
+     button.textContent="🎤 Tap to Record";
+    }
+    return;
+   }
+
+   uploadVoiceNote(recordedType);
   };
 
   recorder.start(250);
@@ -1040,9 +1077,11 @@ async function startRecording(){
   recording=true;
   recordingStartPending=false;
 
-  button.disabled=false;
-  button.classList.add("recording");
-  button.textContent="⏹ Tap to Send";
+  if(button){
+   button.disabled=false;
+   button.classList.add("recording");
+   button.textContent="⏹ Tap to Send";
+  }
 
   say("recordStatus","Recording... Tap again to send.");
 
@@ -1057,9 +1096,11 @@ async function startRecording(){
   voiceRecipient=null;
   recorder=null;
 
-  button.disabled=false;
-  button.classList.remove("recording");
-  button.textContent="🎤 Tap to Record";
+  if(button){
+   button.disabled=false;
+   button.classList.remove("recording");
+   button.textContent="🎤 Tap to Record";
+  }
 
   say("recordStatus",microphoneErrorMessage(e));
  }
@@ -1071,9 +1112,12 @@ function stopRecording(){
  recording=false;
 
  const button=get("recordButton");
- button.disabled=true;
- button.classList.remove("recording");
- button.textContent="Finishing...";
+
+ if(button){
+  button.disabled=true;
+  button.classList.remove("recording");
+  button.textContent="Finishing...";
+ }
 
  say("recordStatus","Finishing your voice note...");
 
@@ -1082,7 +1126,7 @@ function stopRecording(){
    recorder.stop();
   }else{
    stopMicTracks();
-   uploadVoiceNote();
+   uploadVoiceNote(recorder.mimeType||"audio/webm");
   }
  }catch(e){
   console.error("INCO stop error:",e);
@@ -1095,25 +1139,29 @@ function stopRecording(){
   voiceRecipient=null;
   recorder=null;
 
-  button.disabled=false;
-  button.textContent="🎤 Tap to Record";
+  if(button){
+   button.disabled=false;
+   button.textContent="🎤 Tap to Record";
+  }
 
   say("recordStatus","Could not finish recording. Please try again.");
  }
 }
 
-async function uploadVoiceNote(){
+async function uploadVoiceNote(recordedType){
  const button=get("recordButton");
 
  if(voiceUploadInProgress)return;
- voiceUploadInProgress=true;
- button.disabled=true;
 
- let uploadedPath=null;
+ voiceUploadInProgress=true;
+
+ if(button){
+  button.disabled=true;
+ }
 
  try{
   const recipient=voiceRecipient;
-  const type=recorder?.mimeType||"audio/webm";
+  const type=recordedType||"audio/webm";
   const blob=new Blob(voiceChunks,{type});
 
   if(!blob.size){
@@ -1146,8 +1194,6 @@ async function uploadVoiceNote(){
    return;
   }
 
-  uploadedPath=path;
-
   const result=await db.from("messages").insert({
    sender_id:currentUser.id,
    receiver_id:recipient,
@@ -1155,9 +1201,7 @@ async function uploadVoiceNote(){
   });
 
   if(result.error){
-   // Remove the uploaded audio if its message could not be created.
    await db.storage.from("chat-voice").remove([path]);
-   uploadedPath=null;
    say("recordStatus","Message could not be sent: "+result.error.message);
    return;
   }
@@ -1181,12 +1225,14 @@ async function uploadVoiceNote(){
   voiceRecipient=null;
   recorder=null;
 
-  button.disabled=false;
-  button.classList.remove("recording");
-  button.textContent="🎤 Tap to Record";
+  if(button){
+   button.disabled=false;
+   button.classList.remove("recording");
+   button.textContent="🎤 Tap to Record";
+  }
  }
 }
-
+  
 async function loadInbox(){
  if(!currentUser)return say("inboxList","Please login first.");
  const box=get("inboxList");
