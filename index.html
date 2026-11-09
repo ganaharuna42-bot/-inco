@@ -15,7 +15,7 @@ nav{display:flex;gap:5px;overflow-x:auto;background:#101a2c;padding:8px;position
 nav button{white-space:nowrap}
 button{background:#1678db;color:white;border:0;padding:11px 14px;border-radius:9px;cursor:pointer;margin:3px}
 button:disabled{opacity:.5;cursor:not-allowed}
-input,textarea,select{width:100%;padding:12px;margin:6px 0;background:#111d31;border:1px solid #304563;border-radius:8px;color:white}
+input,textarea,select{width:100%;;padding:12px;margin:6px 0;background:#111d31;border:1px solid #304563;border-radius:8px;color:white}
 textarea{min-height:85px}
 main{max-width:850px;margin:auto;padding:12px}
 section{display:none}
@@ -37,31 +37,14 @@ footer{text-align:center;color:#7e91ad;padding:25px}
 #recordButton{background:#d62828;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 #recordButton.recording{background:#8b0000;box-shadow:0 0 12px #ff3333}
 .status{padding:8px}
-.call-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px}
-.call-video{width:100%;min-height:150px;max-height:340px;background:#030711;border:1px solid #304563;border-radius:12px;object-fit:contain}
-.call-controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.call-controls button{flex:1;min-width:105px}
 .badge{display:inline-block;background:#263b5c;padding:3px 8px;border-radius:20px;font-size:12px}
-.setting-row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid #263b5c}
-.setting-row>div{flex:1;min-width:0}
-.setting-row input[type=checkbox]{width:22px;height:22px;flex:0 0 22px;accent-color:#1678db}
-.setting-row select{max-width:150px}
-.settings-note{background:#0b1525;border:1px solid #304563;border-radius:9px;padding:11px;margin:10px 0}
-body.inco-light{background:#f2f5fa;color:#172235}
-body.inco-light header,body.inco-light nav{background:#e1eaf5;border-color:#c5d2e2}
-body.inco-light .card{background:#fff;border-color:#cbd6e4}
-body.inco-light input,body.inco-light textarea,body.inco-light select{background:#fff;color:#172235;border-color:#bac9dc}
-body.inco-light .item{border-color:#d6dfeb}
-body.inco-light .settings-note{background:#f3f7fc;border-color:#cbd6e4}
-body.inco-light .muted{color:#53657d}
-body.inco-light footer{color:#53657d}
-@media(max-width:520px){header{padding:11px}.logo{font-size:20px}main{padding:7px}.card{padding:12px}.row{flex-wrap:wrap}.setting-row{align-items:flex-start}}
+@media(max-width:520px){header{padding:11px}.logo{font-size:20px}main{padding:7px}.card{padding:12px}.row{flex-wrap:wrap}}
 </style>
 </head>
 <body>
 <header><div class="logo">🛡️ INCO</div><div id="accountStatus" class="muted">Checking account...</div></header>
 <nav>
-<button onclick="showPage('home')">Home</button><button onclick="showPage('community')">Community</button><button onclick="showPage('chat')">Messages</button><button onclick="showPage('inbox')">📥 Inbox <span id="inboxCount">0</span></button><button onclick="showPage('notifications')">🔔 Alerts <span id="notificationCount">0</span></button><button onclick="showPage('people')">People</button><button onclick="showPage('news')">News</button><button onclick="showPage('search')">Search</button><button onclick="showPage('saved')">Saved</button><button onclick="showPage('profile')">Profile</button><button onclick="showPage('account')">Account</button><button onclick="showPage('live')">LIVE</button><button onclick="showPage('voice')">Voice</button><button onclick="showPage('premium')">Premium</button><button onclick="showPage('settings')">⚙️ Settings</button>
+<button onclick="showPage('home')">Home</button><button onclick="showPage('community')">Community</button><button onclick="showPage('chat')">Messages</button><button onclick="showPage('inbox')">📥 Inbox <span id="inboxCount">0</span></button><button onclick="showPage('notifications')">🔔 Alerts <span id="notificationCount">0</span></button><button onclick="showPage('people')">People</button><button onclick="showPage('news')">News</button><button onclick="showPage('search')">Search</button><button onclick="showPage('saved')">Saved</button><button onclick="showPage('profile')">Profile</button><button onclick="showPage('account')">Account</button><button onclick="showPage('live')">LIVE</button><button onclick="showPage('voice')">Voice</button><button onclick="showPage('premium')">Premium</button><button onclick="showPage('monetization')">💰 Earn & Monetization</button>
 </nav>
 <main>
 <section id="home" class="active">
@@ -71,7 +54,7 @@ body.inco-light footer{color:#53657d}
 </section>
 <section id="search"><div class="card"><h2>Search the web</h2><select id="engine"><option value="https://www.google.com/search?q=">Google</option><option value="https://search.yahoo.com/search?p=">Yahoo</option><option value="https://www.bing.com/search?q=">Bing</option><option value="https://duckduckgo.com/?q=">DuckDuckGo</option></select><input id="webSearch" placeholder="Search or enter website address" onkeydown="if(event.key==='Enter')searchWeb('webSearch')"><button onclick="searchWeb('webSearch')">Go</button></div><div class="card"><h3>Recent history</h3><div id="searchHistory"></div></div></section>
 <section id="community"><div class="card"><h2>Community</h2><textarea id="postText" placeholder="What would you like to share?"></textarea><input type="file" id="postMedia" accept="image/*,video/*"><button onclick="createPost()">Publish Post</button><p id="postStatus" class="muted"></p></div><div id="feed"></div></section>
-<section id="chat"><div class="card"><h2>💬 INCO Messages</h2><p class="muted">Send private messages to other INCO users.</p><input id="chatUsername" placeholder="Enter receiver's exact username"><button onclick="openChat()">Open Chat</button><p id="chatStatus" class="muted"></p><div id="chatMessages"><p class="muted">Open a conversation to see messages.</p></div><textarea id="chatText" placeholder="Write your message..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"></textarea><button onclick="sendChatMessage()">Send Message</button><hr><h3>🎤 Voice Notes</h3><button id="recordButton" onpointerdown="startRecording(event)" onpointerup="stopRecording()" onpointercancel="stopRecording()" onlostpointercapture="stopRecording()" oncontextmenu="return false">Hold to Record</button><p id="recordStatus" class="muted">Hold to record. Release to send.</p></div></section>
+<section id="chat"><div class="card"><h2>💬 INCO Messages</h2><p class="muted">Send private messages to other INCO users.</p><input id="chatUsername" placeholder="Enter receiver's exact username"><button onclick="openChat()">Open Chat</button><p id="chatStatus" class="muted"></p><div id="chatMessages"><p class="muted">Open a conversation to see messages.</p></div><textarea id="chatText" placeholder="Write your message..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"></textarea><button onclick="sendChatMessage()">Send Message</button><hr><h3>🎤 Voice Notes</h3><button id="recordButton" onpointerdown="startRecording(event)" onpointerup="stopRecording()" onpointercancel="stopRecording()" oncontextmenu="return false">Hold to Record</button><p id="recordStatus" class="muted">Hold to record. Release to send.</p></div></section>
 <section id="inbox"><div class="card"><h2>📥 Message Inbox</h2><p class="muted">Your conversations and unread messages.</p><div id="inboxList">Loading inbox...</div></div></section>
 <section id="notifications"><div class="card"><h2>🔔 Notifications</h2><button onclick="markAllNotificationsRead()">Mark all as read</button><div id="notificationList">Loading notifications...</div></div></section>
 <section id="people"><div class="card"><h2>👥 Discover People</h2><input id="peopleSearch" placeholder="Search username" onkeydown="if(event.key==='Enter')searchPeople()"><button onclick="searchPeople()">Search</button><div id="peopleResults"></div></div><div class="card"><h2>🌍 Public Profile</h2><div id="publicProfile">Search for someone to view their profile.</div><div id="publicPosts"></div></div></section>
@@ -79,48 +62,35 @@ body.inco-light footer{color:#53657d}
 <section id="saved"><div class="card"><h2>Saved Posts</h2><div id="bookmarks"></div></div><div class="card"><h2>Browsing history</h2><div id="history"></div><button onclick="clearHistory()">Clear History</button></div></section>
 <section id="profile"><div class="card"><h2>My Profile</h2><img id="avatarPreview" class="avatar" alt="Profile picture"><input type="file" id="avatarFile" accept="image/*"><button onclick="uploadAvatar()">Upload Profile Picture</button><input id="profileUsername" placeholder="Username"><textarea id="profileBio" placeholder="Your bio"></textarea><button onclick="saveProfile()">Save Profile</button><p id="profileStatus" class="muted"></p></div><div class="card"><h3>My Posts</h3><div id="myPosts"></div></div></section>
 <section id="account"><div class="card"><h2>INCO Account</h2><input id="email" type="email" autocomplete="email" placeholder="Email address"><input id="password" type="password" autocomplete="current-password" placeholder="Password"><button onclick="signUp()">Create Account</button><button onclick="signIn()">Login</button><button onclick="resetPassword()">Forgot Password</button><button onclick="signOut()">Logout</button><p id="authStatus" class="muted"></p></div></section>
-<section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Start a live broadcast or join another user's live session.</p><input id="liveTitle" maxlength="100" placeholder="What is your live about?"><button id="startLiveButton" onclick="startIncoLive()">Start Live Broadcast</button><p id="liveStatus" class="muted">Your camera and microphone will be requested when you start.</p><div id="liveCallArea"></div></div><div class="card"><h3>Live sessions</h3><div id="liveSessions">Loading live sessions...</div></div></section>
-<section id="voice"><div class="card"><h2>📞 INCO Voice</h2><p>Call another INCO user by their exact username.</p><input id="callUsername" placeholder="Enter the other person's exact username"><div class="call-controls"><button onclick="startIncoCall()">Start Voice Call</button><button onclick="startIncoVideoCall()">Start Video Call</button></div><p id="voiceStatus" class="muted">Ready. Keep this page open to receive incoming calls.</p><div id="callArea"></div></div></section>
+<section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Live session listings from your existing Supabase database.</p><p class="muted">Real camera broadcasting, viewer chat and host controls need a secure LiveKit token service. This page does not pretend broadcasting is active without it.</p><div id="liveSessions">Loading live sessions...</div></div></section>
+<section id="voice"><div class="card"><h2>📞 INCO Voice</h2><p>Voice calls coming soon. Voice notes are available in Messages.</p></div></section>
 <section id="premium"><div class="card"><h2>⭐ INCO Premium</h2><p>Free and Premium account area.</p><p class="muted">Payment processing must be connected through a secure payment provider. Never put payment secret keys in this HTML.</p></div></section>
-
-<section id="settings">
+<section id="monetization">
 <div class="card">
-<h2>⚙️ INCO Settings</h2>
-<p class="muted">Manage your app preferences and account security.</p>
+<h2>💰 INCO Earn & Monetization</h2>
+<p class="muted">This is the INCO earning information area. It does not show pretend balances or promise guaranteed income.</p>
+<h3>Invite friends</h3>
+<p>Referral rewards are not active yet. INCO needs secure server-side referral tracking and verified reward rules before invitations can earn money.</p>
+<p class="muted">When the referral system is ready, each user will have a unique invite link and a clear record of verified referrals.</p>
 </div>
 <div class="card">
-<h3>🎨 Appearance</h3>
-<div class="setting-row"><div><b>App theme</b><div class="muted">Choose how INCO looks on this device.</div></div><select id="settingTheme" onchange="saveIncoSettings()"><option value="dark">Dark</option><option value="light">Light</option></select></div>
+<h3>🎨 Creator Studio</h3>
+<p>Creator pages and creator earnings are planned.</p>
+<p class="muted">Creator profiles, views, revenue calculations and approval are not connected to the database yet. No earnings are being calculated.</p>
 </div>
 <div class="card">
-<h3>🔔 Notifications</h3>
-<div class="setting-row"><div><b>Show in-app alert badge</b><div class="muted">Show the unread count beside Alerts.</div></div><input id="settingAlertBadge" type="checkbox" onchange="saveIncoSettings()"></div>
-<p id="settingsStatus" class="muted">Settings are stored on this device.</p>
+<h3>📣 Advertise on INCO</h3>
+<p>Advertising requests and ad delivery are not active yet.</p>
+<p class="muted">The advertising database, review process, ad placements, analytics and secure payment setup must be connected before businesses can submit or pay for adverts.</p>
 </div>
 <div class="card">
-<h3>🔐 Account security</h3>
-<p class="muted">Change the password for your signed-in INCO account.</p>
-<input id="settingsNewPassword" type="password" autocomplete="new-password" placeholder="New password (at least 6 characters)">
-<input id="settingsConfirmPassword" type="password" autocomplete="new-password" placeholder="Confirm new password">
-<button onclick="changeAccountPassword()">Update Password</button>
-<p id="passwordSettingsStatus" class="muted"></p>
-<button onclick="showPage('account')">Open Account / Login</button>
-<button onclick="signOut()">Logout of INCO</button>
+<h3>🛍️ Jumia Affiliate</h3>
+<p>Affiliate promotion is planned.</p>
+<p class="muted">No approved Jumia affiliate tracking link was supplied, so this area does not use a made-up link or claim commission. Add the official link after an affiliate account is approved.</p>
 </div>
 <div class="card">
-<h3>🧹 Browser data</h3>
-<p class="muted">These actions affect saved browser data on this device only.</p>
-<button onclick="clearHistoryFromSettings()">Clear Browsing History</button>
-<button onclick="clearShortcuts()">Remove All Quick Websites</button>
-</div>
-<div class="card">
-<h3>🛡️ Privacy information</h3>
-<p class="muted">Your profile and posts are controlled by your Supabase database policies. This version does not yet include server-enforced private profiles or a synced blocked-users list. A setting saved only on this phone cannot secure your account for other users.</p>
-</div>
-<div class="card">
-<h3>ℹ️ About INCO</h3>
-<p>INCO Browser · Connecting people worldwide 🌍</p>
-<p class="muted">Settings version 1.0 · Your existing INCO features remain available from the navigation menu.</p>
+<h3>💳 Earnings and payouts</h3>
+<p class="muted">No cash balance, payout or payment processing is active. Any future payment service must be securely configured, with appropriate adult/guardian involvement where required.</p>
 </div>
 </section>
 </main>
@@ -132,56 +102,12 @@ const SUPABASE_KEY="sb_publishable_GgUFgvk2DLQx_w2Jzbbkpw_kcix85oQ";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let currentUser=null,myProfile=null,chatReceiver=null,chatChannel=null,socialChannel=null;
 let recorder=null,voiceChunks=[],recording=false,recordingStream=null,voiceUploadInProgress=false,selectedPublicUser=null;
-let recordingStartPending=false,recordingCancelled=false;
-let liveKitModule=null,activeRoom=null,activeRoomName=null,activeCallChannel=null,incomingCall=null;
-let activeLiveRowId=null,activeLiveHost=false;
-const LIVEKIT_TOKEN_FUNCTION=SUPABASE_URL+"/functions/v1/rapid-action";
-const LIVEKIT_FALLBACK_URL="wss://inco-lxwoqwtx.livekit.cloud";
 const get=id=>document.getElementById(id);
-const say=(id,msg)=>{const el=get(id);if(el)el.textContent=msg;};
+const say=(id,msg)=>{const el=get(id);if(el)el.textContent=msg};
 function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function safeURL(s){try{const u=new URL(s,location.href);return ["http:","https:"].includes(u.protocol)?u.href:"#";}catch{return "#";}}
 function localGet(k,f=[]){try{const x=JSON.parse(localStorage.getItem(k));return Array.isArray(x)?x:f;}catch{return f;}}
 function localSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){console.warn(e);}}
-const INCO_SETTINGS_KEY="inco_app_settings_v1";
-function getIncoSettings(){
- try{return Object.assign({theme:"dark",alertBadge:true},JSON.parse(localStorage.getItem(INCO_SETTINGS_KEY)||"{}"));}
- catch{return {theme:"dark",alertBadge:true};}
-}
-function applyIncoSettings(){
- const settings=getIncoSettings();
- document.body.classList.toggle("inco-light",settings.theme==="light");
- const theme=get("settingTheme"),badge=get("settingAlertBadge");
- if(theme)theme.value=settings.theme;
- if(badge)badge.checked=!!settings.alertBadge;
- if(!settings.alertBadge&&get("notificationCount"))get("notificationCount").textContent="•";
-}
-function saveIncoSettings(){
- const settings={theme:get("settingTheme")?.value==="light"?"light":"dark",alertBadge:!!get("settingAlertBadge")?.checked};
- try{localStorage.setItem(INCO_SETTINGS_KEY,JSON.stringify(settings));applyIncoSettings();say("settingsStatus","Settings saved on this device.");}
- catch(e){say("settingsStatus","Could not save settings: "+e.message);}
-}
-function clearHistoryFromSettings(){
- if(!confirm("Clear browsing history saved on this device?"))return;
- localSet("inco_history",[]);renderHistory("history");renderHistory("searchHistory");say("settingsStatus","Browsing history cleared on this device.");
-}
-function clearShortcuts(){
- if(!confirm("Remove all quick websites saved on this device?"))return;
- localSet("inco_shortcuts",[]);renderShortcuts();say("settingsStatus","Quick websites removed.");
-}
-async function changeAccountPassword(){
- if(!currentUser)return say("passwordSettingsStatus","Please log in first.");
- const password=get("settingsNewPassword").value,confirmPassword=get("settingsConfirmPassword").value;
- if(password.length<6)return say("passwordSettingsStatus","Use a password with at least 6 characters.");
- if(password!==confirmPassword)return say("passwordSettingsStatus","The passwords do not match.");
- say("passwordSettingsStatus","Updating password...");
- try{
-  const {error}=await db.auth.updateUser({password});
-  if(error)return say("passwordSettingsStatus","Password update failed: "+error.message);
-  get("settingsNewPassword").value="";get("settingsConfirmPassword").value="";
-  say("passwordSettingsStatus","Password updated successfully.");
- }catch(e){say("passwordSettingsStatus","Password update failed: "+e.message);}
-}
 function showPage(page){
  const section=get(page);if(!section)return;
  document.querySelectorAll("main section").forEach(s=>s.classList.remove("active"));section.classList.add("active");
@@ -189,7 +115,6 @@ function showPage(page){
  if(page==="news")loadNews();if(page==="profile")loadProfile();if(page==="saved")renderSaved();
  if(page==="search")renderHistory("searchHistory");if(page==="live")loadLive();
  if(page==="inbox")loadInbox();if(page==="notifications")loadNotifications();
- if(page==="settings"){applyIncoSettings();say("settingsStatus","Settings are stored on this device.");}
  if(page==="people"&&!currentUser)say("peopleResults","Please login to discover people.");
  if(page==="chat"&&!currentUser)say("chatStatus","Please login first.");
 }
@@ -235,7 +160,6 @@ async function resetPassword(){
  say("authStatus",error?error.message:"Password reset email requested. Check your inbox.");
 }
 async function signOut(){
-  if(activeRoom)await endIncoCall();if(activeCallChannel){await db.removeChannel(activeCallChannel);activeCallChannel=null;}
  if(chatChannel){await db.removeChannel(chatChannel);chatChannel=null;}if(socialChannel){await db.removeChannel(socialChannel);socialChannel=null;}
  const {error}=await db.auth.signOut();if(error)return say("authStatus",error.message);
  currentUser=null;myProfile=null;chatReceiver=null;say("accountStatus","Not signed in");say("authStatus","You have logged out.");
@@ -254,7 +178,7 @@ async function ensureProfile(){
 async function refreshApp(){
  if(!currentUser)return;await ensureProfile();get("accountStatus").textContent=currentUser.email||"Signed in";
  await Promise.allSettled([loadProfile(),loadFeed(),loadNews(),loadLive(),loadInbox(),loadNotifications()]);
- await setupSocialRealtime();await setupCallSignaling();
+ await setupSocialRealtime();
 }
 async function createPost(){
  if(!currentUser)return alert("Please log in first.");
@@ -361,19 +285,9 @@ async function submitArticle(){
  say("articleStatus",error?"Submission failed: "+error.message:"Article submitted.");if(!error){get("articleTitle").value="";get("articleContent").value="";await loadNews();}
 }
 async function loadLive(){
- const box=get("liveSessions");if(!box)return;
- const {data,error}=await db.from("live_sessions").select("id,host_id,title,room_name,status,started_at").order("started_at",{ascending:false}).limit(30);
- if(error){box.textContent="Could not load LIVE sessions: "+error.message;return;}
- box.innerHTML="";
- const active=(data||[]).filter(s=>String(s.status||"").toLowerCase()==="live");
- if(!active.length){box.textContent="No live sessions at the moment.";return;}
- for(const s of active){
-  const d=document.createElement("div");d.className="item";
-  const b=document.createElement("b");b.textContent=s.title||"INCO LIVE";
-  const st=document.createElement("span");st.className="badge";st.textContent="LIVE";
-  const join=document.createElement("button");join.textContent="Join Live";join.onclick=()=>joinIncoLive(s);
-  d.append(b,document.createTextNode(" "),st,join);box.append(d);
- }
+ const box=get("liveSessions");const {data,error}=await db.from("live_sessions").select("id,host_id,title,room_name,status,started_at").order("started_at",{ascending:false}).limit(20);
+ if(error){box.textContent="Could not load LIVE sessions: "+error.message;return;}box.innerHTML="";
+ (data||[]).forEach(s=>{const d=document.createElement("div");d.className="item";const b=document.createElement("b");b.textContent=s.title||"INCO LIVE";const st=document.createElement("span");st.className="badge";st.textContent=s.status||"Status unavailable";d.append(b,st);box.append(d);});if(!data?.length)box.textContent="No live sessions at the moment.";
 }
 async function openChat(){
  if(!currentUser)return say("chatStatus","Please login first.");const username=get("chatUsername").value.trim();if(!username)return say("chatStatus","Enter the person's username.");
@@ -393,7 +307,7 @@ async function loadChatMessages(){
  const {data,error}=await db.from("messages").select("*").or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${chatReceiver}),and(sender_id.eq.${chatReceiver},receiver_id.eq.${currentUser.id})`).order("created_at",{ascending:true}).limit(200);
  if(error){box.textContent="Could not load messages: "+error.message;return;}box.innerHTML="";
  for(const m of data||[]){const mine=m.sender_id===currentUser.id,item=document.createElement("div");item.className="chat-message"+(mine?" mine":"");
- if(String(m.content||"").startsWith("VOICE:")){const path=m.content.slice(6);const {data:a,error:ae}=await db.storage.from("chat-voice").createSignedUrl(path,3600);if(!ae&&a){const audio=document.createElement("audio");audio.controls=true;audio.src=a.signedUrl;item.append(audio);}else item.textContent="Voice note unavailable: "+(ae?.message||"storage access failed");}
+ if(String(m.content||"").startsWith("VOICE:")){const path=m.content.slice(6);const {data:a,error:ae}=await db.storage.from("chat-voice").createSignedUrl(path,3600);if(!ae&&a){const audio=document.createElement("audio");audio.controls=true;audio.src=a.signedUrl;item.append(audio);}else item.textContent="Voice note unavailable. Check that the chat-voice storage bucket and access policies are set up.";}
  else item.append(document.createTextNode(m.content||""));
  const small=document.createElement("small");small.textContent=new Date(m.created_at).toLocaleString()+(mine?(m.read_at?" · ✓✓ Read":" · ✓ Sent"):" · Received");item.append(small);box.append(item);
  if(!mine&&!m.read_at)markMessageRead(m.id);
@@ -401,46 +315,24 @@ async function loadChatMessages(){
 }
 async function markMessageRead(id){const {error}=await db.from("messages").update({read_at:new Date().toISOString()}).eq("id",id).eq("receiver_id",currentUser.id).is("read_at",null);if(error)console.warn("Read receipt:",error.message);}
 async function startRecording(event){
- if(event){
-  event.preventDefault();
-  const button=get("recordButton");
-  if(event.pointerId!==undefined&&button?.setPointerCapture){try{button.setPointerCapture(event.pointerId);}catch(e){}}
- }
- if(recording||recordingStartPending||voiceUploadInProgress)return;
- if(!currentUser||!chatReceiver){say("recordStatus","Open a chat first.");return;}
- if(!window.isSecureContext){say("recordStatus","Microphone needs a secure HTTPS connection. Open INCO using its https address.");return;}
- if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){say("recordStatus","This browser does not support microphone recording. Update Chrome and try again.");return;}
- recordingStartPending=true;recordingCancelled=false;say("recordStatus","Requesting microphone permission... Keep holding the button.");
- try{
-  let stream;
-  try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});}
-  catch(firstError){if(recordingCancelled)throw firstError;stream=await navigator.mediaDevices.getUserMedia({audio:true});}
-  if(recordingCancelled){stream.getTracks().forEach(t=>t.stop());recordingStartPending=false;say("recordStatus","Recording cancelled. Hold the button and keep holding until recording starts.");return;}
-  recordingStream=stream;const types=["audio/webm;codecs=opus","audio/webm","audio/mp4"];const mime=types.find(t=>MediaRecorder.isTypeSupported(t));
-  recorder=new MediaRecorder(stream,mime?{mimeType:mime}:{});voiceChunks=[];
-  recorder.ondataavailable=e=>{if(e.data?.size)voiceChunks.push(e.data);};
-  recorder.onerror=e=>{console.error("INCO voice recorder:",e.error||e);say("recordStatus","Recording stopped because the microphone had a problem. Please try again.");};
-  recorder.onstop=uploadVoiceNote;recorder.start();recording=true;recordingStartPending=false;
-  get("recordButton").classList.add("recording");get("recordButton").textContent="🔴 Recording...";say("recordStatus","Recording. Release to send.");
- }catch(e){
-  recordingStartPending=false;if(recordingStream)recordingStream.getTracks().forEach(t=>t.stop());recordingStream=null;const name=e?.name||"";
-  if(name==="NotAllowedError"||name==="PermissionDeniedError")say("recordStatus","Microphone permission is blocked. Allow Microphone for this site in Chrome settings, then reload INCO and try again.");
-  else if(name==="NotFoundError"||name==="DevicesNotFoundError")say("recordStatus","No microphone was found on this device.");
-  else if(name==="NotReadableError"||name==="TrackStartError")say("recordStatus","Microphone is busy or unavailable. Close other apps using the microphone, then try again.");
-  else if(!recordingCancelled)say("recordStatus","Microphone unavailable. Check Chrome microphone permission and try again.");
-  console.warn("INCO microphone:",e);
- }
+ if(event){event.preventDefault();try{if(event.pointerId!==undefined)event.currentTarget.setPointerCapture(event.pointerId);}catch(_){}}
+ if(recording||voiceUploadInProgress)return;if(!currentUser||!chatReceiver){say("recordStatus","Open a chat first.");return;}
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){say("recordStatus","Microphone recording needs a supported HTTPS browser.");return;}
+ try{recordingStream=await navigator.mediaDevices.getUserMedia({audio:true});const types=["audio/webm;codecs=opus","audio/webm","audio/mp4"];const mime=types.find(t=>MediaRecorder.isTypeSupported(t));recorder=new MediaRecorder(recordingStream,mime?{mimeType:mime}:{});voiceChunks=[];recorder.ondataavailable=e=>{if(e.data?.size)voiceChunks.push(e.data);};recorder.onstop=uploadVoiceNote;recorder.start();recording=true;get("recordButton").classList.add("recording");get("recordButton").textContent="🔴 Recording...";say("recordStatus","Recording. Release to send.");}
+ catch(e){say("recordStatus","Microphone error: "+e.message);if(recordingStream)recordingStream.getTracks().forEach(t=>t.stop());recordingStream=null;}
 }
-function stopRecording(){
- if(recordingStartPending){recordingCancelled=true;say("recordStatus","Permission request cancelled. Hold the button until recording starts, then release to send.");return;}
- if(!recording||!recorder)return;recording=false;get("recordButton").classList.remove("recording");get("recordButton").textContent="Hold to Record";
- if(recorder.state!=="inactive")recorder.stop();if(recordingStream){recordingStream.getTracks().forEach(t=>t.stop());recordingStream=null;}say("recordStatus","Uploading voice note...");
-}
+function stopRecording(){if(!recording||!recorder)return;recording=false;get("recordButton").classList.remove("recording");get("recordButton").textContent="Hold to Record";if(recorder.state!=="inactive")recorder.stop();if(recordingStream){recordingStream.getTracks().forEach(t=>t.stop());recordingStream=null;}say("recordStatus","Uploading voice note...");}
 async function uploadVoiceNote(){
  if(!currentUser||!chatReceiver)return;voiceUploadInProgress=true;const button=get("recordButton");button.disabled=true;
  try{const type=recorder?.mimeType||"audio/webm",blob=new Blob(voiceChunks,{type});if(!blob.size){say("recordStatus","No audio recorded. Try again.");return;}if(blob.size>15*1024*1024){say("recordStatus","Voice note is too large.");return;}
  const ext=type.includes("mp4")?"m4a":"webm",path=currentUser.id+"/"+Date.now()+"."+ext;
- const {error:ue}=await db.storage.from("chat-voice").upload(path,blob,{contentType:type,upsert:false});if(ue){say("recordStatus","Upload failed: "+ue.message);return;}
+ const {error:ue}=await db.storage.from("chat-voice").upload(path,blob,{contentType:type,upsert:false});
+ if(ue){
+  const message=String(ue.message||"");
+  if(/bucket not found|not found/i.test(message))say("recordStatus","Voice storage is not set up yet. Supabase needs a chat-voice bucket and its access policies.");
+  else say("recordStatus","Voice upload failed: "+message);
+  return;
+ }
  const {error:me}=await db.from("messages").insert({sender_id:currentUser.id,receiver_id:chatReceiver,content:"VOICE:"+path});if(me){say("recordStatus","Voice uploaded but message failed: "+me.message);return;}
  say("recordStatus","Voice note sent.");await loadChatMessages();await loadInbox();
  }catch(e){say("recordStatus","Voice note error: "+e.message);}finally{voiceUploadInProgress=false;button.disabled=false;voiceChunks=[];}
@@ -460,7 +352,7 @@ async function loadNotifications(){
  if(!currentUser)return say("notificationList","Please login first.");const box=get("notificationList");box.textContent="Loading notifications...";
  const {data,error}=await db.from("notifications").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(100);
  if(error){box.textContent="Notifications unavailable: "+error.message;get("notificationCount").textContent="0";return;}
- const rows=data||[],unread=rows.filter(n=>!n.is_read).length;get("notificationCount").textContent=getIncoSettings().alertBadge?String(unread):"•";if(!rows.length){box.textContent="No notifications yet.";return;}
+ const rows=data||[],unread=rows.filter(n=>!n.is_read).length;get("notificationCount").textContent=String(unread);if(!rows.length){box.textContent="No notifications yet.";return;}
  const ids=[...new Set(rows.map(n=>n.actor_id).filter(Boolean))];let actors={};if(ids.length){const r=await db.from("profiles").select("id,username").in("id",ids);if(r.error){box.textContent=r.error.message;return;}(r.data||[]).forEach(p=>actors[p.id]=p.username);}
  box.innerHTML="";rows.forEach(n=>{const item=document.createElement("div");item.className="item";if(!n.is_read)item.style.borderLeft="3px solid #1678db";const b=document.createElement("b");b.textContent=actors[n.actor_id]||"An INCO user";const p=document.createElement("p");p.textContent=n.content||(n.type==="like"?"Liked your post":n.type==="comment"?"Commented on your post":n.type==="follow"?"Started following you":n.type==="message"?"Sent you a message":"New notification");const t=document.createElement("small");t.className="muted";t.textContent=n.created_at?new Date(n.created_at).toLocaleString():"";item.append(b,p,t);box.append(item);});
 }
@@ -496,450 +388,11 @@ async function setupSocialRealtime(){
 }
 async function startApp(){
  try{const {data,error}=await db.auth.getSession();if(error)say("authStatus",error.message);currentUser=data?.session?.user||null;
- renderShortcuts();renderHistory("searchHistory");applyIncoSettings();
+ renderShortcuts();renderHistory("searchHistory");
  db.auth.onAuthStateChange((event,session)=>{currentUser=session?.user||null;if(currentUser)setTimeout(()=>refreshApp(),0);else{get("accountStatus").textContent="Not signed in";if(socialChannel){db.removeChannel(socialChannel);socialChannel=null;}}});
  if(currentUser)await refreshApp();else get("accountStatus").textContent="Not signed in";
  }catch(e){console.error("INCO startup:",e);say("authStatus","Startup error: "+e.message);}
 }
-async function getLiveKit(){
- if(!liveKitModule)liveKitModule=await import("https://cdn.jsdelivr.net/npm/livekit-client@2/+esm");
- return liveKitModule;
-}
-async function getLiveKitToken(roomName){
- if(!currentUser)throw new Error("Please log in first.");
- const {data,error}=await db.auth.getSession();if(error)throw error;
- const sessionToken=data?.session?.access_token;if(!sessionToken)throw new Error("Your session expired. Please log in again.");
- const response=await fetch(LIVEKIT_TOKEN_FUNCTION,{method:"POST",headers:{"Authorization":"Bearer "+sessionToken,"apikey":SUPABASE_KEY,"Content-Type":"application/json"},body:JSON.stringify({roomName})});
- let result={};try{result=await response.json();}catch{}
- if(!response.ok||!result.token)throw new Error(result.error||"Could not get a LiveKit token (HTTP "+response.status+").");
- return {token:result.token,serverUrl:result.serverUrl||LIVEKIT_FALLBACK_URL};
-}
-function makeRoomName(otherId){
- return ("inco_call_"+[currentUser.id,otherId].sort().join("_")+"_"+Date.now()).replace(/[^a-zA-Z0-9_-]/g,"").slice(0,100);
-}
-async function sendCallSignal(userId,event,payload){
- const channel=db.channel("inco-call-"+userId,{config:{broadcast:{self:false}}});
- await new Promise((resolve,reject)=>{
-  let done=false;const finish=(err)=>{if(done)return;done=true;clearTimeout(timer);db.removeChannel(channel);err?reject(err):resolve();};
-  const timer=setTimeout(()=>finish(new Error("Call notification timed out. Check Supabase Realtime.")),10000);
-  channel.on("broadcast",{event:"_ready"},()=>{});
-  channel.subscribe(status=>{
-   if(status==="SUBSCRIBED")channel.send({type:"broadcast",event,payload}).then(result=>finish(result==="error"?new Error("Could not send call notification."):null));
-   else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")finish(new Error("Call notifications are unavailable. Check Supabase Realtime."));
-  });
- });
-}
-async function setupCallSignaling(){
- if(!currentUser)return;
- if(activeCallChannel){await db.removeChannel(activeCallChannel);activeCallChannel=null;}
- activeCallChannel=db.channel("inco-call-"+currentUser.id,{config:{broadcast:{self:false}}})
- .on("broadcast",{event:"call-invite"},({payload})=>showIncomingCall(payload))
- .on("broadcast",{event:"call-cancel"},({payload})=>{if(incomingCall?.roomName===payload?.roomName){incomingCall=null;renderIncomingCall();say("voiceStatus","Caller cancelled the call.");}})
- .on("broadcast",{event:"call-decline"},({payload})=>{if(activeRoomName===payload?.roomName)say("voiceStatus","The other user declined the call.");})
- .on("broadcast",{event:"call-accept"},({payload})=>{if(activeRoomName===payload?.roomName)connectToLiveKit(payload.roomName,payload.video,"voiceStatus");})
- .subscribe();
-}
-function showIncomingCall(payload){
- if(!currentUser||!payload?.roomName||!payload?.fromId)return;
- incomingCall=payload;renderIncomingCall();say("voiceStatus",(payload.fromName||"An INCO user")+" is calling you.");
-}
-function renderIncomingCall(){
- const area=get("callArea");if(!area)return;
- const old=area.querySelector(".incoming-call");if(old)old.remove();if(!incomingCall)return;
- const card=document.createElement("div");card.className="card incoming-call";
- const title=document.createElement("b");title.textContent=(incomingCall.fromName||"INCO user")+" is calling ("+(incomingCall.video?"video":"voice")+")";
- const accept=document.createElement("button");accept.textContent="Accept";accept.onclick=acceptIncomingCall;
- const decline=document.createElement("button");decline.textContent="Decline";decline.onclick=declineIncomingCall;
- card.append(title,accept,decline);area.prepend(card);
-}
-async function declineIncomingCall(){
- if(!incomingCall)return;const c=incomingCall;incomingCall=null;renderIncomingCall();
- try{await sendCallSignal(c.fromId,"call-decline",{roomName:c.roomName});}catch(e){console.warn(e);}
- say("voiceStatus","Call declined.");
-}
-async function acceptIncomingCall(){
- if(!incomingCall)return;const c=incomingCall;incomingCall=null;renderIncomingCall();
- try{await sendCallSignal(c.fromId,"call-accept",{roomName:c.roomName,video:!!c.video});await connectToLiveKit(c.roomName,!!c.video,"voiceStatus");}
- catch(e){say("voiceStatus","Could not accept call: "+e.message);}
-}
-async function startIncoCall(){await beginOutgoingCall(false);}
-async function startIncoVideoCall(){await beginOutgoingCall(true);}
-async function beginOutgoingCall(video){
- if(!currentUser)return say("voiceStatus","Please log in first.");
- const username=get("callUsername")?.value.trim();if(!username)return say("voiceStatus","Enter the other person's exact username.");
- say("voiceStatus","Finding INCO user...");
- try{
-  const {data,error}=await db.from("profiles").select("id,username").eq("username",username).maybeSingle();
-  if(error)throw error;if(!data)throw new Error("User not found. Check the exact username.");
-  if(data.id===currentUser.id)throw new Error("You cannot call yourself.");
-  const roomName=makeRoomName(data.id);activeRoomName=roomName;
-  await sendCallSignal(data.id,"call-invite",{roomName,fromId:currentUser.id,fromName:myProfile?.username||"INCO user",video});
-  say("voiceStatus","Calling "+username+"... Waiting for acceptance.");
-  get("callArea").innerHTML='<div class="card"><b>Calling '+escapeHTML(username)+'</b><p class="muted">Keep INCO open while waiting.</p><button onclick="cancelOutgoingCall()">Cancel Call</button></div>';
- }catch(e){say("voiceStatus","Call could not start: "+e.message);}
-}
-async function cancelOutgoingCall(){
- const roomName=activeRoomName,username=get("callUsername").value.trim();if(!roomName)return;
- try{const {data}=await db.from("profiles").select("id").eq("username",username).maybeSingle();if(data?.id)await sendCallSignal(data.id,"call-cancel",{roomName});}catch(e){console.warn(e);}
- activeRoomName=null;get("callArea").innerHTML="";say("voiceStatus","Call cancelled.");
-}
-async function connectToLiveKit(roomName,video,statusId){
- if(!currentUser)throw new Error("Please log in first.");
- if(activeRoom)await endIncoCall();
- say(statusId,"Connecting to LiveKit...");
- const LK=await getLiveKit(),credentials=await getLiveKitToken(roomName);
- const room=new LK.Room({adaptiveStream:true,dynacast:true});activeRoom=room;activeRoomName=roomName;
- const area=statusId==="liveStatus"?get("liveCallArea"):get("callArea");
- area.innerHTML='<div class="card"><div class="call-grid"><div><p class="muted">Your camera</p><video id="incoLocalVideo" class="call-video" autoplay playsinline muted></video></div><div><p class="muted">Other participants</p><div id="incoRemoteMedia"></div></div></div><div class="call-controls"><button id="incoMuteButton">Mute microphone</button><button id="incoCameraButton">Turn camera off</button><button id="incoEndButton">End Call</button></div><p id="incoRoomStatus" class="muted">Connecting...</p></div>';
- const localVideo=get("incoLocalVideo"),remote=get("incoRemoteMedia");
- room.on(LK.RoomEvent.TrackSubscribed,(track,publication,participant)=>{
-  const el=track.attach();el.autoplay=true;el.playsInline=true;
-  if(track.kind==="video"){el.className="call-video";remote.append(el);}else{el.style.display="none";remote.append(el);}
-  say("incoRoomStatus",(participant.identity||"Participant")+" connected.");
- });
- room.on(LK.RoomEvent.TrackUnsubscribed,track=>track.detach().forEach(el=>el.remove()));
- room.on(LK.RoomEvent.Disconnected,()=>{if(activeRoom===room){activeRoom=null;activeRoomName=null;say(statusId,"Call disconnected.");}});
- await room.connect(credentials.serverUrl,credentials.token);
- await room.localParticipant.setMicrophoneEnabled(true);
- if(video){
-  await room.localParticipant.setCameraEnabled(true);
-  const publication=Array.from(room.localParticipant.videoTrackPublications.values()).find(p=>p.track);
-  if(publication?.track){const el=publication.track.attach();el.className="call-video";el.autoplay=true;el.playsInline=true;el.muted=true;localVideo.replaceWith(el);el.id="incoLocalVideo";}
- }
- get("incoMuteButton").onclick=async()=>{const on=room.localParticipant.isMicrophoneEnabled;await room.localParticipant.setMicrophoneEnabled(!on);get("incoMuteButton").textContent=on?"Unmute microphone":"Mute microphone";};
- get("incoCameraButton").onclick=async()=>{const on=room.localParticipant.isCameraEnabled;await room.localParticipant.setCameraEnabled(!on);get("incoCameraButton").textContent=on?"Turn camera on":"Turn camera off";};
- get("incoEndButton").onclick=endIncoCall;
- say(statusId,video?"Video call connected.":"Voice call connected.");say("incoRoomStatus","Connected. You can now talk.");
-}
-async function endIncoCall(){
- const room=activeRoom;activeRoom=null;activeRoomName=null;
- if(room){try{await room.disconnect();}catch(e){console.warn(e);}}
- if(get("callArea"))get("callArea").innerHTML="";
- if(get("liveCallArea"))get("liveCallArea").innerHTML="";
- say("voiceStatus","Call ended.");say("liveStatus","Live session ended.");
- if(activeLiveHost&&activeLiveRowId){await db.from("live_sessions").update({status:"ended"}).eq("id",activeLiveRowId);activeLiveHost=false;activeLiveRowId=null;await loadLive();}
-}
-async function startIncoLive(){
- if(!currentUser)return say("liveStatus","Please log in first.");
- const title=get("liveTitle").value.trim()||"INCO LIVE";
- const roomName=("inco_live_"+currentUser.id+"_"+Date.now()).replace(/[^a-zA-Z0-9_-]/g,"").slice(0,100);
- say("liveStatus","Creating your live session...");
- try{
-  const {data,error}=await db.from("live_sessions").insert({host_id:currentUser.id,title,room_name:roomName,status:"live",started_at:new Date().toISOString()}).select("id").single();
-  if(error)throw error;activeLiveRowId=data.id;activeLiveHost=true;
-  await connectToLiveKit(roomName,true,"liveStatus");await loadLive();
- }catch(e){
-  if(activeLiveRowId){await db.from("live_sessions").update({status:"ended"}).eq("id",activeLiveRowId);activeLiveRowId=null;activeLiveHost=false;}
-  say("liveStatus","Could not start LIVE: "+e.message);
- }
-}
-async function joinIncoLive(session){
- if(!currentUser)return say("liveStatus","Please log in first.");
- if(session.host_id===currentUser.id)return say("liveStatus","This is your own live session.");
- try{await connectToLiveKit(session.room_name,true,"liveStatus");}
- catch(e){say("liveStatus","Could not join LIVE: "+e.message);}
-}
-/* INCO MONETIZATION SECTION
-   Paste this entire block immediately ABOVE the existing startApp(); line.
-   Keep your existing index.html and all its current code. */
-
-(function addIncoMonetizationSection() {
-  const nav = document.querySelector("nav");
-  const main = document.querySelector("main");
-  if (!main) {
-    console.error("INCO Monetization: could not find the main page container.");
-    return;
-  }
-
-  // Add one navigation button for the complete Monetization area.
-  if (nav && !document.getElementById("incoMonetizationNav")) {
-    const button = document.createElement("button");
-    button.id = "incoMonetizationNav";
-    button.type = "button";
-    button.textContent = "💰 Monetization";
-    button.onclick = () => showPage("monetization");
-    const settingsButton = [...nav.querySelectorAll("button")]
-      .find(b => /settings/i.test(b.textContent || ""));
-    if (settingsButton) nav.insertBefore(button, settingsButton);
-    else nav.appendChild(button);
-  }
-
-  // Avoid creating the section twice if the block is accidentally pasted twice.
-  if (document.getElementById("monetization")) return;
-
-  const section = document.createElement("section");
-  section.id = "monetization";
-  section.innerHTML = `
-    <div class="card">
-      <h2>💰 INCO Monetization</h2>
-      <p class="muted">Manage your creator page and advertising requests from one place.</p>
-      <div class="item">
-        <b>Monetization status</b>
-        <p id="monetizationEligibility" class="muted">Checking your account...</p>
-      </div>
-      <div class="item">
-        <b>Creator page</b>
-        <p id="monetizationCreatorStatus" class="muted">Not checked yet.</p>
-      </div>
-      <div class="item">
-        <b>Advertising requests</b>
-        <p id="monetizationAdCount" class="muted">Not checked yet.</p>
-      </div>
-      <div class="item">
-        <b>Creator earnings</b>
-        <p class="muted">No earnings are being calculated yet. This will become active after a verified revenue system is connected.</p>
-      </div>
-      <div class="item">
-        <b>Payments and payouts</b>
-        <p class="muted">Not connected. No bank, card, or payout details are collected here.</p>
-      </div>
-      <div class="item">
-        <b>Performance reports</b>
-        <p class="muted">Views, clicks, and revenue reports will be available after analytics and ad delivery are connected.</p>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>🎨 Creator Studio</h3>
-      <p class="muted">Create or update your creator profile.</p>
-      <label for="incoCreatorDisplayName">Display name</label>
-      <input id="incoCreatorDisplayName" maxlength="60" placeholder="Your creator name">
-      <label for="incoCreatorSlug">Creator username</label>
-      <input id="incoCreatorSlug" maxlength="40" placeholder="example-creator">
-      <p class="muted">Use 3–40 lowercase letters, numbers, or hyphens.</p>
-      <label for="incoCreatorBio">Creator bio</label>
-      <textarea id="incoCreatorBio" maxlength="500" placeholder="Tell people what you create"></textarea>
-      <button id="incoSaveCreator" type="button" onclick="incoSaveCreatorPage()">Save Creator Page</button>
-      <p id="incoCreatorMessage" class="muted" aria-live="polite"></p>
-    </div>
-
-    <div class="card">
-      <h3>📣 Advertise on INCO</h3>
-      <p class="muted">Submit an advertising request for review. This does not publish an advert or take payment.</p>
-      <label for="incoAdBusiness">Business / organization name</label>
-      <input id="incoAdBusiness" maxlength="120" placeholder="Business name">
-      <label for="incoAdWebsite">Website (optional)</label>
-      <input id="incoAdWebsite" maxlength="500" placeholder="https://example.com">
-      <label for="incoAdDescription">What would you like to advertise?</label>
-      <textarea id="incoAdDescription" maxlength="2000" placeholder="Describe the advert"></textarea>
-      <label for="incoAdBudget">Proposed budget (number only)</label>
-      <input id="incoAdBudget" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="e.g. 100">
-      <p class="muted">Currency is not configured in the current database. Do not send money through this form.</p>
-      <button id="incoSubmitAd" type="button" onclick="incoSubmitAdRequest()">Submit Advertising Request</button>
-      <p id="incoAdMessage" class="muted" aria-live="polite"></p>
-      <h4>My advertising requests</h4>
-      <div id="incoMyAdRequests" class="muted">Log in to view your requests.</div>
-    </div>
-
-    <div class="card">
-      <h3>📊 Earnings and reports</h3>
-      <p class="muted">This area is reserved for future verified earnings, ad performance, and revenue reports. It will not show made-up figures.</p>
-    </div>
-
-    <div class="card">
-      <h3>🏦 Payment settings</h3>
-      <p class="muted">Payment provider and payout setup are not connected yet. No payment details are requested or stored by this section.</p>
-    </div>
-  `;
-
-  const settingsSection = document.getElementById("settings");
-  if (settingsSection && settingsSection.parentElement === main) {
-    main.insertBefore(section, settingsSection);
-  } else {
-    main.appendChild(section);
-  }
-})();
-
-function incoSetMonetizationMessage(id, message) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = message;
-}
-
-async function incoLoadMonetization() {
-  if (!currentUser) {
-    incoSetMonetizationMessage("monetizationEligibility", "Please log in to view your monetization area.");
-    incoSetMonetizationMessage("monetizationCreatorStatus", "Log in required.");
-    incoSetMonetizationMessage("monetizationAdCount", "Log in required.");
-    const list = document.getElementById("incoMyAdRequests");
-    if (list) list.textContent = "Please log in to view your requests.";
-    return;
-  }
-
-  incoSetMonetizationMessage("monetizationEligibility", "Your account is signed in. Monetization approval and payout eligibility are not yet connected.");
-  incoSetMonetizationMessage("monetizationCreatorStatus", "Loading creator page...");
-  incoSetMonetizationMessage("monetizationAdCount", "Loading advertising requests...");
-
-  try {
-    const [creatorResult, adsResult] = await Promise.all([
-      db.from("creator_pages")
-        .select("id,display_name,slug,bio")
-        .eq("user_id", currentUser.id)
-        .maybeSingle(),
-      db.from("ad_requests")
-        .select("id,business_name,website,ad_description,proposed_budget,status,created_at")
-        .eq("user_id", currentUser.id)
-        .order("created_at", { ascending: false })
-        .limit(50)
-    ]);
-
-    if (creatorResult.error) throw new Error("Creator page: " + creatorResult.error.message);
-    if (adsResult.error) throw new Error("Advertising requests: " + adsResult.error.message);
-
-    const creator = creatorResult.data;
-    const ads = adsResult.data || [];
-
-    const displayName = document.getElementById("incoCreatorDisplayName");
-    const slug = document.getElementById("incoCreatorSlug");
-    const bio = document.getElementById("incoCreatorBio");
-    if (displayName) displayName.value = creator?.display_name || (myProfile?.username || "");
-    if (slug) slug.value = creator?.slug || "";
-    if (bio) bio.value = creator?.bio || "";
-
-    incoSetMonetizationMessage(
-      "monetizationCreatorStatus",
-      creator ? "Creator page saved: " + creator.display_name : "No creator page yet. Create one below."
-    );
-    incoSetMonetizationMessage(
-      "monetizationAdCount",
-      ads.length + " advertising request(s) submitted. No adverts have been published and no payments have been taken."
-    );
-
-    const list = document.getElementById("incoMyAdRequests");
-    if (list) {
-      list.replaceChildren();
-      if (!ads.length) {
-        list.textContent = "You have not submitted any advertising requests.";
-      } else {
-        ads.forEach(request => {
-          const item = document.createElement("div");
-          item.className = "item";
-          const heading = document.createElement("b");
-          heading.textContent = request.business_name || "Advertising request";
-          const status = document.createElement("p");
-          status.textContent = "Status: " + (request.status || "pending");
-          const description = document.createElement("p");
-          description.textContent = request.ad_description || "";
-          const budget = document.createElement("p");
-          budget.className = "muted";
-          budget.textContent = "Proposed amount: " + request.proposed_budget + " (currency not specified)";
-          const date = document.createElement("p");
-          date.className = "muted";
-          date.textContent = request.created_at ? new Date(request.created_at).toLocaleString() : "";
-          item.append(heading, status, description, budget, date);
-          list.appendChild(item);
-        });
-      }
-    }
-  } catch (error) {
-    incoSetMonetizationMessage("monetizationCreatorStatus", "Could not load creator information.");
-    incoSetMonetizationMessage("monetizationAdCount", "Could not load advertising requests.");
-    const list = document.getElementById("incoMyAdRequests");
-    if (list) list.textContent = error.message || "Could not load monetization data.";
-  }
-}
-
-async function incoSaveCreatorPage() {
-  if (!currentUser) return incoSetMonetizationMessage("incoCreatorMessage", "Please log in first.");
-
-  const display_name = document.getElementById("incoCreatorDisplayName").value.trim();
-  const slug = document.getElementById("incoCreatorSlug").value.trim().toLowerCase();
-  const bio = document.getElementById("incoCreatorBio").value.trim();
-
-  if (!display_name) return incoSetMonetizationMessage("incoCreatorMessage", "Enter a display name.");
-  if (!/^[a-z0-9-]{3,40}$/.test(slug)) {
-    return incoSetMonetizationMessage("incoCreatorMessage", "Username must be 3–40 characters: lowercase letters, numbers, or hyphens.");
-  }
-
-  const button = document.getElementById("incoSaveCreator");
-  button.disabled = true;
-  incoSetMonetizationMessage("incoCreatorMessage", "Saving creator page...");
-
-  try {
-    const { data: existing, error: readError } = await db.from("creator_pages")
-      .select("id").eq("user_id", currentUser.id).maybeSingle();
-    if (readError) throw readError;
-
-    const payload = { user_id: currentUser.id, display_name, slug, bio };
-    const result = existing
-      ? await db.from("creator_pages").update({ display_name, slug, bio }).eq("user_id", currentUser.id)
-      : await db.from("creator_pages").insert(payload);
-
-    if (result.error) {
-      if (result.error.code === "23505") throw new Error("That username is already taken. Choose another one.");
-      throw result.error;
-    }
-
-    incoSetMonetizationMessage("incoCreatorMessage", "Creator page saved successfully.");
-    await incoLoadMonetization();
-  } catch (error) {
-    incoSetMonetizationMessage("incoCreatorMessage", "Save failed: " + (error.message || "Unknown error"));
-  } finally {
-    button.disabled = false;
-  }
-}
-
-async function incoSubmitAdRequest() {
-  if (!currentUser) return incoSetMonetizationMessage("incoAdMessage", "Please log in first.");
-
-  const business_name = document.getElementById("incoAdBusiness").value.trim();
-  const websiteInput = document.getElementById("incoAdWebsite").value.trim();
-  const ad_description = document.getElementById("incoAdDescription").value.trim();
-  const proposed_budget = Number(document.getElementById("incoAdBudget").value);
-
-  if (!business_name) return incoSetMonetizationMessage("incoAdMessage", "Enter a business or organization name.");
-  if (!ad_description) return incoSetMonetizationMessage("incoAdMessage", "Describe what you want to advertise.");
-  if (!Number.isFinite(proposed_budget) || proposed_budget <= 0) {
-    return incoSetMonetizationMessage("incoAdMessage", "Enter a proposed budget greater than zero.");
-  }
-
-  let website = null;
-  if (websiteInput) {
-    try {
-      const candidate = /^https?:\/\//i.test(websiteInput) ? websiteInput : "https://" + websiteInput;
-      const parsed = new URL(candidate);
-      if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("Invalid website");
-      website = parsed.href;
-    } catch (_) {
-      return incoSetMonetizationMessage("incoAdMessage", "Enter a valid website address.");
-    }
-  }
-
-  const button = document.getElementById("incoSubmitAd");
-  button.disabled = true;
-  incoSetMonetizationMessage("incoAdMessage", "Submitting request...");
-
-  try {
-    const { error } = await db.from("ad_requests").insert({
-      user_id: currentUser.id,
-      business_name,
-      website,
-      ad_description,
-      proposed_budget
-    });
-    if (error) throw error;
-
-    document.getElementById("incoAdBusiness").value = "";
-    document.getElementById("incoAdWebsite").value = "";
-    document.getElementById("incoAdDescription").value = "";
-    document.getElementById("incoAdBudget").value = "";
-    incoSetMonetizationMessage("incoAdMessage", "Request submitted. No payment was taken and no advert was published.");
-    await incoLoadMonetization();
-  } catch (error) {
-    incoSetMonetizationMessage("incoAdMessage", "Submission failed: " + (error.message || "Unknown error"));
-  } finally {
-    button.disabled = false;
-  }
-}
-
-/* Add monetization loading while preserving the app's existing page navigation. */
-if (typeof showPage === "function") {
-  const incoPreviousShowPage = showPage;
-  showPage = function(page) {
-    incoPreviousShowPage(page);
-    if (page === "monetization") incoLoadMonetization();
-  };
-}
-
 startApp();
 </script>
 </body>
