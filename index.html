@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ll<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -7,635 +7,422 @@
 <title>INCO Browser</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#080d18;color:#edf3ff;font-family:Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:#080d18;color:#edf3ff;font-family:Arial,sans-serif}
 header{background:#101a2c;padding:14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5;border-bottom:1px solid #263b5c}
-.logo{font-size:23px;font-weight:bold;color:#56aaff}nav{display:flex;gap:5px;overflow-x:auto;background:#101a2c;padding:8px;position:sticky;top:54px;z-index:4}
-button{background:#1678db;color:white;border:0;padding:11px 14px;border-radius:9px;cursor:pointer;margin:3px;white-space:nowrap}button:disabled{opacity:.5}
-input,textarea,select{width:100%;padding:12px;margin:6px 0;background:#111d31;border:1px solid #304563;border-radius:8px;color:white}textarea{min-height:85px}
-main{max-width:850px;margin:auto;padding:12px}section{display:none}section.active{display:block}
+.logo{font-size:23px;font-weight:bold;color:#56aaff}
+nav{display:flex;gap:5px;overflow-x:auto;background:#101a2c;padding:8px;position:sticky;top:54px;z-index:4}
+nav button{white-space:nowrap}
+button{background:#1678db;color:white;border:0;padding:11px 14px;border-radius:9px;cursor:pointer;margin:3px}
+button:disabled{opacity:.5;cursor:not-allowed}
+input,textarea,select{width:100%;;padding:12px;margin:6px 0;background:#111d31;border:1px solid #304563;border-radius:8px;color:white}
+textarea{min-height:85px}
+main{max-width:850px;margin:auto;padding:12px}
+section{display:none}
+section.active{display:block}
 .card{background:#111d31;border:1px solid #263b5c;border-radius:13px;padding:15px;margin:12px 0;overflow-wrap:anywhere}
-.muted{color:#9eb0c9;font-size:13px}.post img,.post video,.news-image{width:100%;max-height:420px;object-fit:contain;border-radius:10px;margin-top:8px;background:#050910}
-a{color:#65b5ff}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1;min-width:0}
-.avatar{width:58px;height:58px;border-radius:50%;object-fit:cover;background:#263b5c}.item{padding:10px;border-bottom:1px solid #263b5c;overflow-wrap:anywhere}
-footer{text-align:center;color:#7e91ad;padding:25px}.chat-message{padding:11px;margin:8px 0;border-radius:12px;max-width:85%;background:#1b2c46;overflow-wrap:anywhere}
-.chat-message.mine{margin-left:auto;background:#075bb0}.chat-message small{display:block;color:#c4d8f1;margin-top:7px;font-size:11px}
-#chatMessages{height:320px;overflow-y:auto;border:1px solid #263b5c;border-radius:10px;padding:10px;margin:12px 0}
+.muted{color:#9eb0c9;font-size:13px}
+.post img,.post video,.news-image{width:100%;max-height:420px;object-fit:contain;border-radius:10px;margin-top:8px;background:#050910}
+a{color:#65b5ff}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1;min-width:0}
+.avatar{width:65px;height:65px;border-radius:50%;object-fit:cover;background:#263b5c}
+.item{padding:10px;border-bottom:1px solid #263b5c;overflow-wrap:anywhere}
+footer{text-align:center;color:#7e91ad;padding:25px}
+.chat-message{padding:11px;margin:8px 0;border-radius:12px;max-width:85%;background:#1b2c46;overflow-wrap:anywhere}
+.chat-message.mine{margin-left:auto;background:#075bb0}
+.chat-message small{display:block;color:#c4d8f1;margin-top:7px;font-size:11px}
+.chat-message audio{max-width:100%}
+#chatMessages{height:350px;overflow-y:auto;border:1px solid #263b5c;border-radius:10px;padding:10px;margin:12px 0}
+#recordButton{background:#d62828;touch-action:none;user-select:none;-webkit-user-select:none}
+#recordButton.recording{background:#8b0000;box-shadow:0 0 12px #ff3333}
+.status{padding:8px}
 .badge{display:inline-block;background:#263b5c;padding:3px 8px;border-radius:20px;font-size:12px}
-.highlight{border-left:3px solid #56aaff;padding-left:10px}
 @media(max-width:520px){header{padding:11px}.logo{font-size:20px}main{padding:7px}.card{padding:12px}.row{flex-wrap:wrap}}
 </style>
 </head>
 <body>
 <header><div class="logo">🛡️ INCO</div><div id="accountStatus" class="muted">Checking account...</div></header>
 <nav>
-<button onclick="showPage('home')">Home</button><button onclick="showPage('community')">Community</button><button onclick="showPage('trending')">🔥 Trending</button><button onclick="showPage('daily')">🌞 Daily</button><button onclick="showPage('chat')">Messages</button><button onclick="showPage('inbox')">📥 Inbox <span id="inboxCount">0</span></button><button onclick="showPage('notifications')">🔔 Alerts <span id="notificationCount">0</span></button><button onclick="showPage('people')">People</button><button onclick="showPage('news')">News</button><button onclick="showPage('search')">Search</button><button onclick="showPage('saved')">Saved</button><button onclick="showPage('profile')">Profile</button><button onclick="showPage('account')">Account</button><button onclick="showPage('live')">LIVE</button><button onclick="showPage('shop')">Shop</button><button onclick="showPage('earn')">Earn</button><button onclick="showPage('privacy')">Privacy</button><button onclick="showPage('premium')">Premium</button>
+<button onclick="showPage('home')">Home</button><button onclick="showPage('community')">Community</button><button onclick="showPage('chat')">Messages</button><button onclick="showPage('inbox')">📥 Inbox <span id="inboxCount">0</span></button><button onclick="showPage('notifications')">🔔 Alerts <span id="notificationCount">0</span></button><button onclick="showPage('people')">People</button><button onclick="showPage('news')">News</button><button onclick="showPage('search')">Search</button><button onclick="showPage('saved')">Saved</button><button onclick="showPage('profile')">Profile</button><button onclick="showPage('account')">Account</button><button onclick="showPage('live')">LIVE</button><button onclick="showPage('voice')">Voice</button><button onclick="showPage('shop')">Shop</button><button onclick="showPage('earn')">Earn</button><button onclick="showPage('privacy')">Privacy</button><button onclick="showPage('premium')">Premium</button>
 </nav>
 <main>
 <section id="home" class="active">
 <div class="card"><h2>Welcome to INCO 🌍</h2><p>Your browser and community in one place.</p><h3>Quick websites</h3><div id="shortcuts"></div><input id="shortcutName" placeholder="Website name"><input id="shortcutUrl" placeholder="Website address"><button onclick="addShortcut()">Add Website</button></div>
-<div class="card"><h3>Search the web</h3><input id="homeSearch" placeholder="Search or enter a website" onkeydown="if(event.key==='Enter')searchWeb('homeSearch')"><button onclick="searchWeb('homeSearch')">Search / Open</button><p class="muted">Websites open in a new browser tab.</p></div>
-<div class="card"><h3>Question of the day</h3><p id="homeDailyQuestion">Loading today's question...</p><button onclick="showPage('daily')">Answer today's question</button></div>
-<div class="card"><h3>Latest community posts</h3><div id="homeFeed">Login to see community posts.</div></div>
-<div class="card"><b>INCO partner advertising</b><p class="muted">Sponsored placements will appear here after advertising approval and tag setup.</p></div>
+<div class="card"><h3>INCO Browser</h3><input id="homeSearch" placeholder="Search the web or enter a website" onkeydown="if(event.key==='Enter')searchWeb('homeSearch')"><button onclick="searchWeb('homeSearch')">Search / Open</button><p class="muted">Websites open in a new browser tab.</p></div>
+<div class="card"><h3>Latest community posts</h3><div id="homeFeed">Open Community to load posts.</div></div><div class="card" id="incoAdSlot"><b>INCO partner advertising</b><p class="muted">Sponsored placements will appear here after the advertising tag and site approval are configured.</p></div>
 </section>
 <section id="search"><div class="card"><h2>Search the web</h2><select id="engine"><option value="https://www.google.com/search?q=">Google</option><option value="https://search.yahoo.com/search?p=">Yahoo</option><option value="https://www.bing.com/search?q=">Bing</option><option value="https://duckduckgo.com/?q=">DuckDuckGo</option></select><input id="webSearch" placeholder="Search or enter website address" onkeydown="if(event.key==='Enter')searchWeb('webSearch')"><button onclick="searchWeb('webSearch')">Go</button></div><div class="card"><h3>Recent history</h3><div id="searchHistory"></div></div></section>
 <section id="community"><div class="card"><h2>Community</h2><textarea id="postText" placeholder="What would you like to share?"></textarea><input type="file" id="postMedia" accept="image/*,video/*"><button onclick="createPost()">Publish Post</button><p id="postStatus" class="muted"></p></div><div id="feed"></div></section>
-<section id="trending"><div class="card"><h2>🔥 Trending on INCO</h2><p class="muted">Posts are ranked using recent likes and comments. This is a popularity guide, not a guarantee of quality.</p><button onclick="loadTrending()">Refresh Trending</button><div id="trendingFeed">Login to view trending posts.</div></div></section>
-<section id="daily"><div class="card"><h2>🌞 INCO Daily</h2><p class="muted">A fresh community question and small positive activity each day.</p><h3>Today's question</h3><p id="dailyQuestion">Loading...</p><textarea id="dailyAnswer" placeholder="Share your answer with the community"></textarea><button onclick="answerDailyQuestion()">Share answer</button><h3>Today's challenge</h3><p id="dailyChallenge">Loading...</p><button onclick="startDailyChallenge()">Take today's challenge</button><p id="challengeStatus" class="muted">Challenges are optional. Take part at your own pace.</p></div></section>
-<section id="chat"><div class="card"><h2>💬 INCO Messages</h2><p class="muted">Send private text messages to other INCO users.</p><input id="chatUsername" placeholder="Enter receiver's exact username"><button onclick="openChat()">Open Chat</button><p id="chatStatus" class="muted"></p><div id="chatMessages"><p class="muted">Open a conversation to see messages.</p></div><textarea id="chatText" placeholder="Write your message..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"></textarea><button onclick="sendChatMessage()">Send Message</button></div></section>
-<section id="inbox"><div class="card"><h2>📥 Message Inbox</h2><div id="inboxList">Loading inbox...</div></div></section>
+<section id="chat"><div class="card"><h2>💬 INCO Messages</h2><p class="muted">Send private messages to other INCO users.</p><input id="chatUsername" placeholder="Enter receiver's exact username"><button onclick="openChat()">Open Chat</button><p id="chatStatus" class="muted"></p><div id="chatMessages"><p class="muted">Open a conversation to see messages.</p></div><textarea id="chatText" placeholder="Write your message..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"></textarea><button onclick="sendChatMessage()">Send Message</button><hr><h3>🎤 Voice Notes</h3><button id="recordButton" onpointerdown="startRecording(event)" onpointerup="stopRecording()" onpointercancel="stopRecording()" onlostpointercapture="stopRecording()" oncontextmenu="return false">Hold to Record</button><p id="recordStatus" class="muted">Hold to record. Release to send.</p></div></section>
+<section id="inbox"><div class="card"><h2>📥 Message Inbox</h2><p class="muted">Your conversations and unread messages.</p><div id="inboxList">Loading inbox...</div></div></section>
 <section id="notifications"><div class="card"><h2>🔔 Notifications</h2><button onclick="markAllNotificationsRead()">Mark all as read</button><div id="notificationList">Loading notifications...</div></div></section>
 <section id="people"><div class="card"><h2>👥 Discover People</h2><input id="peopleSearch" placeholder="Search username" onkeydown="if(event.key==='Enter')searchPeople()"><button onclick="searchPeople()">Search</button><div id="peopleResults"></div></div><div class="card"><h2>🌍 Public Profile</h2><div id="publicProfile">Search for someone to view their profile.</div><div id="publicPosts"></div></div></section>
 <section id="news"><div class="card"><h2>INCO News</h2><div id="newsFeed">Loading news...</div></div><div class="card"><h3>Submit an article</h3><input id="articleTitle" placeholder="Article title"><input id="articleCategory" placeholder="Category"><textarea id="articleContent" placeholder="Write your article"></textarea><input id="articleImage" placeholder="Image URL (optional)"><button onclick="submitArticle()">Submit Article</button><p id="articleStatus" class="muted"></p></div></section>
 <section id="saved"><div class="card"><h2>Saved Posts</h2><div id="bookmarks"></div></div><div class="card"><h2>Browsing history</h2><div id="history"></div><button onclick="clearHistory()">Clear History</button></div></section>
 <section id="profile"><div class="card"><h2>My Profile</h2><img id="avatarPreview" class="avatar" alt="Profile picture"><input type="file" id="avatarFile" accept="image/*"><button onclick="uploadAvatar()">Upload Profile Picture</button><input id="profileUsername" placeholder="Username"><textarea id="profileBio" placeholder="Your bio"></textarea><button onclick="saveProfile()">Save Profile</button><p id="profileStatus" class="muted"></p></div><div class="card"><h3>My Posts</h3><div id="myPosts"></div></div></section>
 <section id="account"><div class="card"><h2>INCO Account</h2><input id="email" type="email" autocomplete="email" placeholder="Email address"><input id="password" type="password" autocomplete="current-password" placeholder="Password"><button onclick="signUp()">Create Account</button><button onclick="signIn()">Login</button><button onclick="resetPassword()">Forgot Password</button><button onclick="signOut()">Logout</button><p id="authStatus" class="muted"></p></div></section>
-<section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Live session listings from your existing Supabase database.</p><p class="muted">Camera broadcasting, viewer chat and host controls are not active yet. They need a secure LiveKit token service.</p><div id="liveSessions">Loading live sessions...</div></div></section>
-<section id="shop"><div class="card"><h2>🛍️ INCO Shopping</h2><p>Discover products through INCO partner links. Purchases happen on the partner website.</p><a href="https://jforce.jumia.com.ng/s/Sy0dHa3" target="_blank" rel="noopener noreferrer">Explore Jumia offers</a><p class="muted">INCO may receive a commission from qualifying purchases. Availability and terms are controlled by Jumia.</p></div></section>
-<section id="earn"><div class="card"><h2>💼 INCO Earn</h2><p>INCO is building ways for members and creators to benefit from genuine activity.</p><p id="referralCode" class="badge">Login to create your invite link</p><button onclick="copyReferralLink()">Copy invite link</button><p id="referralStatus" class="muted">Cash rewards are not active or promised yet.</p><h3>Your earnings</h3><h2 id="earningsTotal">Not connected</h2><p class="muted">A real balance will appear only after a secure earnings ledger is connected.</p></div><div class="card"><h3>Future creator support</h3><p>Possible future features include approved creator rewards, clearly labelled promotions and marketplace listings. These are plans, not active paid opportunities.</p></div></section><section id="privacy"><div class="card"><h2>🔒 Privacy & device data</h2><p>INCO stores shortcuts, saved post IDs and search history in this browser. Supabase stores account and community data.</p><button onclick="clearHistory()">Clear browsing history</button><button onclick="clearLocalINCOData()">Clear device shortcuts and saved posts</button><p id="privacyStatus" class="muted">Clearing device data does not delete your Supabase account, messages or posts.</p><p class="muted">Never share your password or put private API keys in this HTML file.</p></div></section>
-<section id="premium"><div class="card"><h2>⭐ INCO Premium</h2><p>Free and Premium account area.</p><p class="muted">Payments are not active. Secure payment processing must be connected before accepting money.</p></div></section>
+<section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Live session listings from your existing Supabase database.</p><p class="muted">Real camera broadcasting, viewer chat and host controls need a secure LiveKit token service. This page does not pretend broadcasting is active without it.</p><div id="liveSessions">Loading live sessions...</div></div></section>
+<section id="voice"><div class="card"><h2>📞 INCO Voice</h2><p>Voice calls coming soon. Voice notes are available in Messages.</p></div></section>
+<section id="shop">
+<div class="card"><h2>🛍️ INCO Shopping</h2><p>Discover products through INCO partner links. Purchases happen on the partner website.</p><a href="https://jforce.jumia.com.ng/s/Sy0dHa3" target="_blank" rel="noopener noreferrer"><button type="button">Explore Jumia offers</button></a><p class="muted">INCO may receive an affiliate commission from qualifying purchases. It does not increase your price. Availability and terms are controlled by Jumia.</p></div>
+<div class="card"><h3>Featured partner</h3><p>Jumia Nigeria</p><a href="https://jforce.jumia.com.ng/s/Sy0dHa3" target="_blank" rel="noopener noreferrer">Open INCO's Jumia partner page</a></div>
+</section>
+<section id="earn">
+<div class="card"><h2>💼 INCO Earn</h2><p>INCO is building ways for members and creators to benefit from genuine activity.</p><div class="row"><div class="card"><h3>Referral programme</h3><p>Invite people using your personal link. Referral rewards are not active until INCO has secure server-side tracking, published rules and a verified payout process.</p><p id="referralCode" class="badge">Login to create your invite link</p><button onclick="copyReferralLink()">Copy invite link</button><p id="referralStatus" class="muted">No cash rewards are being promised or credited yet.</p></div><div class="card"><h3>Your earnings</h3><h2 id="earningsTotal">Not connected</h2><p class="muted">A real balance will appear only after a secure earnings ledger is connected. This page does not invent balances or guarantee income.</p></div></div></div>
+<div class="card"><h3>Ways INCO plans to support creators</h3><ul><li>Creator rewards for eligible original content, after transparent rules are published.</li><li>Business promotions and sponsored placements clearly labelled as ads.</li><li>Future jobs and marketplace listings, subject to moderation and safety checks.</li></ul><p class="muted">These are planned features, not active paid opportunities.</p></div>
+<div class="card"><h3>INCO business monetization</h3><p>Potential revenue sources: approved website advertising, Jumia affiliate commissions, and clearly disclosed business promotions. Actual revenue depends on approval, genuine traffic and partner terms.</p><p>Monetag zone reference: <b>12129987</b></p><p class="muted">The supplied HTML did not contain the actual Monetag ad-tag script. Paste the exact tag from your Monetag publisher dashboard into the head section only after the site is approved. A zone number alone is not enough to activate ads.</p><a href="https://monetag.com/" target="_blank" rel="noopener noreferrer">Open Monetag publisher account</a></div>
+</section>
+<section id="privacy">
+<div class="card"><h2>🔒 Privacy & device data</h2><p>INCO stores browsing shortcuts, saved post IDs and search history in this browser on this device. Supabase stores account and community data.</p><button onclick="clearHistory()">Clear browsing history</button><button onclick="clearLocalINCOData()">Clear INCO device shortcuts and saved posts</button><p id="privacyStatus" class="muted">Clearing device data does not delete your Supabase account, messages or community posts.</p></div>
+<div class="card"><h3>Account safety</h3><p>Use a strong password and do not share your login details. Never put Supabase service-role keys, payment secrets or private API keys in this HTML file.</p></div>
+</section>
+<section id="premium"><div class="card"><h2>⭐ INCO Premium</h2><p>Free and Premium account area.</p><p class="muted">Payment processing must be connected through a secure payment provider. Never put payment secret keys in this HTML.</p></div></section>
 </main>
 <footer>INCO Browser · Connecting people worldwide 🌍</footer>
 <script>
 "use strict";
-
 const SUPABASE_URL="https://zvrbkmvoyofnasqssnhu.supabase.co";
 const SUPABASE_KEY="sb_publishable_GgUFgvk2DLQx_w2Jzbbkpw_kcix85oQ";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-
-let currentUser=null,myProfile=null,chatReceiver=null,chatChannel=null,socialChannel=null,selectedPublicUser=null;
-
+let currentUser=null,myProfile=null,chatReceiver=null,chatChannel=null,socialChannel=null;
+let recorder=null,voiceChunks=[],recording=false,recordingStream=null,voiceUploadInProgress=false,selectedPublicUser=null,recordingStartPending=false,recordingReleasedEarly=false;
 const get=id=>document.getElementById(id);
-const say=(id,msg)=>{const e=get(id);if(e)e.textContent=msg;};
-
-function escapeHTML(s){
- return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-function safeURL(s){
- try{const u=new URL(s,location.href);return ["http:","https:"].includes(u.protocol)?u.href:"#";}
- catch{return "#";}
-}
-function localGet(k,f=[]){
- try{const x=JSON.parse(localStorage.getItem(k));return Array.isArray(x)?x:f;}
- catch{return f;}
-}
-function localSet(k,v){
- try{localStorage.setItem(k,JSON.stringify(v));}
- catch(e){console.warn(e);}
-}
-
+const say=(id,msg)=>{const el=get(id);if(el)el.textContent=msg};
+function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function safeURL(s){try{const u=new URL(s,location.href);return ["http:","https:"].includes(u.protocol)?u.href:"#";}catch{return "#";}}
+function localGet(k,f=[]){try{const x=JSON.parse(localStorage.getItem(k));return Array.isArray(x)?x:f;}catch{return f;}}
+function localSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){console.warn(e);}}
 function showPage(page){
- const s=get(page);if(!s)return;
- document.querySelectorAll("main section").forEach(x=>x.classList.remove("active"));
- s.classList.add("active");
- if(page==="home"){renderShortcuts();loadHomeFeed();loadINCODaily();}
- if(page==="community")loadFeed();
- if(page==="trending")loadTrending();
- if(page==="daily")loadINCODaily();
- if(page==="news")loadNews();
- if(page==="profile")loadProfile();
- if(page==="saved")renderSaved();
- if(page==="search")renderHistory("searchHistory");
- if(page==="live")loadLive();
- if(page==="inbox")loadInbox();
- if(page==="notifications")loadNotifications();
- if(page==="earn")renderEarn();
+ const section=get(page);if(!section)return;
+ document.querySelectorAll("main section").forEach(s=>s.classList.remove("active"));section.classList.add("active");
+ if(page==="community")loadFeed();if(page==="home"){renderShortcuts();loadHomeFeed();}
+ if(page==="news")loadNews();if(page==="profile")loadProfile();if(page==="saved")renderSaved();
+ if(page==="search")renderHistory("searchHistory");if(page==="live")loadLive();
+ if(page==="inbox")loadInbox();if(page==="notifications")loadNotifications();if(page==="earn")renderEarn();
  if(page==="people"&&!currentUser)say("peopleResults","Please login to discover people.");
  if(page==="chat"&&!currentUser)say("chatStatus","Please login first.");
 }
-
-function addHistory(value){
- const h=localGet("inco_history");
- h.unshift({value,time:new Date().toLocaleString()});
- localSet("inco_history",h.slice(0,100));
-}
-
+function addHistory(value){const h=localGet("inco_history");h.unshift({value,time:new Date().toLocaleString()});localSet("inco_history",h.slice(0,100));}
 function searchWeb(id){
- const f=get(id),v=f?.value.trim();if(!v)return;
+ const field=get(id),value=field?.value.trim();if(!value)return;
  let url;
- if(/^https?:\/\//i.test(v))url=safeURL(v);
- else if(/^[\w-]+(\.[\w-]+)+([/:?#].*)?$/i.test(v)&&!v.includes(" "))url="https://"+v;
- else url=(get("engine")?.value||"https://www.google.com/search?q=")+encodeURIComponent(v);
- if(url==="#")return alert("Invalid website address.");
- addHistory(v);
- window.open(url,"_blank","noopener,noreferrer");
- renderHistory("searchHistory");
+ if(/^https?:\/\//i.test(value))url=safeURL(value);
+ else if(/^[\w-]+(\.[\w-]+)+([/:?#].*)?$/i.test(value)&&!value.includes(" "))url="https://"+value;
+ else{const engine=get("engine");const base=engine?engine.value:"https://www.google.com/search?q=";url=base+encodeURIComponent(value);}
+ if(url==="#")return alert("That website address is not valid.");
+ addHistory(value);window.open(url,"_blank","noopener,noreferrer");renderHistory("searchHistory");
 }
-
 function addShortcut(){
- const name=get("shortcutName").value.trim();
- let url=get("shortcutUrl").value.trim();
+ const name=get("shortcutName").value.trim();let url=get("shortcutUrl").value.trim();
  if(!name||!url)return alert("Enter a name and website address.");
  if(!/^https?:\/\//i.test(url))url="https://"+url;
- url=safeURL(url);
- if(url==="#")return alert("Enter a valid website address.");
- const a=localGet("inco_shortcuts");
- a.push({name,url});
- localSet("inco_shortcuts",a);
- get("shortcutName").value="";
- get("shortcutUrl").value="";
- renderShortcuts();
+ url=safeURL(url);if(url==="#")return alert("Enter a valid website address.");
+ const list=localGet("inco_shortcuts");list.push({name,url});localSet("inco_shortcuts",list);
+ get("shortcutName").value="";get("shortcutUrl").value="";renderShortcuts();
 }
-
-function renderShortcuts(){
- const b=get("shortcuts");if(!b)return;
- const a=localGet("inco_shortcuts");
- b.innerHTML="";
- if(!a.length){b.textContent="No websites added yet.";return;}
- a.forEach((x,i)=>{
-  const d=document.createElement("div");d.className="item";
-  const l=document.createElement("a");
-  l.href=safeURL(x.url);l.target="_blank";l.rel="noopener";l.textContent=x.name;
-  l.onclick=()=>addHistory(x.url);
-  const r=document.createElement("button");r.textContent="Remove";
-  r.onclick=()=>{a.splice(i,1);localSet("inco_shortcuts",a);renderShortcuts();};
-  d.append(l,r);b.append(d);
- });
-}function renderHistory(id){
- const b=get(id);if(!b)return;
- const h=localGet("inco_history");
- b.innerHTML="";
- if(!h.length){b.textContent="No browsing history yet.";return;}
- h.slice(0,30).forEach(x=>{
-  const d=document.createElement("div");d.className="item";
-  d.textContent=x.value+" · "+x.time;b.append(d);
- });
+function renderShortcuts(){const box=get("shortcuts");if(!box)return;const a=localGet("inco_shortcuts");box.innerHTML="";
+ if(!a.length){box.textContent="No websites added yet.";return;}
+ a.forEach((x,i)=>{const d=document.createElement("div");d.className="item";const link=document.createElement("a");link.href=safeURL(x.url);link.target="_blank";link.rel="noopener";link.textContent=x.name;link.onclick=()=>addHistory(x.url);const b=document.createElement("button");b.textContent="Remove";b.onclick=()=>removeShortcut(i);d.append(link,b);box.append(d);});
 }
-function clearHistory(){
- localSet("inco_history",[]);
- renderHistory("history");renderHistory("searchHistory");
-}
-function renderSaved(){
- const b=get("bookmarks");if(!b)return;
- const a=localGet("inco_saved");
- b.innerHTML="";
- if(!a.length){b.textContent="No saved posts yet.";return;}
- a.forEach(id=>{
-  const d=document.createElement("div");d.className="item";
-  d.textContent="Saved post ID: "+id;b.append(d);
- });
-}
-function clearLocalINCOData(){
- if(!confirm("Clear shortcuts and saved post IDs from this device? This will not delete your account or online posts."))return;
- localSet("inco_shortcuts",[]);localSet("inco_saved",[]);
- renderShortcuts();renderSaved();
- say("privacyStatus","Device shortcuts and saved post IDs cleared.");
-}
-
+function removeShortcut(i){const a=localGet("inco_shortcuts");a.splice(i,1);localSet("inco_shortcuts",a);renderShortcuts();}
 async function signUp(){
  const email=get("email").value.trim(),password=get("password").value;
- if(!email||password.length<6)return say("authStatus","Enter an email and a password with at least 6 characters.");
+ if(!email||password.length<6)return say("authStatus","Enter a valid email and a password of at least 6 characters.");
  say("authStatus","Creating account...");
- const {data,error}=await db.auth.signUp({email,password});
- if(error)return say("authStatus",error.message);
- if(data.session){currentUser=data.user;await afterLogin();}
- say("authStatus",data.session?"Account created and logged in.":"Account created. Check your email if confirmation is required.");
+ try{const {data,error}=await db.auth.signUp({email,password});if(error)return say("authStatus",error.message);
+ if(data.user&&data.session){currentUser=data.user;await ensureProfile();say("authStatus","Account created.");await refreshApp();}
+ else say("authStatus","Account created. Check your email to confirm, then log in.");}catch(e){say("authStatus",e.message);}
 }
 async function signIn(){
- const email=get("email").value.trim(),password=get("password").value;
- if(!email||!password)return say("authStatus","Enter your email and password.");
- say("authStatus","Logging in...");
- const {data,error}=await db.auth.signInWithPassword({email,password});
- if(error)return say("authStatus",error.message);
- currentUser=data.user;await afterLogin();
- say("authStatus","Login successful.");
+ const email=get("email").value.trim(),password=get("password").value;if(!email||!password)return say("authStatus","Enter email and password.");
+ say("authStatus","Signing in...");
+ try{const {data,error}=await db.auth.signInWithPassword({email,password});if(error)return say("authStatus",error.message);currentUser=data.user;await ensureProfile();say("authStatus","Login successful.");await refreshApp();}catch(e){say("authStatus",e.message);}
 }
 async function resetPassword(){
- const email=get("email").value.trim();
- if(!email)return say("authStatus","Enter your email address first.");
- const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:location.href});
+ const email=get("email").value.trim();if(!email)return say("authStatus","Enter your email first.");
+ const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
  say("authStatus",error?error.message:"Password reset email requested. Check your inbox.");
 }
 async function signOut(){
- await db.auth.signOut();currentUser=null;myProfile=null;chatReceiver=null;
- if(chatChannel){await db.removeChannel(chatChannel);chatChannel=null;}
- if(socialChannel){await db.removeChannel(socialChannel);socialChannel=null;}
- updateAccountStatus();
- say("authStatus","You are logged out.");
+ if(chatChannel){await db.removeChannel(chatChannel);chatChannel=null;}if(socialChannel){await db.removeChannel(socialChannel);socialChannel=null;}
+ const {error}=await db.auth.signOut();if(error)return say("authStatus",error.message);
+ currentUser=null;myProfile=null;chatReceiver=null;say("accountStatus","Not signed in");say("authStatus","You have logged out.");
+ ["feed","myPosts","inboxList","notificationList"].forEach(id=>{if(get(id))get(id).textContent="Please login to view this area.";});
+ get("chatMessages").textContent="Please login to use messages.";get("inboxCount").textContent="0";get("notificationCount").textContent="0";
 }
-function updateAccountStatus(){
- say("accountStatus",currentUser?(myProfile?.username||currentUser.email||"INCO member"):"Guest mode");
-}
-async function afterLogin(){
- if(!currentUser)return;
- await loadProfile();
- updateAccountStatus();
- await refreshApp();
+async function ensureProfile(){
+ if(!currentUser)return;const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();
+ if(error){say("authStatus","Profile check: "+error.message);return;}
+ if(data){myProfile=data;return;}
+ const base=(currentUser.email||"inco_user").split("@")[0].toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,18)||"inco_user";
+ const username=base+"_"+currentUser.id.slice(0,6);
+ const result=await db.from("profiles").insert({id:currentUser.id,username,bio:"Welcome to INCO!"}).select().single();
+ if(result.error)say("authStatus","Signed in, but profile setup failed: "+result.error.message);else myProfile=result.data;
 }
 async function refreshApp(){
- await Promise.allSettled([loadFeed(),loadHomeFeed(),loadInbox(),loadNotifications(),loadNews(),loadLive()]);
- setupSocialRealtime();
+ if(!currentUser)return;await ensureProfile();get("accountStatus").textContent=currentUser.email||"Signed in";
+ await Promise.allSettled([loadProfile(),loadFeed(),loadNews(),loadLive(),loadInbox(),loadNotifications()]);
+ await setupSocialRealtime();renderEarn();
 }
-async function loadProfile(){
- if(!currentUser)return;
- const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();
- if(error){console.warn("Profile load:",error.message);return;}
- myProfile=data;
- if(data){
-  if(get("profileUsername"))get("profileUsername").value=data.username||"";
-  if(get("profileBio"))get("profileBio").value=data.bio||"";
-  if(get("avatarPreview")&&data.avatar_url)get("avatarPreview").src=safeURL(data.avatar_url);
- }
- updateAccountStatus();
- await loadMyPosts();
-}
-async function saveProfile(){
- if(!currentUser)return alert("Please login first.");
- const username=get("profileUsername").value.trim();
- const bio=get("profileBio").value.trim();
- if(!username)return say("profileStatus","Choose a username.");
- const row={id:currentUser.id,username,bio,updated_at:new Date().toISOString()};
- const {data,error}=await db.from("profiles").upsert(row).select().single();
- if(error)return say("profileStatus",error.message);
- myProfile=data;updateAccountStatus();
- say("profileStatus","Profile saved.");
-}
-async function uploadAvatar(){
- if(!currentUser)return alert("Please login first.");
- const file=get("avatarFile").files[0];
- if(!file)return alert("Choose a picture first.");
- if(!/^image\/(jpeg|png|webp)$/.test(file.type))return alert("Choose JPG, PNG or WEBP.");
- if(file.size>5*1024*1024)return alert("Picture must be under 5 MB.");
- const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
- const path=currentUser.id+"/avatar-"+Date.now()+"."+ext;
- say("profileStatus","Uploading picture...");
- const {error:upError}=await db.storage.from("inco-avatars").upload(path,file,{upsert:true,contentType:file.type});
- if(upError)return say("profileStatus",upError.message);
- const {data}=db.storage.from("inco-avatars").getPublicUrl(path);
- const {error}=await db.from("profiles").upsert({id:currentUser.id,avatar_url:data.publicUrl});
- if(error)return say("profileStatus",error.message);
- if(get("avatarPreview"))get("avatarPreview").src=data.publicUrl;
- await loadProfile();say("profileStatus","Profile picture updated.");
-}
-async function loadMyPosts(){
- if(!currentUser)return;
- const {data,error}=await db.from("posts").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(30);
- if(error){say("myPosts",error.message);return;}
- renderPostList("myPosts",data||[]);
-}async function createPost(){
- if(!currentUser)return alert("Please login first.");
- const content=get("postText").value.trim();
- const file=get("postMedia").files[0];
- if(!content&&!file)return alert("Write something or choose a picture/video.");
- if(file&&file.size>30*1024*1024)return alert("Media must be under 30 MB.");
+async function createPost(){
+ if(!currentUser)return alert("Please log in first.");
+ const content=get("postText").value.trim(),file=get("postMedia").files[0];if(!content&&!file)return alert("Write something or select media.");
  say("postStatus","Publishing...");
- let media_url=null,media_type=null;
- if(file){
-  const ext=(file.name.split(".").pop()||"bin").toLowerCase().replace(/[^a-z0-9]/g,"");
-  const path=currentUser.id+"/"+Date.now()+"."+ext;
-  const {error:uploadError}=await db.storage.from("inco-posts").upload(path,file,{upsert:false,contentType:file.type});
-  if(uploadError)return say("postStatus","Upload failed: "+uploadError.message);
-  const {data}=db.storage.from("inco-posts").getPublicUrl(path);
-  media_url=data.publicUrl;media_type=file.type.startsWith("video/")?"video":"image";
- }
- const {error}=await db.from("posts").insert({user_id:currentUser.id,content,media_url,media_type});
- if(error)return say("postStatus",error.message);
- get("postText").value="";get("postMedia").value="";
- say("postStatus","Your post is published.");
- await loadFeed();await loadHomeFeed();await loadMyPosts();
-}
-function mediaHTML(post){
- if(!post.media_url)return "";
- const url=safeURL(post.media_url);
- if(post.media_type==="video"||/\.(mp4|webm|mov)(\?|$)/i.test(url))
-  return `<video controls playsinline preload="metadata" src="${escapeHTML(url)}"></video>`;
- return `<img loading="lazy" src="${escapeHTML(url)}" alt="Community post media">`;
-}
-function renderPostList(box,posts){
- const b=get(box);if(!b)return;
- b.innerHTML="";
- if(!posts.length){b.textContent="No posts yet. Be the first to share something.";return;}
- posts.forEach(p=>{
-  const d=document.createElement("article");d.className="card post";
-  const author=p.profiles?.username||"INCO member";
-  const date=p.created_at?new Date(p.created_at).toLocaleString():"";
-  const saved=localGet("inco_saved").includes(p.id);
-  d.innerHTML=`<div class="row"><b>${escapeHTML(author)}</b><span class="muted">${escapeHTML(date)}</span></div>
-  <p>${escapeHTML(p.content||"")}</p>${mediaHTML(p)}
-  <div class="row"><button data-like="${escapeHTML(p.id)}">❤️ Like</button><button data-comment="${escapeHTML(p.id)}">💬 Comment</button><button data-save="${escapeHTML(p.id)}">${saved?"★ Saved":"☆ Save"}</button></div>
-  <p class="muted">Likes: ${Number(p.like_count||0)} · Comments: ${Number(p.comment_count||0)}</p>`;
-  d.querySelector("[data-like]").onclick=()=>likePost(p.id);
-  d.querySelector("[data-comment]").onclick=()=>showComments(p.id);
-  d.querySelector("[data-save]").onclick=()=>toggleSaved(p.id);
-  b.append(d);
- });
+ let media_url=null;
+ try{
+ if(file){if(file.size>30*1024*1024)return say("postStatus","Media must be 30 MB or smaller.");
+ const ext=(file.name.split(".").pop()||"bin").replace(/[^a-zA-Z0-9]/g,"");const path=currentUser.id+"/"+Date.now()+"."+ext;
+ const up=await db.storage.from("inco-posts").upload(path,file,{upsert:false,contentType:file.type});if(up.error)return say("postStatus","Upload failed: "+up.error.message);
+ media_url=db.storage.from("inco-posts").getPublicUrl(path).data.publicUrl;}
+ const {error}=await db.from("posts").insert({user_id:currentUser.id,content,media_url,status:"published"});
+ if(error)return say("postStatus","Post failed: "+error.message);
+ get("postText").value="";get("postMedia").value="";say("postStatus","Post published.");await loadFeed();await loadProfile();
+ }catch(e){say("postStatus","Error: "+e.message);}
 }
 async function loadFeed(){
- const {data,error}=await db.from("posts").select("*,profiles(username)").order("created_at",{ascending:false}).limit(40);
- if(error){say("feed","Could not load posts: "+error.message);return;}
- renderPostList("feed",data||[]);
+ const box=get("feed");if(!box)return;if(!currentUser){box.textContent="Login to load community posts.";return;}box.textContent="Loading posts...";
+ const {data,error}=await db.from("posts").select("id,user_id,content,media_url,status,created_at").eq("status","published").order("created_at",{ascending:false}).limit(50);
+ if(error){box.textContent="Could not load posts: "+error.message;return;}await renderPostList(box,data||[]);
 }
 async function loadHomeFeed(){
- const {data,error}=await db.from("posts").select("*,profiles(username)").order("created_at",{ascending:false}).limit(8);
- if(error){say("homeFeed","Could not load community posts.");return;}
- renderPostList("homeFeed",data||[]);
+ const box=get("homeFeed");if(!box||!currentUser){if(box)box.textContent="Login to see community posts.";return;}
+ const {data,error}=await db.from("posts").select("id,user_id,content,media_url,status,created_at").eq("status","published").order("created_at",{ascending:false}).limit(5);
+ if(error){box.textContent=error.message;return;}await renderPostList(box,data||[]);
 }
-async function toggleSaved(id){
- const a=localGet("inco_saved");
- const i=a.indexOf(id);
- if(i>=0)a.splice(i,1);else a.unshift(id);
- localSet("inco_saved",a);renderSaved();
- await loadFeed();
- await loadHomeFeed();
-}
-async function likePost(postId){
- if(!currentUser)return alert("Please login first.");
- const {data:existing,error:checkError}=await db.from("likes").select("id").eq("post_id",postId).eq("user_id",currentUser.id).maybeSingle();
- if(checkError)return alert(checkError.message);
- if(existing){
-  const {error}=await db.from("likes").delete().eq("id",existing.id);
-  if(error)return alert(error.message);
- }else{
-  const {error}=await db.from("likes").insert({post_id:postId,user_id:currentUser.id});
-  if(error)return alert(error.message);
+async function renderPostList(box,posts){
+ box.innerHTML="";if(!posts.length){box.textContent="No posts yet. Be the first to share.";return;}
+ const ids=[...new Set(posts.map(p=>p.user_id))];
+ const [pr,likes,comments]=await Promise.all([
+ db.from("profiles").select("id,username,avatar_url").in("id",ids),
+ db.from("likes").select("post_id,user_id").in("post_id",posts.map(p=>p.id)),
+ db.from("comments").select("post_id").in("post_id",posts.map(p=>p.id))
+ ]);
+ const profiles={};(pr.data||[]).forEach(p=>profiles[p.id]=p);
+ const likeRows=likes.data||[],commentRows=comments.data||[];
+ for(const p of posts){
+ const author=profiles[p.user_id]||{},liked=!!(currentUser&&likeRows.some(l=>l.post_id===p.id&&l.user_id===currentUser.id)),likeCount=likeRows.filter(l=>l.post_id===p.id).length,commentCount=commentRows.filter(c=>c.post_id===p.id).length;
+ const card=document.createElement("div");card.className="card post";
+ const head=document.createElement("div");head.className="row";
+ if(author.avatar_url){const av=document.createElement("img");av.className="avatar";av.src=safeURL(author.avatar_url);av.alt="";head.append(av);}
+ const who=document.createElement("b");who.textContent=author.username||"INCO user";head.append(who);
+ const body=document.createElement("p");body.textContent=p.content||"";
+ card.append(head,body);
+ if(p.media_url){const url=safeURL(p.media_url);if(/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url)){const v=document.createElement("video");v.src=url;v.controls=true;card.append(v);}else{const im=document.createElement("img");im.src=url;im.alt="Post media";card.append(im);}}
+ const date=document.createElement("p");date.className="muted";date.textContent=new Date(p.created_at).toLocaleString();card.append(date);
+ const actions=document.createElement("div");const lb=document.createElement("button");lb.textContent=(liked?"♥":"♡")+" Like ("+likeCount+")";lb.onclick=()=>toggleLike(p.id);
+ const cb=document.createElement("button");cb.textContent="Comments ("+commentCount+")";cb.onclick=()=>showComments(p.id);
+ const sb=document.createElement("button");sb.textContent="Save";sb.onclick=()=>savePost(p.id);
+ actions.append(lb,cb,sb);
+ if(currentUser&&p.user_id===currentUser.id){const del=document.createElement("button");del.textContent="Delete";del.onclick=()=>deletePost(p.id);actions.append(del);}
+ card.append(actions);box.append(card);
  }
- await loadFeed();await loadHomeFeed();await loadTrending();
+}
+async function toggleLike(postId){
+ if(!currentUser)return alert("Please log in first.");const found=await db.from("likes").select("id").eq("post_id",postId).eq("user_id",currentUser.id).maybeSingle();if(found.error)return alert(found.error.message);
+ if(found.data){const {error}=await db.from("likes").delete().eq("id",found.data.id);if(error)return alert(error.message);}
+ else{const {error}=await db.from("likes").insert({post_id:postId,user_id:currentUser.id});if(error)return alert(error.message);}
+ await loadFeed();await loadHomeFeed();
 }
 async function showComments(postId){
- if(!currentUser)return alert("Please login first.");
- const {data,error}=await db.from("comments").select("content,created_at,profiles(username)").eq("post_id",postId).order("created_at",{ascending:true}).limit(30);
- if(error)return alert(error.message);
- const list=(data||[]).map(x=>(x.profiles?.username||"Member")+": "+x.content).join("\n");
- const answer=prompt("Comments:\n"+(list||"No comments yet.")+"\n\nWrite a comment:");
- if(!answer||!answer.trim())return;
- const {error:insertError}=await db.from("comments").insert({post_id:postId,user_id:currentUser.id,content:answer.trim()});
- if(insertError)return alert(insertError.message);
- alert("Comment posted.");
- await loadFeed();await loadHomeFeed();await loadTrending();
-}async function loadTrending(){
- const b=get("trendingFeed");if(!b)return;
- b.textContent="Finding popular posts...";
- const {data,error}=await db.from("posts").select("*,profiles(username)").order("created_at",{ascending:false}).limit(60);
- if(error){b.textContent="Could not load trending posts: "+error.message;return;}
- if(!data?.length){b.textContent="No posts yet. Share something in Community.";return;}
- const ids=data.map(p=>p.id);
- const [likesResult,commentsResult]=await Promise.all([
-  db.from("likes").select("post_id").in("post_id",ids),
-  db.from("comments").select("post_id").in("post_id",ids)
- ]);
- const likes={},comments={};
- (likesResult.data||[]).forEach(x=>likes[x.post_id]=(likes[x.post_id]||0)+1);
- (commentsResult.data||[]).forEach(x=>comments[x.post_id]=(comments[x.post_id]||0)+1);
- data.forEach(p=>{p.like_count=likes[p.id]||0;p.comment_count=comments[p.id]||0;p.rank_score=p.like_count+2*p.comment_count;});
- data.sort((a,b)=>b.rank_score-a.rank_score);
- renderPostList("trendingFeed",data.slice(0,30));
+ const {data,error}=await db.from("comments").select("id,user_id,content,created_at").eq("post_id",postId).order("created_at",{ascending:true}).limit(100);
+ if(error)return alert("Could not load comments: "+error.message);
+ let text=(data||[]).map(c=>c.content).join("\n")||"No comments yet.";const content=prompt("Comments:\n"+text+"\n\nWrite a new comment (Cancel to close):");if(content===null||!content.trim())return;
+ if(!currentUser)return alert("Please login first.");const result=await db.from("comments").insert({post_id:postId,user_id:currentUser.id,content:content.trim()});if(result.error)return alert(result.error.message);
+ await loadFeed();await loadHomeFeed();
 }
-const dailyQuestions=[
- "What is one useful thing you learned recently?",
- "What kind of app feature would make your day easier?",
- "What advice would you give someone starting something new?",
- "Which skill would you like to learn this year?",
- "What small act of kindness made you happy?",
- "What topic would you like the INCO community to discuss?",
- "What is one goal you are working towards?"
-];
-const dailyChallenges=[
- "Share one helpful tip with the community.",
- "Thank someone who has helped you.",
- "Learn one new fact and share it.",
- "Recommend a useful website.",
- "Encourage someone who is learning a new skill.",
- "Ask a thoughtful question.",
- "Take a short break from screens and enjoy something offline."
-];
-function dailyIndex(){return Math.floor(Date.now()/86400000)%7;}
-function loadINCODaily(){
- const i=dailyIndex();
- const q=dailyQuestions[i],c=dailyChallenges[i];
- say("dailyQuestion",q);say("dailyChallenge",c);say("homeDailyQuestion",q);
+async function deletePost(id){if(!currentUser||!confirm("Delete this post?"))return;const {error}=await db.from("posts").delete().eq("id",id).eq("user_id",currentUser.id);if(error)return alert(error.message);await loadFeed();await loadHomeFeed();await loadProfile();}
+function savePost(id){const a=localGet("inco_bookmarks");if(!a.includes(id))a.push(id);localSet("inco_bookmarks",a);alert("Post saved on this device.");}
+async function renderSaved(){
+ const ids=localGet("inco_bookmarks"),box=get("bookmarks");box.textContent="Loading saved posts...";
+ if(!ids.length)box.textContent="No saved posts yet.";
+ else{const {data,error}=await db.from("posts").select("id,user_id,content,media_url,created_at").in("id",ids);if(error)box.textContent=error.message;else{box.innerHTML="";await renderPostList(box,data||[]);}}
+ renderHistory("history");
 }
-function answerDailyQuestion(){
- const answer=get("dailyAnswer").value.trim();
- if(!answer)return alert("Write your answer first.");
- get("postText").value="🌞 INCO Daily: "+get("dailyQuestion").textContent+"\n\n"+answer;
- showPage("community");
- say("postStatus","Your daily answer is ready. Press Publish Post to share it.");
+function renderHistory(id){const box=get(id);if(!box)return;const a=localGet("inco_history");box.innerHTML=a.map(x=>`<div class="item">${escapeHTML(x.value)} <span class="muted">${escapeHTML(x.time)}</span></div>`).join("")||"No history yet.";}
+function clearHistory(){localSet("inco_history",[]);renderHistory("history");renderHistory("searchHistory");}
+async function loadProfile(){
+ if(!currentUser)return;const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();if(error){say("profileStatus",error.message);return;}myProfile=data;
+ get("profileUsername").value=data?.username||"";get("profileBio").value=data?.bio||"";get("avatarPreview").src=data?.avatar_url?safeURL(data.avatar_url):"";
+ const {data:posts,error:pe}=await db.from("posts").select("id,content,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(50);
+ get("myPosts").innerHTML=pe?escapeHTML(pe.message):(posts||[]).map(p=>`<div class="item">${escapeHTML(p.content||"Post")} <span class="muted">${new Date(p.created_at).toLocaleDateString()}</span></div>`).join("")||"You have not posted yet.";
 }
-function startDailyChallenge(){
- const challenge=get("dailyChallenge").textContent;
- get("postText").value="🌟 Today's INCO challenge: "+challenge+"\n\nMy update: ";
- showPage("community");
- say("postStatus","Challenge added to your post box. Share only if you want to.");
+async function saveProfile(){
+ if(!currentUser)return alert("Please log in first.");const username=get("profileUsername").value.trim();if(!/^[a-zA-Z0-9_]{3,24}$/.test(username))return say("profileStatus","Username must be 3–24 letters, numbers or underscores.");
+ const {error}=await db.from("profiles").update({username,bio:get("profileBio").value.trim()}).eq("id",currentUser.id);say("profileStatus",error?error.message:"Profile updated.");if(!error){await loadProfile();await loadInbox();}
 }
-
-async function searchPeople(){
- if(!currentUser)return say("peopleResults","Please login first.");
- const term=get("peopleSearch").value.trim();
- if(!term)return say("peopleResults","Enter a username to search.");
- const {data,error}=await db.from("profiles").select("id,username,bio,avatar_url").ilike("username","%"+term+"%").limit(20);
- if(error)return say("peopleResults",error.message);
- const b=get("peopleResults");b.innerHTML="";
- if(!data?.length)return b.textContent="No matching members found.";
- data.forEach(p=>{
-  const d=document.createElement("div");d.className="item";
-  const btn=document.createElement("button");btn.textContent=p.username||"View member";
-  btn.onclick=()=>viewPublicProfile(p.id);
-  d.append(btn,document.createTextNode(" "+(p.bio||"")));
-  b.append(d);
- });
-}
-async function viewPublicProfile(id){
- selectedPublicUser=id;
- const {data,error}=await db.from("profiles").select("*").eq("id",id).maybeSingle();
- if(error)return say("publicProfile",error.message);
- if(!data)return say("publicProfile","Profile not found.");
- const b=get("publicProfile");b.innerHTML="";
- const img=document.createElement("img");img.className="avatar";img.alt="Profile picture";
- if(data.avatar_url)img.src=safeURL(data.avatar_url);
- const name=document.createElement("h3");name.textContent=data.username||"INCO member";
- const bio=document.createElement("p");bio.textContent=data.bio||"No bio yet.";
- b.append(img,name,bio);
- if(currentUser&&id!==currentUser.id){
-  const follow=document.createElement("button");follow.textContent="Follow / Unfollow";
-  follow.onclick=()=>toggleFollow(id);b.append(follow);
- }
- const {data:posts,error:postError}=await db.from("posts").select("*,profiles(username)").eq("user_id",id).order("created_at",{ascending:false}).limit(30);
- if(postError)return say("publicPosts",postError.message);
- renderPostList("publicPosts",posts||[]);
-}async function toggleFollow(targetId){
- if(!currentUser)return alert("Please login first.");
- const {data:existing,error:checkError}=await db.from("follows").select("*").eq("follower_id",currentUser.id).eq("following_id",targetId).maybeSingle();
- if(checkError)return alert(checkError.message);
- if(existing){
-  const {error}=await db.from("follows").delete().eq("follower_id",currentUser.id).eq("following_id",targetId);
-  if(error)return alert(error.message);
-  alert("You unfollowed this member.");
- }else{
-  const {error}=await db.from("follows").insert({follower_id:currentUser.id,following_id:targetId});
-  if(error)return alert(error.message);
-  alert("You are now following this member.");
- }
-}
-
-async function openChat(){
- if(!currentUser)return say("chatStatus","Please login first.");
- const username=get("chatUsername").value.trim();
- if(!username)return say("chatStatus","Enter the receiver's username.");
- const {data:person,error}=await db.from("profiles").select("id,username").ilike("username",username).limit(1).maybeSingle();
- if(error)return say("chatStatus",error.message);
- if(!person)return say("chatStatus","Member not found. Check the username.");
- if(person.id===currentUser.id)return say("chatStatus","You cannot message yourself.");
- chatReceiver=person;
- say("chatStatus","Conversation with "+(person.username||"INCO member"));
- await loadChatMessages();
- if(chatChannel){await db.removeChannel(chatChannel);chatChannel=null;}
- chatChannel=db.channel("inco-chat-"+[currentUser.id,person.id].sort().join("-"))
- .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{
-  const m=payload.new;
-  if(m&&(m.sender_id===currentUser.id&&m.receiver_id===person.id||m.sender_id===person.id&&m.receiver_id===currentUser.id))loadChatMessages();
- }).subscribe();
-}
-async function loadChatMessages(){
- if(!currentUser||!chatReceiver)return;
- const {data,error}=await db.from("messages").select("*").or(
-  "and(sender_id.eq."+currentUser.id+",receiver_id.eq."+chatReceiver.id+"),and(sender_id.eq."+chatReceiver.id+",receiver_id.eq."+currentUser.id+")"
- ).order("created_at",{ascending:true}).limit(100);
- if(error)return say("chatStatus",error.message);
- const b=get("chatMessages");b.innerHTML="";
- (data||[]).forEach(m=>{
-  const d=document.createElement("div");d.className="chat-message"+(m.sender_id===currentUser.id?" mine":"");
-  d.textContent=m.content||"";
-  const small=document.createElement("small");small.textContent=m.created_at?new Date(m.created_at).toLocaleString():"";
-  d.append(small);b.append(d);
- });
- b.scrollTop=b.scrollHeight;
-}
-async function sendChatMessage(){
- if(!currentUser)return alert("Please login first.");
- if(!chatReceiver)return alert("Open a conversation first.");
- const content=get("chatText").value.trim();
- if(!content)return;
- const {error}=await db.from("messages").insert({sender_id:currentUser.id,receiver_id:chatReceiver.id,content});
- if(error)return say("chatStatus","Message failed: "+error.message);
- get("chatText").value="";
- await loadChatMessages();await loadInbox();
-}
-
-async function loadInbox(){
- if(!currentUser){say("inboxList","Please login to view messages.");return;}
- const {data,error}=await db.from("messages").select("*").or("sender_id.eq."+currentUser.id+",receiver_id.eq."+currentUser.id).order("created_at",{ascending:false}).limit(80);
- if(error)return say("inboxList",error.message);
- const b=get("inboxList");b.innerHTML="";
- if(!data?.length)return b.textContent="No messages yet.";
- const ids=[...new Set(data.map(m=>m.sender_id===currentUser.id?m.receiver_id:m.sender_id))];
- const {data:profiles}=await db.from("profiles").select("id,username").in("id",ids);
- const names={};(profiles||[]).forEach(p=>names[p.id]=p.username||"INCO member");
- const seen=new Set();
- data.forEach(m=>{
-  const other=m.sender_id===currentUser.id?m.receiver_id:m.sender_id;
-  if(seen.has(other))return;seen.add(other);
-  const d=document.createElement("div");d.className="item";
-  const btn=document.createElement("button");btn.textContent=names[other]||"INCO member";
-  btn.onclick=()=>{get("chatUsername").value=names[other]||"";showPage("chat");openChat();};
-  d.append(btn,document.createTextNode(" "+(m.content||"").slice(0,90)));
-  b.append(d);
- });
- say("inboxCount",String(seen.size));
-}async function loadNotifications(){
- if(!currentUser){say("notificationList","Please login to view alerts.");say("notificationCount","0");return;}
- const {data,error}=await db.from("notifications").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(50);
- if(error)return say("notificationList","Could not load alerts: "+error.message);
- const b=get("notificationList");b.innerHTML="";
- if(!data?.length){b.textContent="No notifications yet.";say("notificationCount","0");return;}
- const unread=data.filter(n=>!n.is_read).length;
- say("notificationCount",String(unread));
- data.forEach(n=>{
-  const d=document.createElement("div");d.className="item";
-  d.textContent=(n.is_read?"":"🔵 ")+(n.content||n.message||"New INCO notification")+" · "+(n.created_at?new Date(n.created_at).toLocaleString():"");
-  b.append(d);
- });
-}
-async function markAllNotificationsRead(){
- if(!currentUser)return alert("Please login first.");
- const {error}=await db.from("notifications").update({is_read:true}).eq("user_id",currentUser.id);
- if(error)return alert(error.message);
- await loadNotifications();
+async function uploadAvatar(){
+ if(!currentUser)return alert("Please log in first.");const file=get("avatarFile").files[0];if(!file)return alert("Choose a picture first.");if(!file.type.startsWith("image/")||file.size>5*1024*1024)return alert("Choose an image under 5 MB.");
+ const ext=(file.name.split(".").pop()||"jpg").replace(/[^a-z0-9]/gi,"");const path=currentUser.id+"/avatar-"+Date.now()+"."+ext;
+ const up=await db.storage.from("inco-avatars").upload(path,file,{upsert:false,contentType:file.type});if(up.error)return say("profileStatus",up.error.message);
+ const url=db.storage.from("inco-avatars").getPublicUrl(path).data.publicUrl;const {error}=await db.from("profiles").update({avatar_url:url}).eq("id",currentUser.id);if(error)return say("profileStatus",error.message);
+ get("avatarPreview").src=url;say("profileStatus","Profile picture updated.");
 }
 async function loadNews(){
- const b=get("newsFeed");if(!b)return;
- const {data,error}=await db.from("news_articles").select("*").order("created_at",{ascending:false}).limit(30);
- if(error){b.textContent="Could not load news: "+error.message;return;}
- b.innerHTML="";
- if(!data?.length){b.textContent="No news articles yet.";return;}
- data.forEach(n=>{
-  const d=document.createElement("article");d.className="card";
-  const h=document.createElement("h3");h.textContent=n.title||"INCO News";
-  const cat=document.createElement("span");cat.className="badge";cat.textContent=n.category||"News";
-  const p=document.createElement("p");p.textContent=n.content||"";
-  d.append(h,cat);
-  if(n.image_url){
-   const img=document.createElement("img");img.className="news-image";img.loading="lazy";img.src=safeURL(n.image_url);img.alt="News image";d.append(img);
-  }
-  d.append(p);b.append(d);
- });
+ const box=get("newsFeed");const {data,error}=await db.from("news_articles").select("id,author_id,title,category,content,image_url,views,created_at").order("created_at",{ascending:false}).limit(30);
+ if(error){box.textContent="Could not load news: "+error.message;return;}box.innerHTML="";
+ (data||[]).forEach(a=>{const c=document.createElement("div");c.className="card";const h=document.createElement("h3");h.textContent=a.title;const meta=document.createElement("p");meta.className="muted";meta.textContent=(a.category||"News")+" · "+new Date(a.created_at).toLocaleDateString();const p=document.createElement("p");p.textContent=a.content||"";c.append(h,meta);if(a.image_url){const im=document.createElement("img");im.className="news-image";im.src=safeURL(a.image_url);im.alt="News image";c.append(im);}c.append(p);box.append(c);});
+ if(!data?.length)box.textContent="No news articles yet.";
 }
 async function submitArticle(){
- if(!currentUser)return alert("Please login first.");
- const title=get("articleTitle").value.trim();
- const content=get("articleContent").value.trim();
- if(!title||!content)return say("articleStatus","Enter an article title and content.");
- say("articleStatus","Submitting article...");
- const row={title,category:get("articleCategory").value.trim()||"Community",content,image_url:get("articleImage").value.trim()||null,author_id:currentUser.id};
- const {error}=await db.from("news_articles").insert(row);
- if(error)return say("articleStatus","Could not submit: "+error.message);
- get("articleTitle").value="";get("articleCategory").value="";get("articleContent").value="";get("articleImage").value="";
- say("articleStatus","Article submitted. It may need approval before appearing.");
- await loadNews();
+ if(!currentUser)return alert("Please log in first.");const title=get("articleTitle").value.trim(),content=get("articleContent").value.trim();if(!title||!content)return say("articleStatus","Enter a title and article.");
+ const {error}=await db.from("news_articles").insert({author_id:currentUser.id,title,category:get("articleCategory").value.trim(),content,image_url:get("articleImage").value.trim()||null});
+ say("articleStatus",error?"Submission failed: "+error.message:"Article submitted.");if(!error){get("articleTitle").value="";get("articleContent").value="";await loadNews();}
 }
 async function loadLive(){
- const b=get("liveSessions");if(!b)return;
- const {data,error}=await db.from("live_sessions").select("*").eq("status","live").order("started_at",{ascending:false}).limit(30);
- if(error){b.textContent="Could not load live sessions: "+error.message;return;}
- b.innerHTML="";
- if(!data?.length){b.textContent="No live sessions at the moment.";return;}
- data.forEach(s=>{
-  const d=document.createElement("div");d.className="card";
-  const h=document.createElement("h3");h.textContent=s.title||"INCO Live session";
-  const p=document.createElement("p");p.textContent="Host: "+(s.host_id===currentUser?.id?"You":"INCO member");
-  const status=document.createElement("span");status.className="badge";status.textContent="LIVE";
-  d.append(h,p,status);b.append(d);
- });
+ const box=get("liveSessions");const {data,error}=await db.from("live_sessions").select("id,host_id,title,room_name,status,started_at").order("started_at",{ascending:false}).limit(20);
+ if(error){box.textContent="Could not load LIVE sessions: "+error.message;return;}box.innerHTML="";
+ (data||[]).forEach(s=>{const d=document.createElement("div");d.className="item";const b=document.createElement("b");b.textContent=s.title||"INCO LIVE";const st=document.createElement("span");st.className="badge";st.textContent=s.status||"Status unavailable";d.append(b,st);box.append(d);});if(!data?.length)box.textContent="No live sessions at the moment.";
+}
+async function openChat(){
+ if(!currentUser)return say("chatStatus","Please login first.");const username=get("chatUsername").value.trim();if(!username)return say("chatStatus","Enter the person's username.");
+ say("chatStatus","Finding user...");const {data,error}=await db.from("profiles").select("id,username").eq("username",username).maybeSingle();
+ if(error)return say("chatStatus",error.message);if(!data)return say("chatStatus","User not found. Check the exact username.");if(data.id===currentUser.id)return say("chatStatus","You cannot chat with yourself.");
+ chatReceiver=data.id;if(chatChannel){await db.removeChannel(chatChannel);chatChannel=null;}await loadChatMessages();
+ chatChannel=db.channel("inco-chat-"+currentUser.id).on("postgres_changes",{event:"*",schema:"public",table:"messages"},payload=>{const m=payload.new;if(m&&(m.sender_id===currentUser.id&&m.receiver_id===chatReceiver||m.sender_id===chatReceiver&&m.receiver_id===currentUser.id))loadChatMessages();}).subscribe(status=>{if(status==="SUBSCRIBED")say("chatStatus","Connected. Messages update in real time.");if(status==="CHANNEL_ERROR")say("chatStatus","Realtime connection failed. Check Supabase Realtime settings.");});
+}
+async function sendChatMessage(){
+ if(!currentUser)return alert("Please login first.");if(!chatReceiver)return alert("Open a chat first.");const content=get("chatText").value.trim();if(!content)return;
+ const b=document.querySelector("#chat button[onclick='sendChatMessage()']");if(b)b.disabled=true;
+ const {error}=await db.from("messages").insert({sender_id:currentUser.id,receiver_id:chatReceiver,content});if(b)b.disabled=false;
+ if(error)return alert("Message failed: "+error.message);get("chatText").value="";await loadChatMessages();await loadInbox();
+}
+async function loadChatMessages(){
+ if(!currentUser||!chatReceiver)return;const box=get("chatMessages");box.textContent="Loading messages...";
+ const {data,error}=await db.from("messages").select("*").or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${chatReceiver}),and(sender_id.eq.${chatReceiver},receiver_id.eq.${currentUser.id})`).order("created_at",{ascending:true}).limit(200);
+ if(error){box.textContent="Could not load messages: "+error.message;return;}box.innerHTML="";
+ for(const m of data||[]){const mine=m.sender_id===currentUser.id,item=document.createElement("div");item.className="chat-message"+(mine?" mine":"");
+ if(String(m.content||"").startsWith("VOICE:")){const path=m.content.slice(6);const {data:a}=db.storage.from("inco-posts").getPublicUrl(path);if(a?.publicUrl){const audio=document.createElement("audio");audio.controls=true;audio.preload="none";audio.src=a.publicUrl;item.append(audio);}else item.textContent="Voice note unavailable.";}
+ else item.append(document.createTextNode(m.content||""));
+ const small=document.createElement("small");small.textContent=new Date(m.created_at).toLocaleString()+(mine?(m.read_at?" · ✓✓ Read":" · ✓ Sent"):" · Received");item.append(small);box.append(item);
+ if(!mine&&!m.read_at)markMessageRead(m.id);
+ }box.scrollTop=box.scrollHeight;
+}
+async function markMessageRead(id){const {error}=await db.from("messages").update({read_at:new Date().toISOString()}).eq("id",id).eq("receiver_id",currentUser.id).is("read_at",null);if(error)console.warn("Read receipt:",error.message);}
+async function startRecording(event){
+ if(event)event.preventDefault();
+ if(recording||recordingStartPending||voiceUploadInProgress)return;
+ if(!currentUser||!chatReceiver){say("recordStatus","Open a chat first.");return;}
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){say("recordStatus","Microphone recording needs a supported HTTPS browser.");return;}
+ recordingStartPending=true;recordingReleasedEarly=false;
+ try{
+  recordingStream=await navigator.mediaDevices.getUserMedia({audio:true});
+  if(recordingReleasedEarly){
+   recordingStream.getTracks().forEach(t=>t.stop());recordingStream=null;recordingStartPending=false;
+   say("recordStatus","Recording cancelled. Hold the button until recording starts.");return;
+  }
+  const types=["audio/webm;codecs=opus","audio/webm","audio/mp4"];
+  const mime=types.find(t=>MediaRecorder.isTypeSupported(t));
+  recorder=new MediaRecorder(recordingStream,mime?{mimeType:mime}:{});
+  voiceChunks=[];
+  recorder.ondataavailable=e=>{if(e.data?.size)voiceChunks.push(e.data);};
+  recorder.onstop=uploadVoiceNote;
+  recorder.start();recording=true;recordingStartPending=false;
+  get("recordButton").classList.add("recording");get("recordButton").textContent="🔴 Recording...";
+  say("recordStatus","Recording. Release to send.");
+ }catch(e){
+  recordingStartPending=false;say("recordStatus","Microphone unavailable. Allow microphone access in Chrome and close other apps using the mic. "+e.message);
+  if(recordingStream)recordingStream.getTracks().forEach(t=>t.stop());recordingStream=null;
+ }
+}
+function stopRecording(){if(recordingStartPending){recordingReleasedEarly=true;return;}if(!recording||!recorder)return;recording=false;get("recordButton").classList.remove("recording");get("recordButton").textContent="Hold to Record";if(recorder.state!=="inactive")recorder.stop();if(recordingStream){recordingStream.getTracks().forEach(t=>t.stop());recordingStream=null;}say("recordStatus","Uploading voice note...");}
+async function uploadVoiceNote(){
+ if(!currentUser||!chatReceiver)return;voiceUploadInProgress=true;const button=get("recordButton");button.disabled=true;
+ try{const type=recorder?.mimeType||"audio/webm",blob=new Blob(voiceChunks,{type});if(!blob.size){say("recordStatus","No audio recorded. Try again.");return;}if(blob.size>15*1024*1024){say("recordStatus","Voice note is too large.");return;}
+ const ext=type.includes("mp4")?"m4a":"webm",path=currentUser.id+"/"+Date.now()+"."+ext;
+ const {error:ue}=await db.storage.from("inco-posts").upload(path,blob,{contentType:type,upsert:false});if(ue){say("recordStatus","Upload failed: "+ue.message);return;}
+ const {error:me}=await db.from("messages").insert({sender_id:currentUser.id,receiver_id:chatReceiver,content:"VOICE:"+path});if(me){say("recordStatus","Voice uploaded but message failed: "+me.message);return;}
+ say("recordStatus","Voice note sent.");await loadChatMessages();await loadInbox();
+ }catch(e){say("recordStatus","Voice note error: "+e.message);}finally{voiceUploadInProgress=false;button.disabled=false;voiceChunks=[];}
+}
+async function loadInbox(){
+ if(!currentUser)return say("inboxList","Please login first.");const box=get("inboxList");box.textContent="Loading conversations...";
+ const {data,error}=await db.from("messages").select("id,sender_id,receiver_id,content,read_at,created_at").or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`).order("created_at",{ascending:false}).limit(300);
+ if(error){box.textContent=error.message;return;}const conversations={};
+ (data||[]).forEach(m=>{const other=m.sender_id===currentUser.id?m.receiver_id:m.sender_id;if(!conversations[other])conversations[other]={message:m,unread:0};if(m.receiver_id===currentUser.id&&!m.read_at)conversations[other].unread++;});
+ const ids=Object.keys(conversations);if(!ids.length){box.textContent="No conversations yet.";get("inboxCount").textContent="0";return;}
+ const {data:profiles,error:pe}=await db.from("profiles").select("id,username,avatar_url").in("id",ids);if(pe){box.textContent=pe.message;return;}
+ const map={};(profiles||[]).forEach(p=>map[p.id]=p);let total=0;box.innerHTML="";
+ ids.forEach(id=>{const c=conversations[id],p=map[id]||{};total+=c.unread;const item=document.createElement("div");item.className="item";const b=document.createElement("b");b.textContent=p.username||"INCO user";const msg=document.createElement("p");msg.textContent=String(c.message.content||"").startsWith("VOICE:")?"🎤 Voice message":c.message.content;const unread=document.createElement("span");unread.className="muted";unread.textContent=c.unread?c.unread+" unread":"No unread messages";const btn=document.createElement("button");btn.textContent="Open Conversation";btn.onclick=()=>{get("chatUsername").value=p.username||"";showPage("chat");openChat();};item.append(b,msg,unread,btn);box.append(item);});
+ get("inboxCount").textContent=String(total);
+}
+async function loadNotifications(){
+ if(!currentUser)return say("notificationList","Please login first.");const box=get("notificationList");box.textContent="Loading notifications...";
+ const {data,error}=await db.from("notifications").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(100);
+ if(error){box.textContent="Notifications unavailable: "+error.message;get("notificationCount").textContent="0";return;}
+ const rows=data||[],unread=rows.filter(n=>!n.is_read).length;get("notificationCount").textContent=String(unread);if(!rows.length){box.textContent="No notifications yet.";return;}
+ const ids=[...new Set(rows.map(n=>n.actor_id).filter(Boolean))];let actors={};if(ids.length){const r=await db.from("profiles").select("id,username").in("id",ids);if(r.error){box.textContent=r.error.message;return;}(r.data||[]).forEach(p=>actors[p.id]=p.username);}
+ box.innerHTML="";rows.forEach(n=>{const item=document.createElement("div");item.className="item";if(!n.is_read)item.style.borderLeft="3px solid #1678db";const b=document.createElement("b");b.textContent=actors[n.actor_id]||"An INCO user";const p=document.createElement("p");p.textContent=n.content||(n.type==="like"?"Liked your post":n.type==="comment"?"Commented on your post":n.type==="follow"?"Started following you":n.type==="message"?"Sent you a message":"New notification");const t=document.createElement("small");t.className="muted";t.textContent=n.created_at?new Date(n.created_at).toLocaleString():"";item.append(b,p,t);box.append(item);});
+}
+async function markAllNotificationsRead(){if(!currentUser)return alert("Please login first.");const {error}=await db.from("notifications").update({is_read:true}).eq("user_id",currentUser.id).eq("is_read",false);if(error)return alert(error.message);await loadNotifications();}
+async function searchPeople(){
+ if(!currentUser)return alert("Please login first.");const q=get("peopleSearch").value.trim();if(q.length<2)return alert("Enter at least 2 characters.");const box=get("peopleResults");box.textContent="Searching...";
+ const {data,error}=await db.from("profiles").select("id,username,avatar_url,bio").ilike("username","%"+q+"%").neq("id",currentUser.id).limit(20);
+ if(error){box.textContent=error.message;return;}box.innerHTML="";if(!data?.length){box.textContent="No users found.";return;}
+ data.forEach(p=>{const item=document.createElement("div");item.className="item";const b=document.createElement("b");b.textContent=p.username||"INCO user";const bio=document.createElement("p");bio.textContent=p.bio||"INCO member";const btn=document.createElement("button");btn.textContent="View Profile";btn.onclick=()=>viewPublicProfile(p.id);item.append(b,bio,btn);box.append(item);});
+}
+async function viewPublicProfile(userId){
+ if(!currentUser)return alert("Please login first.");selectedPublicUser=userId;const box=get("publicProfile"),postsBox=get("publicPosts");box.textContent="Loading profile...";postsBox.textContent="Loading posts...";
+ const {data:p,error}=await db.from("profiles").select("id,username,avatar_url,bio").eq("id",userId).maybeSingle();if(error||!p){box.textContent=error?.message||"Profile not found.";return;}box.innerHTML="";
+ if(p.avatar_url){const av=document.createElement("img");av.className="avatar";av.src=safeURL(p.avatar_url);av.alt="Profile picture";box.append(av);}
+ const h=document.createElement("h3");h.textContent=p.username||"INCO member";const un=document.createElement("p");un.textContent="@"+(p.username||"");const bio=document.createElement("p");bio.textContent=p.bio||"No bio yet.";box.append(h,un,bio);
+ const f=await db.from("follows").select("id").eq("follower_id",currentUser.id).eq("following_id",userId).maybeSingle();const btn=document.createElement("button");btn.textContent=f.error?"Follow status unavailable":f.data?"Unfollow":"Follow";btn.disabled=!!f.error;btn.onclick=()=>toggleFollow(userId);box.append(btn);
+ const {data:posts,error:pe}=await db.from("posts").select("id,user_id,content,media_url,created_at").eq("user_id",userId).eq("status","published").order("created_at",{ascending:false}).limit(50);if(pe){postsBox.textContent=pe.message;return;}postsBox.innerHTML="<h3>Public Posts</h3>";
+ (posts||[]).forEach(post=>{const c=document.createElement("div");c.className="card post";const p=document.createElement("p");p.textContent=post.content||"";c.append(p);if(post.media_url){const url=safeURL(post.media_url);if(/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url)){const v=document.createElement("video");v.src=url;v.controls=true;c.append(v);}else{const im=document.createElement("img");im.src=url;im.alt="Post image";c.append(im);}}postsBox.append(c);});if(!posts?.length)postsBox.textContent="No public posts yet.";
+}
+async function toggleFollow(userId){
+ if(!currentUser)return alert("Please login first.");if(userId===currentUser.id)return alert("You cannot follow yourself.");const existing=await db.from("follows").select("id").eq("follower_id",currentUser.id).eq("following_id",userId).maybeSingle();if(existing.error)return alert(existing.error.message);
+ if(existing.data){const {error}=await db.from("follows").delete().eq("id",existing.data.id);if(error)return alert(error.message);}
+ else{const {error}=await db.from("follows").insert({follower_id:currentUser.id,following_id:userId});if(error)return alert(error.message);}
+ await viewPublicProfile(userId);
+}
+async function setupSocialRealtime(){
+ if(!currentUser)return;if(socialChannel){await db.removeChannel(socialChannel);socialChannel=null;}
+ socialChannel=db.channel("inco-social-"+currentUser.id)
+ .on("postgres_changes",{event:"*",schema:"public",table:"notifications",filter:"user_id=eq."+currentUser.id},()=>{loadNotifications();})
+ .on("postgres_changes",{event:"*",schema:"public",table:"messages"},()=>{loadInbox();if(chatReceiver)loadChatMessages();})
+ .subscribe();
+ await Promise.allSettled([loadInbox(),loadNotifications()]);
+}
+
+function makeReferralLink(){
+ if(!currentUser)return "";
+ const base=location.origin+location.pathname;
+ return base+"?ref="+encodeURIComponent(currentUser.id);
 }
 function renderEarn(){
- if(!currentUser){say("referralCode","Login to create your invite link");return;}
- const code=currentUser.id.slice(0,8);
- say("referralCode","INCO invite code: "+code);
- say("earningsTotal","No verified earnings yet");
+ const code=get("referralCode");
+ if(!code)return;
+ if(!currentUser){code.textContent="Login to create your invite link";say("earningsTotal","Not connected");return;}
+ code.textContent="Your INCO invite code: "+currentUser.id.slice(0,8).toUpperCase();
+ say("earningsTotal","Not connected");
 }
 async function copyReferralLink(){
- if(!currentUser)return alert("Please login first.");
- const link=location.origin+location.pathname+"?invite="+currentUser.id.slice(0,8);
- try{await navigator.clipboard.writeText(link);say("referralStatus","Invite link copied. Rewards are not active yet.");}
- catch{say("referralStatus",link);}
+ if(!currentUser){say("referralStatus","Please log in first.");return;}
+ const link=makeReferralLink();
+ try{
+  if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(link);
+  else{const t=document.createElement("textarea");t.value=link;document.body.append(t);t.select();document.execCommand("copy");t.remove();}
+  say("referralStatus","Invite link copied. Referral tracking and rewards are not active until verified on the server.");
+ }catch(e){say("referralStatus","Could not copy automatically. Your link: "+link);}
 }
-function setupSocialRealtime(){
- if(!currentUser)return;
- if(socialChannel)db.removeChannel(socialChannel);
- socialChannel=db.channel("inco-social-"+currentUser.id)
- .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"user_id=eq."+currentUser.id},()=>loadNotifications())
- .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"receiver_id=eq."+currentUser.id},()=>{loadInbox();})
- .subscribe();
+function clearLocalINCOData(){
+ if(!confirm("Clear INCO shortcuts and saved posts from this device?"))return;
+ localStorage.removeItem("inco_shortcuts");localStorage.removeItem("inco_bookmarks");
+ renderShortcuts();renderSaved();say("privacyStatus","Device shortcuts and saved-post list cleared. Account data was not deleted.");
 }
-
-db.auth.getSession().then(async({data,error})=>{
- if(error)console.warn(error.message);
- currentUser=data?.session?.user||null;
- if(currentUser)await afterLogin();
- else updateAccountStatus();
-});
-db.auth.onAuthStateChange((event,session)=>{
- currentUser=session?.user||null;
- if(currentUser){
-  setTimeout(()=>afterLogin(),0);
- }else{
-  myProfile=null;updateAccountStatus();
- }
-});
-loadINCODaily();
-renderShortcuts();
-renderHistory("searchHistory");
-renderSaved();
-
+function captureReferralVisit(){
+ try{const ref=new URLSearchParams(location.search).get("ref");if(ref&&!localStorage.getItem("inco_referral_source"))localStorage.setItem("inco_referral_source",ref);}catch(e){}
+}
+async function startApp(){
+ try{const {data,error}=await db.auth.getSession();if(error)say("authStatus",error.message);currentUser=data?.session?.user||null;
+ renderShortcuts();renderHistory("searchHistory");
+ db.auth.onAuthStateChange((event,session)=>{currentUser=session?.user||null;if(currentUser)setTimeout(()=>refreshApp(),0);else{get("accountStatus").textContent="Not signed in";if(socialChannel){db.removeChannel(socialChannel);socialChannel=null;}}});
+ if(currentUser)await refreshApp();else get("accountStatus").textContent="Not signed in";
+ }catch(e){console.error("INCO startup:",e);say("authStatus","Startup error: "+e.message);}
+}
+captureReferralVisit();
+startApp();
 </script>
 </body>
 </html>
