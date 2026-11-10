@@ -52,7 +52,41 @@ footer{text-align:center;color:#7e91ad;padding:25px}.chat-message{padding:11px;m
 <section id="account"><div class="card"><h2>INCO Account</h2><input id="email" type="email" autocomplete="email" placeholder="Email address"><input id="password" type="password" autocomplete="current-password" placeholder="Password"><button onclick="signUp()">Create Account</button><button onclick="signIn()">Login</button><button onclick="resetPassword()">Forgot Password</button><button onclick="signOut()">Logout</button><p id="authStatus" class="muted"></p></div></section>
 <section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Live session listings from your existing Supabase database.</p><p class="muted">Camera broadcasting, viewer chat and host controls are not active yet. They need a secure LiveKit token service.</p><div id="liveSessions">Loading live sessions...</div></div></section>
 <section id="shop"><div class="card"><h2>🛍️ INCO Shopping</h2><p>Discover products through INCO partner links. Purchases happen on the partner website.</p><a href="https://jforce.jumia.com.ng/s/Sy0dHa3" target="_blank" rel="noopener noreferrer">Explore Jumia offers</a><p class="muted">INCO may receive a commission from qualifying purchases. Availability and terms are controlled by Jumia.</p></div></section>
-<section id="earn"><div class="card"><h2>💼 INCO Earn</h2><p>INCO is building ways for members and creators to benefit from genuine activity.</p><p id="referralCode" class="badge">Login to create your invite link</p><button onclick="copyReferralLink()">Copy invite link</button><p id="referralStatus" class="muted">Cash rewards are not active or promised yet.</p><h3>Your earnings</h3><h2 id="earningsTotal">Not connected</h2><p class="muted">A real balance will appear only after a secure earnings ledger is connected.</p></div><div class="card"><h3>Future creator support</h3><p>Possible future features include approved creator rewards, clearly labelled promotions and marketplace listings. These are plans, not active paid opportunities.</p></div></section>
+<section id="earn">
+  <div class="card">
+    <h2>💼 INCO Earn</h2>
+    <p>Invite people and track your verified referrals.</p>
+
+    <p id="referralCode" class="badge">
+      Login to create your invite link
+    </p>
+
+    <button onclick="copyReferralLink()">Copy invite link</button>
+    <p id="referralStatus" class="muted"></p>
+
+    <h3>📊 Referral Statistics</h3>
+    <p>Total referrals: <b id="totalReferrals">0</b></p>
+    <p>Pending: <b id="pendingReferrals">0</b></p>
+    <p>Approved: <b id="approvedReferrals">0</b></p>
+
+    <hr>
+
+    <h3>💰 Your Earnings</h3>
+    <h2 id="earningsTotal">₦0.00</h2>
+    <p id="earningStatus" class="muted">
+      Loading earnings...
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>🌍 Grow INCO</h3>
+    <p>Invite genuine members and follow your referral progress.</p>
+    <p class="muted">
+      Proposed reward: ₦100 per eligible referral.
+      Rewards are not payable until funding and approval are established.
+    </p>
+  </div>
+</section>
 <section id="privacy"><div class="card"><h2>🔒 Privacy & device data</h2><p>INCO stores shortcuts, saved post IDs and search history in this browser. Supabase stores account and community data.</p><button onclick="clearHistory()">Clear browsing history</button><button onclick="clearLocalINCOData()">Clear device shortcuts and saved posts</button><p id="privacyStatus" class="muted">Clearing device data does not delete your Supabase account, messages or posts.</p><p class="muted">Never share your password or put private API keys in this HTML file.</p></div></section>
 <section id="premium"><div class="card"><h2>⭐ INCO Premium</h2><p>Free and Premium account area.</p><p class="muted">Payments are not active. Secure payment processing must be connected before accepting money.</p></div></section>
 </main><footer>INCO Browser · Connecting people worldwide 🌍</footer>
@@ -160,7 +194,64 @@ async function viewPublicProfile(id){if(!currentUser)return alert("Please login 
 async function toggleFollow(id){if(!currentUser)return alert("Please login first.");const f=await db.from("follows").select("id").eq("follower_id",currentUser.id).eq("following_id",id).maybeSingle();if(f.error)return alert(f.error.message);const r=f.data?await db.from("follows").delete().eq("id",f.data.id):await db.from("follows").insert({follower_id:currentUser.id,following_id:id});if(r.error)return alert(r.error.message);await viewPublicProfile(id);}
 async function setupSocialRealtime(){if(!currentUser)return;if(socialChannel)await db.removeChannel(socialChannel);socialChannel=db.channel("inco-social-"+currentUser.id).on("postgres_changes",{event:"*",schema:"public",table:"notifications",filter:"user_id=eq."+currentUser.id},()=>loadNotifications()).on("postgres_changes",{event:"*",schema:"public",table:"messages"},()=>{loadInbox();if(chatReceiver)loadChatMessages();}).subscribe();await Promise.allSettled([loadInbox(),loadNotifications()]);}
 function makeReferralLink(){return currentUser?location.origin+location.pathname+"?ref="+encodeURIComponent(currentUser.id):"";}
-function renderEarn(){const c=get("referralCode");if(!c)return;if(!currentUser){c.textContent="Login to create your invite link";say("earningsTotal","Not connected");return;}c.textContent="Your INCO invite code: "+currentUser.id.slice(0,8).toUpperCase();say("earningsTotal","Not connected");}
+async function renderEarn(){
+  const c=get("referralCode");
+  if(!c)return;
+
+  if(!currentUser){
+    c.textContent="Login to create your invite link";
+    say("earningsTotal","₦0.00");
+    say("earningStatus","Please log in to view your earnings.");
+    return;
+  }
+
+  c.textContent="Your INCO invite code: "+
+    currentUser.id.slice(0,8).toUpperCase();
+
+  say("earningStatus","Loading your records...");
+
+  const [referrals,ledger]=await Promise.all([
+    db.from("referrals")
+      .select("id,status")
+      .eq("referrer_id",currentUser.id),
+
+    db.from("earning_ledger")
+      .select("amount_kobo")
+      .eq("user_id",currentUser.id)
+  ]);
+
+  if(referrals.error){
+    say("earningStatus","Referral error: "+referrals.error.message);
+    return;
+  }
+
+  if(ledger.error){
+    say("earningStatus","Ledger error: "+ledger.error.message);
+    return;
+  }
+
+  const rows=referrals.data||[];
+  const total=rows.length;
+  const pending=rows.filter(x=>x.status==="pending").length;
+  const approved=rows.filter(x=>x.status==="approved").length;
+
+  const balance=(ledger.data||[])
+    .reduce((sum,x)=>sum+Number(x.amount_kobo||0),0)/100;
+
+  say("totalReferrals",String(total));
+  say("pendingReferrals",String(pending));
+  say("approvedReferrals",String(approved));
+
+  say("earningsTotal",balance.toLocaleString("en-NG",{
+    style:"currency",
+    currency:"NGN"
+  }));
+
+  say(
+    "earningStatus",
+    "Ledger connected. Payouts remain disabled until rewards are funded."
+  );
+}
 async function copyReferralLink(){if(!currentUser)return say("referralStatus","Please log in first.");const link=makeReferralLink();try{if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(link);else{const t=document.createElement("textarea");t.value=link;document.body.append(t);t.select();document.execCommand("copy");t.remove();}say("referralStatus","Invite link copied. Referral rewards are not active yet.");}catch(e){say("referralStatus","Copy failed. Your link: "+link);}}
 function clearLocalINCOData(){if(!confirm("Clear INCO shortcuts and saved posts from this device?"))return;localStorage.removeItem("inco_shortcuts");localStorage.removeItem("inco_bookmarks");renderShortcuts();renderSaved();say("privacyStatus","Device shortcuts and saved-post list cleared. Account data was not deleted.");}
 async function startApp(){try{const {data,error}=await db.auth.getSession();if(error)say("authStatus",error.message);currentUser=data?.session?.user||null;renderShortcuts();renderHistory("searchHistory");loadINCODaily();db.auth.onAuthStateChange((event,session)=>{currentUser=session?.user||null;if(currentUser)setTimeout(()=>refreshApp(),0);else{say("accountStatus","Not signed in");if(socialChannel){db.removeChannel(socialChannel);socialChannel=null;}}});if(currentUser)await refreshApp();else say("accountStatus","Not signed in");}catch(e){console.error("INCO startup:",e);say("authStatus","Startup error: "+e.message);}}
