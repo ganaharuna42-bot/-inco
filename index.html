@@ -73,7 +73,45 @@ function addHistory(value){const h=localGet("inco_history");h.unshift({value,tim
 function searchWeb(id){const f=get(id),v=f?.value.trim();if(!v)return;let url;if(/^https?:\/\//i.test(v))url=safeURL(v);else if(/^[\w-]+(\.[\w-]+)+([/:?#].*)?$/i.test(v)&&!v.includes(" "))url="https://"+v;else url=(get("engine")?.value||"https://www.google.com/search?q=")+encodeURIComponent(v);if(url==="#")return alert("Invalid website address.");addHistory(v);window.open(url,"_blank","noopener,noreferrer");renderHistory("searchHistory");}
 function addShortcut(){const name=get("shortcutName").value.trim();let url=get("shortcutUrl").value.trim();if(!name||!url)return alert("Enter a name and website address.");if(!/^https?:\/\//i.test(url))url="https://"+url;url=safeURL(url);if(url==="#")return alert("Enter a valid website address.");const a=localGet("inco_shortcuts");a.push({name,url});localSet("inco_shortcuts",a);get("shortcutName").value="";get("shortcutUrl").value="";renderShortcuts();}
 function renderShortcuts(){const b=get("shortcuts");if(!b)return;const a=localGet("inco_shortcuts");b.innerHTML="";if(!a.length){b.textContent="No websites added yet.";return;}a.forEach((x,i)=>{const d=document.createElement("div");d.className="item";const l=document.createElement("a");l.href=safeURL(x.url);l.target="_blank";l.rel="noopener";l.textContent=x.name;l.onclick=()=>addHistory(x.url);const r=document.createElement("button");r.textContent="Remove";r.onclick=()=>{a.splice(i,1);localSet("inco_shortcuts",a);renderShortcuts();};d.append(l,r);b.append(d);});}
-async function signUp(){const email=get("email").value.trim(),password=get("password").value;if(!email||password.length<6)return say("authStatus","Enter a valid email and password of at least 6 characters.");say("authStatus","Creating account...");try{const {data,error}=await db.auth.signUp({email,password});if(error)return say("authStatus",error.message);if(data.user&&data.session){currentUser=data.user;await ensureProfile();say("authStatus","Account created.");await refreshApp();}else say("authStatus","Account created. Check your email to confirm, then log in.");}catch(e){say("authStatus",e.message);}}
+async function signUp(){
+  const email = get("email").value.trim();
+  const password = get("password").value;
+
+  if(!email || password.length < 6){
+    return say("authStatus","Enter a valid email and password of at least 6 characters.");
+  }
+
+  say("authStatus","Creating account...");
+
+  try{
+    const referrerId = localStorage.getItem("inco_referral_source");
+
+    const {data,error} = await db.auth.signUp({
+      email,
+      password,
+      options:{
+        data: referrerId
+          ? {inco_referrer_id: referrerId}
+          : {}
+      }
+    });
+
+    if(error) return say("authStatus",error.message);
+
+    if(data.user && data.session){
+      currentUser = data.user;
+      await ensureProfile();
+      localStorage.removeItem("inco_referral_source");
+      say("authStatus","Account created.");
+      await refreshApp();
+    }else{
+      if(data.user) localStorage.removeItem("inco_referral_source");
+      say("authStatus","Account created. Check your email to confirm, then log in.");
+    }
+  }catch(e){
+    say("authStatus",e.message);
+  }
+}
 async function signIn(){const email=get("email").value.trim(),password=get("password").value;if(!email||!password)return say("authStatus","Enter email and password.");say("authStatus","Signing in...");try{const {data,error}=await db.auth.signInWithPassword({email,password});if(error)return say("authStatus",error.message);currentUser=data.user;await ensureProfile();say("authStatus","Login successful.");await refreshApp();}catch(e){say("authStatus",e.message);}}
 async function resetPassword(){const email=get("email").value.trim();if(!email)return say("authStatus","Enter your email first.");const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});say("authStatus",error?error.message:"Password reset email requested. Check your inbox.");}
 async function signOut(){if(chatChannel){await db.removeChannel(chatChannel);chatChannel=null;}if(socialChannel){await db.removeChannel(socialChannel);socialChannel=null;}const {error}=await db.auth.signOut();if(error)return say("authStatus",error.message);currentUser=null;myProfile=null;chatReceiver=null;say("accountStatus","Not signed in");say("authStatus","You have logged out.");["feed","homeFeed","trendingFeed","myPosts","inboxList","notificationList"].forEach(id=>say(id,"Please login to view this area."));say("chatMessages","Please login to use messages.");say("inboxCount","0");say("notificationCount","0");}
