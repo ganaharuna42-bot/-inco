@@ -213,6 +213,12 @@ async function renderEarn(){
 
   c.textContent="Your INCO invite code: "+
     currentUser.id.slice(0,8).toUpperCase();
+const adminBtn=get("adminApproveBtn");
+if(adminBtn){
+  adminBtn.style.display =
+    currentUser.id === "98405198-a0f9-455e-8a02-5f86778e3e6e"
+    ? "block" : "none";
+}
 
   say("earningStatus","Loading your records...");
 
