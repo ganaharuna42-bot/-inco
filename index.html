@@ -764,20 +764,19 @@ async function viewPublicProfile(id){
 
     b.append(h,bio);
 
-    // Load follow statistics and relationship
     const [followers,following,followStatus]=await Promise.all([
       db.from("follows")
-        .select("id")
-        .eq("following_id",id),
+        .select("follow_id")
+        .eq("follow_id",id),
 
       db.from("follows")
-        .select("id")
+        .select("follower_id")
         .eq("follower_id",id),
 
       db.from("follows")
-        .select("id")
+        .select("follow_id")
         .eq("follower_id",currentUser.id)
-        .eq("following_id",id)
+        .eq("follow_id",id)
         .maybeSingle()
     ]);
 
@@ -790,19 +789,16 @@ async function viewPublicProfile(id){
         (followers.error?.message||following.error?.message);
     }else{
       const followerBox=document.createElement("div");
-      followerBox.innerHTML="<b>"+followers.data.length+
-        "</b><br><span class='muted'>Followers</span>";
+      followerBox.textContent=followers.data.length+" Followers";
 
       const followingBox=document.createElement("div");
-      followingBox.innerHTML="<b>"+following.data.length+
-        "</b><br><span class='muted'>Following</span>";
+      followingBox.textContent=following.data.length+" Following";
 
       stats.append(followerBox,followingBox);
     }
 
     b.append(stats);
 
-    // Follow button
     const btn=document.createElement("button");
 
     if(id===currentUser.id){
@@ -811,7 +807,7 @@ async function viewPublicProfile(id){
     }else if(followStatus.error){
       btn.textContent="Follow unavailable";
       btn.disabled=true;
-      console.error("Follow status:",followStatus.error);
+      console.error(followStatus.error);
     }else{
       btn.textContent=followStatus.data?"Unfollow":"Follow";
       btn.onclick=()=>toggleFollow(id);
@@ -819,7 +815,6 @@ async function viewPublicProfile(id){
 
     b.append(btn);
 
-    // Message button
     if(id!==currentUser.id){
       const messageBtn=document.createElement("button");
       messageBtn.textContent="💬 Message";
@@ -831,7 +826,6 @@ async function viewPublicProfile(id){
       b.append(messageBtn);
     }
 
-    // Load public posts
     const r=await db.from("posts")
       .select("id,user_id,content,media_url,status,created_at")
       .eq("user_id",id)
@@ -847,7 +841,7 @@ async function viewPublicProfile(id){
     await renderPostList(pb,r.data||[]);
 
   }catch(err){
-    console.error("Public profile error:",err);
+    console.error(err);
     b.textContent="Profile error: "+err.message;
     pb.textContent="Could not load posts: "+err.message;
   }
@@ -858,9 +852,9 @@ async function toggleFollow(id){
   if(id===currentUser.id)return;
 
   const {data,error}=await db.from("follows")
-    .select("id")
+    .select("follow_id")
     .eq("follower_id",currentUser.id)
-    .eq("following_id",id)
+    .eq("follow_id",id)
     .maybeSingle();
 
   if(error){
@@ -873,12 +867,13 @@ async function toggleFollow(id){
   if(data){
     result=await db.from("follows")
       .delete()
-      .eq("id",data.id);
+      .eq("follower_id",currentUser.id)
+      .eq("follow_id",id);
   }else{
     result=await db.from("follows")
       .insert({
         follower_id:currentUser.id,
-        following_id:id
+        follow_id:id
       });
   }
 
@@ -889,7 +884,6 @@ async function toggleFollow(id){
 
   await viewPublicProfile(id);
 }
-
 
 async function setupSocialRealtime(){if(!currentUser)return;if(socialChannel)await db.removeChannel(socialChannel);socialChannel=db.channel("inco-social-"+currentUser.id).on("postgres_changes",{event:"*",schema:"public",table:"notifications",filter:"user_id=eq."+currentUser.id},()=>loadNotifications()).on("postgres_changes",{event:"*",schema:"public",table:"messages"},()=>{loadInbox();if(chatReceiver)loadChatMessages();}).subscribe();await Promise.allSettled([loadInbox(),loadNotifications()]);}
 function makeReferralLink(){return currentUser?location.origin+location.pathname+"?ref="+encodeURIComponent(currentUser.id):"";}
