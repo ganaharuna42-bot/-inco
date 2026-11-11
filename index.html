@@ -214,7 +214,9 @@ body.comments-open{
 <body>
 <header><div class="logo">🛡️ INCO</div><div id="accountStatus" class="muted">Checking account...</div></header>
 <nav>
-<button onclick="showPage('home')">Home</button><button onclick="showPage('community')">Community</button><button onclick="showPage('trending')">🔥 Trending</button><button onclick="showPage('daily')">🌞 Daily</button><button onclick="showPage('chat')">Messages</button><button onclick="showPage('inbox')">📥 Inbox <span id="inboxCount">0</span></button><button onclick="showPage('notifications')">🔔 Alerts <span id="notificationCount">0</span></button><button onclick="showPage('people')">People</button><button onclick="showPage('news')">News</button><button onclick="showPage('search')">Search</button><button onclick="showPage('saved')">Saved</button><button onclick="showPage('profile')">Profile</button><button onclick="showPage('account')">Account</button><button onclick="showPage('live')">LIVE</button><button onclick="showPage('shop')">Shop</button><button onclick="showPage('earn')">Earn</button><button onclick="showPage('privacy')">Privacy</button><button onclick="showPage('premium')">Premium</button>
+<button onclick="showPage('home')">Home</button><button onclick="showPage('community')">Community</button><button onclick="showPage('trending')">🔥 Trending</button><button onclick="showPage('daily')">🌞 Daily</button><button onclick="showPage('chat')">Messages</button><button onclick="showPage('inbox')">📥 Inbox <span id="inboxCount">0</span></button><button onclick="showPage('notifications')">🔔 Alerts <span id="notificationCount">0</span></button><button onclick="showPage('people')">People</button><button onclick="showPage('news')">News</button><button onclick="showPage('search')">Search</button><button onclick="showPage('saved')">Saved</button><button onclick="showPage('profile')">Profile</button><button onclick="showPage('account')">Account</button><<button onclick="showPage('live')">LIVE</button>
+<button onclick="showPage('gifts')">🎁 Gifts</button>
+<button onclick="showPage('shop')">Shop</button> onclick="showPage('earn')">Earn</button><button onclick="showPage('privacy')">Privacy</button><button onclick="showPage('premium')">Premium</button>
 </nav>
 <main>
 <section id="home" class="active">
@@ -247,6 +249,46 @@ body.comments-open{
 <input id="profileUsername" placeholder="Your unique username"><textarea id="profileBio" placeholder="Your bio"></textarea><button onclick="saveProfile()">Save Profile</button><p id="profileStatus" class="muted"></p></div><div class="card"><h3>My Posts</h3><div id="myPosts"></div></div></section>
 <section id="account"><div class="card"><h2>INCO Account</h2><input id="email" type="email" autocomplete="email" placeholder="Email address"><input id="password" type="password" autocomplete="current-password" placeholder="Password"><button onclick="signUp()">Create Account</button><button onclick="signIn()">Login</button><button onclick="resetPassword()">Forgot Password</button><button onclick="signOut()">Logout</button><p id="authStatus" class="muted"></p></div></section>
 <section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Live session listings from your existing Supabase database.</p><p class="muted">Camera broadcasting, viewer chat and host controls are not active yet. They need a secure LiveKit token service.</p><div id="liveSessions">Loading live sessions...</div></div></section>
+<section id="gifts">
+  <div class="card">
+    <h2>🎁 INCO Gifts</h2>
+    <p class="muted">Send virtual gifts to other INCO members and celebrate them publicly.</p>
+
+    <h3>🪙 My Demo Wallet</h3>
+    <h2 id="giftWalletBalance">Loading wallet...</h2>
+    <p class="muted">Demo coins have no cash value and cannot be withdrawn.</p>
+  </div>
+
+  <div class="card">
+    <h3>Choose who receives your gift</h3>
+    <input id="giftUsername" placeholder="Enter receiver's exact username">
+    <button onclick="findGiftReceiver()">Find Receiver</button>
+    <p id="giftReceiverStatus" class="muted">No receiver selected.</p>
+    <p id="giftSelectedReceiver" class="badge">No recipient selected</p>
+  </div>
+
+  <div class="card">
+    <h3>🎀 Gift Catalogue</h3>
+    <p class="muted">Choose a gift, then send it to your selected recipient.</p>
+    <div id="giftCatalogue">Loading gifts...</div>
+    <p id="giftSendStatus" class="muted"></p>
+  </div>
+
+  <div class="card">
+    <h3>🌍 Public Gift Activity</h3>
+    <div id="giftActivity">Loading gift activity...</div>
+  </div>
+
+  <div class="card">
+    <h3>🏆 Top Gift Senders</h3>
+    <div id="topGiftSenders">Loading...</div>
+  </div>
+
+  <div class="card">
+    <h3>🌟 Top Gift Receivers</h3>
+    <div id="topGiftReceivers">Loading...</div>
+  </div>
+</section>
 <section id="shop"><div class="card"><h2>🛍️ INCO Shopping</h2><p>Discover products through INCO partner links. Purchases happen on the partner website.</p><a href="https://jforce.jumia.com.ng/s/Sy0dHa3" target="_blank" rel="noopener noreferrer">Explore Jumia offers</a><p class="muted">INCO may receive a commission from qualifying purchases. Availability and terms are controlled by Jumia.</p></div></section>
 <section id="earn">
   <div class="card">
@@ -316,8 +358,8 @@ body.comments-open{
   </div>
 </div>
 
-</main><footer>
-</main><footer>INCO Browser · Connecting people worldwide 🌍</footer>
+</main>
+<footer>INCO Browser · Connecting people worldwide 🌍</footer>
 <script>
 "use strict";
 const SUPABASE_URL="https://zvrbkmvoyofnasqssnhu.supabase.co";
@@ -330,7 +372,7 @@ function safeURL(s){try{const u=new URL(s,location.href);return ["http:","https:
 function localGet(k,f=[]){try{const x=JSON.parse(localStorage.getItem(k));return Array.isArray(x)?x:f;}catch{return f;}}
 function localSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){console.warn(e);}}
 function showPage(page){const s=get(page);if(!s)return;document.querySelectorAll("main section").forEach(x=>x.classList.remove("active"));s.classList.add("active");
-if(page==="home"){renderShortcuts();loadHomeFeed();loadINCODaily();}if(page==="community")loadFeed();if(page==="trending")loadTrending();if(page==="daily")loadINCODaily();if(page==="news")loadNews();if(page==="profile")loadProfile();if(page==="saved")renderSaved();if(page==="search")renderHistory("searchHistory");if(page==="live")loadLive();if(page==="inbox")loadInbox();if(page==="notifications")loadNotifications();if(page==="earn")renderEarn();if(page==="people"&&!currentUser)say("peopleResults","Please login to discover people.");if(page==="chat"&&!currentUser)say("chatStatus","Please login first.");}
+if(page==="home"){renderShortcuts();loadHomeFeed();loadINCODaily();}if(page==="community")loadFeed();if(page==="trending")loadTrending();if(page==="daily")loadINCODaily();if(page==="news")loadNews();if(page==="profile")loadProfile();if(page==="saved")renderSaved();if(page==="search")renderHistory("searchHistory");if(page==="live")loadLive();if(page==="gifts")loadGifts();if(page==="inbox")loadInbox();if(page==="notifications")loadNotifications();if(page==="earn")renderEarn();if(page==="people"&&!currentUser)say("peopleResults","Please login to discover people.");if(page==="chat"&&!currentUser)say("chatStatus","Please login first.");}
 function addHistory(value){const h=localGet("inco_history");h.unshift({value,time:new Date().toLocaleString()});localSet("inco_history",h.slice(0,100));}
 function searchWeb(id){const f=get(id),v=f?.value.trim();if(!v)return;let url;if(/^https?:\/\//i.test(v))url=safeURL(v);else if(/^[\w-]+(\.[\w-]+)+([/:?#].*)?$/i.test(v)&&!v.includes(" "))url="https://"+v;else url=(get("engine")?.value||"https://www.google.com/search?q=")+encodeURIComponent(v);if(url==="#")return alert("Invalid website address.");addHistory(v);window.open(url,"_blank","noopener,noreferrer");renderHistory("searchHistory");}
 function addShortcut(){const name=get("shortcutName").value.trim();let url=get("shortcutUrl").value.trim();if(!name||!url)return alert("Enter a name and website address.");if(!/^https?:\/\//i.test(url))url="https://"+url;url=safeURL(url);if(url==="#")return alert("Enter a valid website address.");const a=localGet("inco_shortcuts");a.push({name,url});localSet("inco_shortcuts",a);get("shortcutName").value="";get("shortcutUrl").value="";renderShortcuts();}
@@ -378,7 +420,7 @@ async function signIn(){const email=get("email").value.trim(),password=get("pass
 async function resetPassword(){const email=get("email").value.trim();if(!email)return say("authStatus","Enter your email first.");const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});say("authStatus",error?error.message:"Password reset email requested. Check your inbox.");}
 async function signOut(){if(chatChannel){await db.removeChannel(chatChannel);chatChannel=null;}if(socialChannel){await db.removeChannel(socialChannel);socialChannel=null;}const {error}=await db.auth.signOut();if(error)return say("authStatus",error.message);currentUser=null;myProfile=null;chatReceiver=null;say("accountStatus","Not signed in");say("authStatus","You have logged out.");["feed","homeFeed","trendingFeed","myPosts","inboxList","notificationList"].forEach(id=>say(id,"Please login to view this area."));say("chatMessages","Please login to use messages.");say("inboxCount","0");say("notificationCount","0");}
 async function ensureProfile(){if(!currentUser)return;const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();if(error){say("authStatus","Profile check: "+error.message);return;}if(data){myProfile=data;return;}const base=(currentUser.email||"inco_user").split("@")[0].toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,18)||"inco_user";const username=base+"_"+currentUser.id.slice(0,6);const r=await db.from("profiles").insert({id:currentUser.id,username,bio:"Welcome to INCO!"}).select().single();if(r.error)say("authStatus","Signed in, but profile setup failed: "+r.error.message);else myProfile=r.data;}
-async function refreshApp(){if(!currentUser)return;await ensureProfile();say("accountStatus",currentUser.email||"Signed in");await Promise.allSettled([loadProfile(),loadFeed(),loadHomeFeed(),loadNews(),loadLive(),loadInbox(),loadNotifications(),loadINCODaily()]);await setupSocialRealtime();renderEarn();}
+async function refreshApp(){if(!currentUser)return;await ensureProfile();say("accountStatus",currentUser.email||"Signed in");await Promise.allSettled(loadGiftWallet(),loadGiftActivity()[loadProfile(),loadFeed(),loadHomeFeed(),loadNews(),loadLive(),loadInbox(),loadNotifications(),loadINCODaily()]);await setupSocialRealtime();renderEarn();}
 async function createPost(){if(!currentUser)return alert("Please log in first.");const content=get("postText").value.trim(),file=get("postMedia").files[0];if(!content&&!file)return alert("Write something or select media.");say("postStatus","Publishing...");let media_url=null;try{if(file){if(file.size>30*1024*1024)return say("postStatus","Media must be 30 MB or smaller.");const ext=(file.name.split(".").pop()||"bin").replace(/[^a-zA-Z0-9]/g,"");const path=currentUser.id+"/"+Date.now()+"."+ext;const up=await db.storage.from("inco-posts").upload(path,file,{upsert:false,contentType:file.type});if(up.error)return say("postStatus","Upload failed: "+up.error.message);media_url=db.storage.from("inco-posts").getPublicUrl(path).data.publicUrl;}const {error}=await db.from("posts").insert({user_id:currentUser.id,content,media_url,status:"published"});if(error)return say("postStatus","Post failed: "+error.message);get("postText").value="";get("postMedia").value="";say("postStatus","Post published.");await Promise.all([loadFeed(),loadHomeFeed(),loadProfile(),loadTrending()]);}catch(e){say("postStatus","Error: "+e.message);}}
 async function loadFeed(){const b=get("feed");if(!b)return;if(!currentUser){b.textContent="Login to load community posts.";return;}b.textContent="Loading posts...";const {data,error}=await db.from("posts").select("id,user_id,content,media_url,status,created_at").eq("status","published").order("created_at",{ascending:false}).limit(50);if(error){b.textContent="Could not load posts: "+error.message;return;}await renderPostList(b,data||[]);}
 async function loadHomeFeed(){const b=get("homeFeed");if(!b)return;if(!currentUser){b.textContent="Login to see community posts.";return;}const {data,error}=await db.from("posts").select("id,user_id,content,media_url,status,created_at").eq("status","published").order("created_at",{ascending:false}).limit(5);if(error){b.textContent=error.message;return;}await renderPostList(b,data||[]);}
@@ -889,6 +931,10 @@ async function viewPublicProfile(id){
       };
       b.append(messageBtn);
     }
+const giftBtn = document.createElement("button");
+giftBtn.textContent = "🎁 Send Gift";
+giftBtn.onclick = () => prepareGift(p.id,p.username);
+b.append(giftBtn);
 
     const r=await db.from("posts")
       .select("id,user_id,content,media_url,status,created_at")
@@ -949,6 +995,367 @@ async function toggleFollow(id){
 }
 
 async function setupSocialRealtime(){if(!currentUser)return;if(socialChannel)await db.removeChannel(socialChannel);socialChannel=db.channel("inco-social-"+currentUser.id).on("postgres_changes",{event:"*",schema:"public",table:"notifications",filter:"user_id=eq."+currentUser.id},()=>loadNotifications()).on("postgres_changes",{event:"*",schema:"public",table:"messages"},()=>{loadInbox();if(chatReceiver)loadChatMessages();}).subscribe();await Promise.allSettled([loadInbox(),loadNotifications()]);}
+// ===== INCO VIRTUAL GIFTS =====
+let giftReceiverId = null;
+let giftReceiverName = "";
+let selectedGiftId = null;
+let giftCatalog = [];
+
+async function loadGiftWallet(){
+  const box = get("giftWalletBalance");
+  if(!box) return;
+
+  if(!currentUser){
+    box.textContent = "Please log in first.";
+    return;
+  }
+
+  box.textContent = "Loading wallet...";
+
+  const {data,error} = await db.rpc("get_inco_wallet");
+
+  if(error){
+    box.textContent = "Wallet unavailable: " + error.message;
+    return;
+  }
+
+  const balance = Number(data?.balance ?? 0);
+  box.textContent = balance.toLocaleString() + " demo coins";
+}
+
+async function loadGiftCatalogue(){
+  const box = get("giftCatalogue");
+  if(!box) return;
+
+  box.textContent = "Loading gifts...";
+
+  const {data,error} = await db
+    .from("inco_gift_catalog")
+    .select("id,name,emoji,coin_cost,active")
+    .eq("active",true)
+    .order("coin_cost",{ascending:true});
+
+  if(error){
+    box.textContent = "Could not load gifts: " + error.message;
+    return;
+  }
+
+  giftCatalog = data || [];
+  box.innerHTML = "";
+
+  if(!giftCatalog.length){
+    box.textContent = "No gifts are available yet.";
+    return;
+  }
+
+  giftCatalog.forEach(gift=>{
+    const card = document.createElement("div");
+    card.className = "item";
+
+    const title = document.createElement("b");
+    title.textContent =
+      gift.emoji + " " + gift.name;
+
+    const cost = document.createElement("p");
+    cost.className = "muted";
+    cost.textContent =
+      Number(gift.coin_cost).toLocaleString() + " demo coins";
+
+    const button = document.createElement("button");
+    button.textContent =
+      selectedGiftId === gift.id ? "Selected ✓" : "Choose Gift";
+
+    button.onclick = ()=>{
+      selectedGiftId = gift.id;
+      loadGiftCatalogue();
+      say("giftSendStatus",
+        "Selected " + gift.name + ". Choose Send Gift when ready.");
+    };
+
+    card.append(title,cost,button);
+    box.append(card);
+  });
+
+  const send = document.createElement("button");
+  send.textContent = "🎁 Send Selected Gift";
+  send.onclick = sendIncoGift;
+  box.append(send);
+}
+
+async function findGiftReceiver(){
+  if(!currentUser){
+    return say("giftReceiverStatus","Please log in first.");
+  }
+
+  const username = get("giftUsername").value.trim();
+
+  if(!username){
+    return say("giftReceiverStatus","Enter a username first.");
+  }
+
+  say("giftReceiverStatus","Finding member...");
+
+  const {data,error} = await db
+    .from("profiles")
+    .select("id,username")
+    .eq("username",username)
+    .maybeSingle();
+
+  if(error){
+    return say("giftReceiverStatus","Search failed: " + error.message);
+  }
+
+  if(!data){
+    return say("giftReceiverStatus","Member not found. Check the username.");
+  }
+
+  if(data.id === currentUser.id){
+    return say("giftReceiverStatus","You cannot send a gift to yourself.");
+  }
+
+  giftReceiverId = data.id;
+  giftReceiverName = data.username;
+
+  say("giftReceiverStatus","Recipient selected successfully.");
+  say("giftSelectedReceiver","Gift recipient: @" + giftReceiverName);
+}
+
+function prepareGift(id,username){
+  if(!currentUser){
+    alert("Please log in first.");
+    return;
+  }
+
+  if(id === currentUser.id){
+    alert("You cannot send a gift to yourself.");
+    return;
+  }
+
+  giftReceiverId = id;
+  giftReceiverName = username || "INCO member";
+
+  get("giftUsername").value = giftReceiverName;
+  say("giftReceiverStatus","Recipient selected.");
+  say("giftSelectedReceiver","Gift recipient: @" + giftReceiverName);
+
+  showPage("gifts");
+}
+
+async function sendIncoGift(){
+  if(!currentUser){
+    return say("giftSendStatus","Please log in first.");
+  }
+
+  if(!giftReceiverId){
+    return say("giftSendStatus","Please select a recipient first.");
+  }
+
+  if(!selectedGiftId){
+    return say("giftSendStatus","Please choose a gift first.");
+  }
+
+  if(!confirm("Send this virtual gift to @" + giftReceiverName + "?")){
+    return;
+  }
+
+  say("giftSendStatus","Sending gift...");
+
+  const {data,error} = await db.rpc("send_inco_gift",{
+    p_receiver_id:giftReceiverId,
+    p_gift_id:String(selectedGiftId)
+  });
+
+  if(error){
+    say("giftSendStatus","Gift failed: " + error.message);
+    return;
+  }
+
+  if(!data?.success){
+    say("giftSendStatus","Gift was not sent. Please try again.");
+    return;
+  }
+
+  say("giftSendStatus",
+    "Gift sent successfully! 🎉 " +
+    Number(data.coins_spent || 0).toLocaleString() +
+    " demo coins used.");
+
+  selectedGiftId = null;
+
+  await Promise.all([
+    loadGiftWallet(),
+    loadGiftCatalogue(),
+    loadGiftActivity()
+  ]);
+}
+
+async function loadGiftActivity(){
+  const activity = get("giftActivity");
+  const senders = get("topGiftSenders");
+  const receivers = get("topGiftReceivers");
+
+  if(!activity) return;
+
+  if(!currentUser){
+    activity.textContent = "Please log in to view gift activity.";
+    if(senders) senders.textContent = "Please log in.";
+    if(receivers) receivers.textContent = "Please log in.";
+    return;
+  }
+
+  activity.textContent = "Loading gift activity...";
+
+  const {data,error} = await db
+    .from("inco_gift_events")
+    .select("id,sender_id,receiver_id,gift_id,coins_spent,created_at")
+    .order("created_at",{ascending:false})
+    .limit(100);
+
+  if(error){
+    activity.textContent = "Gift activity unavailable: " + error.message;
+    if(senders) senders.textContent = error.message;
+    if(receivers) receivers.textContent = error.message;
+    return;
+  }
+
+  const events = data || [];
+
+  if(!events.length){
+    activity.textContent = "No gifts sent yet. Be the first!";
+    if(senders) senders.textContent = "No gift senders yet.";
+    if(receivers) receivers.textContent = "No gift receivers yet.";
+    return;
+  }
+
+  const userIds = [...new Set(events.flatMap(e=>[
+    e.sender_id,e.receiver_id
+  ]))];
+
+  const giftIds = [...new Set(events.map(e=>String(e.gift_id)))];
+
+  const [profileResult,catalogResult] = await Promise.all([
+    db.from("profiles")
+      .select("id,username")
+      .in("id",userIds),
+
+    db.from("inco_gift_catalog")
+      .select("id,name,emoji")
+      .in("id",giftIds)
+  ]);
+
+  if(profileResult.error){
+    activity.textContent = "Could not load gift member names: " +
+      profileResult.error.message;
+    return;
+  }
+
+  if(catalogResult.error){
+    activity.textContent = "Could not load gift names: " +
+      catalogResult.error.message;
+    return;
+  }
+
+  const names = {};
+  (profileResult.data || []).forEach(p=>{
+    names[p.id] = p.username || "INCO member";
+  });
+
+  const gifts = {};
+  (catalogResult.data || []).forEach(g=>{
+    gifts[String(g.id)] = g;
+  });
+
+  activity.innerHTML = "";
+
+  events.forEach(e=>{
+    const gift = gifts[String(e.gift_id)] || {};
+    const row = document.createElement("div");
+    row.className = "item";
+
+    const title = document.createElement("b");
+    title.textContent =
+      "@" + (names[e.sender_id] || "INCO member") +
+      " → @" + (names[e.receiver_id] || "INCO member");
+
+    const detail = document.createElement("p");
+    detail.textContent =
+      (gift.emoji || "🎁") + " " +
+      (gift.name || "Gift") + " · " +
+      Number(e.coins_spent || 0).toLocaleString() +
+      " demo coins";
+
+    const time = document.createElement("small");
+    time.className = "muted";
+    time.textContent = new Date(e.created_at).toLocaleString();
+
+    row.append(title,detail,time);
+    activity.append(row);
+  });
+
+  function leaderboard(field,box){
+    if(!box) return;
+
+    const totals = {};
+
+    events.forEach(e=>{
+      const id = e[field];
+      if(!id) return;
+
+      if(!totals[id]){
+        totals[id] = {coins:0,count:0};
+      }
+
+      totals[id].coins += Number(e.coins_spent || 0);
+      totals[id].count++;
+    });
+
+    const ranked = Object.entries(totals)
+      .sort((a,b)=>b[1].coins-a[1].coins)
+      .slice(0,10);
+
+    box.innerHTML = "";
+
+    if(!ranked.length){
+      box.textContent = "No rankings yet.";
+      return;
+    }
+
+    ranked.forEach(([id,total],index)=>{
+      const row = document.createElement("div");
+      row.className = "item";
+
+      const name = document.createElement("b");
+      name.textContent =
+        (index+1) + ". @" + (names[id] || "INCO member");
+
+      const info = document.createElement("p");
+      info.className = "muted";
+      info.textContent =
+        total.count + " gifts · " +
+        total.coins.toLocaleString() + " demo coins";
+
+      row.append(name,info);
+      box.append(row);
+    });
+  }
+
+  leaderboard("sender_id",senders);
+  leaderboard("receiver_id",receivers);
+}
+
+async function loadGifts(){
+  if(!currentUser){
+    say("giftWalletBalance","Please log in first.");
+    say("giftCatalogue","Please log in first.");
+    return;
+  }
+
+  await Promise.all([
+    loadGiftWallet(),
+    loadGiftCatalogue(),
+    loadGiftActivity()
+  ]);
+}
 function makeReferralLink(){return currentUser?location.origin+location.pathname+"?ref="+encodeURIComponent(currentUser.id):"";}
 async function renderEarn(){
   const c=get("referralCode");
