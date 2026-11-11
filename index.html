@@ -722,6 +722,7 @@ async function loadNotifications(){if(!currentUser)return say("notificationList"
 async function markAllNotificationsRead(){if(!currentUser)return alert("Please login first.");const {error}=await db.from("notifications").update({is_read:true}).eq("user_id",currentUser.id).eq("is_read",false);if(error)return alert(error.message);await loadNotifications();}
 async function searchPeople(){if(!currentUser)return alert("Please login first.");const q=get("peopleSearch").value.trim();if(q.length<2)return alert("Enter at least 2 characters.");const b=get("peopleResults");b.textContent="Searching...";const {data,error}=await db.from("profiles").select("id,username,bio").ilike("username","%"+q+"%").neq("id",currentUser.id).limit(20);if(error){b.textContent=error.message;return;}b.innerHTML="";if(!data?.length){b.textContent="No users found.";return;}data.forEach(p=>{const d=document.createElement("div");d.className="item";const n=document.createElement("b");n.textContent=p.username||"INCO user";const bio=document.createElement("p");bio.textContent=p.bio||"INCO member";const btn=document.createElement("button");btn.textContent="View Profile";btn.onclick=()=>viewPublicProfile(p.id);d.append(n,bio,btn);b.append(d);});}
 
+
 async function viewPublicProfile(id){
   if(!currentUser)return alert("Please login first.");
 
@@ -733,8 +734,7 @@ async function viewPublicProfile(id){
   b.textContent="Loading profile...";
   pb.textContent="Loading posts...";
 
-  const {data:p,error}=await db
-    .from("profiles")
+  const {data:p,error}=await db.from("profiles")
     .select("id,username,avatar_url,bio")
     .eq("id",id)
     .maybeSingle();
@@ -754,6 +754,7 @@ async function viewPublicProfile(id){
   }
 
   const h=document.createElement("h3");
+  h.className="profile-name";
   h.textContent=p.username||"INCO member";
 
   const bio=document.createElement("p");
@@ -761,38 +762,67 @@ async function viewPublicProfile(id){
 
   b.append(h,bio);
 
+  // FOLLOWER AND FOLLOWING COUNTS
+  const [followers,following,followStatus]=await Promise.all([
+    db.from("follows")
+      .select("id")
+      .eq("following_id",id),
+
+    db.from("follows")
+      .select("id")
+      .eq("follower_id",id),
+
+    db.from("follows")
+      .select("id")
+      .eq("follower_id",currentUser.id)
+      .eq("following_id",id)
+      .maybeSingle()
+  ]);
+
+  if(followers.error||following.error){
+    const err=document.createElement("p");
+    err.className="muted";
+    err.textContent="Follow statistics unavailable.";
+    b.append(err);
+  }else{
+    const stats=document.createElement("div");
+    stats.className="row";
+    stats.style.margin="15px 0";
+
+    const followerBox=document.createElement("div");
+    followerBox.innerHTML=
+      "<b>"+followers.data.length+"</b><br><span class='muted'>Followers</span>";
+
+    const followingBox=document.createElement("div");
+    followingBox.innerHTML=
+      "<b>"+following.data.length+"</b><br><span class='muted'>Following</span>";
+
+    stats.append(followerBox,followingBox);
+    b.append(stats);
+  }
+
   // FOLLOW BUTTON
-  const f=await db.from("follows")
-    .select("id")
-    .eq("follower_id",currentUser.id)
-    .eq("following_id",id)
-    .maybeSingle();
-
   const btn=document.createElement("button");
-  btn.textContent=f.error
-    ?"Follow status unavailable"
-    :f.data?"Unfollow":"Follow";
 
-  btn.disabled=!!f.error;
+  btn.textContent=followStatus.error
+    ?"Follow unavailable"
+    :followStatus.data?"Following ✓":"Follow";
+
+  btn.disabled=!!followStatus.error||id===currentUser.id;
   btn.onclick=()=>toggleFollow(id);
+
   b.append(btn);
 
   // PRIVATE MESSAGE BUTTON
   if(id!==currentUser.id){
     const messageBtn=document.createElement("button");
+
     messageBtn.textContent="💬 Message";
-    messageBtn.style.marginLeft="8px";
 
-    messageBtn.onclick=()=>{
-      const usernameInput=get("chatUsername");
-
-      if(!usernameInput){
-        alert("Messages page is unavailable.");
-        return;
-      }
-
-      usernameInput.value=p.username||"";
-      openChat();
+    messageBtn.onclick=async()=>{
+      get("chatUsername").value=p.username||"";
+      showPage("chat");
+      await openChat();
     };
 
     b.append(messageBtn);
@@ -813,6 +843,7 @@ async function viewPublicProfile(id){
 
   await renderPostList(pb,r.data||[]);
 }
+
 
 async function toggleFollow(id){if(!currentUser)return alert("Please login first.");const f=await db.from("follows").select("id").eq("follower_id",currentUser.id).eq("following_id",id).maybeSingle();if(f.error)return alert(f.error.message);const r=f.data?await db.from("follows").delete().eq("id",f.data.id):await db.from("follows").insert({follower_id:currentUser.id,following_id:id});if(r.error)return alert(r.error.message);await viewPublicProfile(id);}
 async function setupSocialRealtime(){if(!currentUser)return;if(socialChannel)await db.removeChannel(socialChannel);socialChannel=db.channel("inco-social-"+currentUser.id).on("postgres_changes",{event:"*",schema:"public",table:"notifications",filter:"user_id=eq."+currentUser.id},()=>loadNotifications()).on("postgres_changes",{event:"*",schema:"public",table:"messages"},()=>{loadInbox();if(chatReceiver)loadChatMessages();}).subscribe();await Promise.allSettled([loadInbox(),loadNotifications()]);}
