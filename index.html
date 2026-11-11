@@ -828,21 +828,27 @@ if(f.error) alert("Follow error: "+f.error.message);
   }
 
   // PUBLIC POSTS
-  const r=await db.from("posts")
+ try {
+  const r = await db.from("posts")
     .select("id,user_id,content,media_url,status,created_at")
-    .eq("user_id",id)
-    .eq("status","published")
-    .order("created_at",{ascending:false})
+    .eq("user_id", id)
+    .eq("status", "published")
+    .order("created_at", { ascending: false })
     .limit(40);
 
-  if(r.error){
-    pb.textContent=r.error.message;
+  if (r.error) {
+    pb.textContent = "Posts error: " + r.error.message;
     return;
   }
 
-  await renderPostList(pb,r.data||[]);
-}
+  await renderPostList(pb, r.data || []);
 
+  if (!r.data || r.data.length === 0) {
+    pb.textContent = "No published posts yet.";
+  }
+} catch (err) {
+  pb.textContent = "Could not load posts: " + err.message;
+}
 
 async function toggleFollow(id){if(!currentUser)return alert("Please login first.");const f=await db.from("follows").select("id").eq("follower_id",currentUser.id).eq("following_id",id).maybeSingle();if(f.error)return alert(f.error.message);const r=f.data?await db.from("follows").delete().eq("id",f.data.id):await db.from("follows").insert({follower_id:currentUser.id,following_id:id});if(r.error)return alert(r.error.message);await viewPublicProfile(id);}
 async function setupSocialRealtime(){if(!currentUser)return;if(socialChannel)await db.removeChannel(socialChannel);socialChannel=db.channel("inco-social-"+currentUser.id).on("postgres_changes",{event:"*",schema:"public",table:"notifications",filter:"user_id=eq."+currentUser.id},()=>loadNotifications()).on("postgres_changes",{event:"*",schema:"public",table:"messages"},()=>{loadInbox();if(chatReceiver)loadChatMessages();}).subscribe();await Promise.allSettled([loadInbox(),loadNotifications()]);}
