@@ -724,7 +724,10 @@ async function searchPeople(){if(!currentUser)return alert("Please login first."
 n.textContent=p.username||"INCO user";
 n.style.cursor="pointer";
 n.style.color="#65b5ff";
-n.onclick=()=>viewPublicProfile(p.id);const bio=document.createElement("p");bio.textContent=p.bio||"INCO member";const btn=document.createElement("button");btn.textContent="View Profile";btn.onclick=()=>viewPublicProfile(p.id);d.append(n,bio,btn);b.append(d);});}
+btn.onclick=()=>{
+  alert("Button is working!");
+  viewPublicProfile(p.id);
+};const bio=document.createElement("p");bio.textContent=p.bio||"INCO member";const btn=document.createElement("button");btn.textContent="View Profile";btn.onclick=()=>viewPublicProfile(p.id);d.append(n,bio,btn);b.append(d);});}
 
 
 async function viewPublicProfile(id){
