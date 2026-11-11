@@ -23,6 +23,56 @@ footer{text-align:center;color:#7e91ad;padding:25px}.chat-message{padding:11px;m
 .badge{display:inline-block;background:#263b5c;padding:3px 8px;border-radius:20px;font-size:12px}
 .highlight{border-left:3px solid #56aaff;padding-left:10px}
 @media(max-width:520px){header{padding:11px}.logo{font-size:20px}main{padding:7px}.card{padding:12px}.row{flex-wrap:wrap}}
+/* INCO social comments */
+.comment-area{
+  background:#0b1526;
+  border:1px solid #263b5c;
+  border-radius:12px;
+  padding:12px;
+  margin-top:12px;
+}
+.comment{
+  padding:11px;
+  margin:9px 0;
+  background:#14233a;
+  border-radius:10px;
+}
+.comment-reply{
+  margin-left:22px;
+  border-left:2px solid #56aaff;
+  padding-left:10px;
+}
+.comment-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+}
+.comment-actions button{
+  padding:7px 10px;
+  font-size:12px;
+}
+.comment-input{
+  min-height:55px;
+}
+.media-picker{
+  display:block;
+  background:#14233a;
+  padding:12px;
+  border:1px solid #304563;
+  border-radius:10px;
+  margin:8px 0;
+}
+.media-preview{
+  width:100%;
+  max-height:300px;
+  object-fit:contain;
+  border-radius:10px;
+  margin-top:8px;
+}
+.profile-name{
+  font-size:19px;
+  font-weight:bold;
+}
 </style>
 </head>
 <body>
@@ -39,7 +89,16 @@ footer{text-align:center;color:#7e91ad;padding:25px}.chat-message{padding:11px;m
 <div class="card"><b>INCO partner advertising</b><p class="muted">Sponsored placements will appear here after advertising approval and tag setup.</p></div>
 </section>
 <section id="search"><div class="card"><h2>Search the web</h2><select id="engine"><option value="https://www.google.com/search?q=">Google</option><option value="https://search.yahoo.com/search?p=">Yahoo</option><option value="https://www.bing.com/search?q=">Bing</option><option value="https://duckduckgo.com/?q=">DuckDuckGo</option></select><input id="webSearch" placeholder="Search or enter website address" onkeydown="if(event.key==='Enter')searchWeb('webSearch')"><button onclick="searchWeb('webSearch')">Go</button></div><div class="card"><h3>Recent history</h3><div id="searchHistory"></div></div></section>
-<section id="community"><div class="card"><h2>Community</h2><textarea id="postText" placeholder="What would you like to share?"></textarea><input type="file" id="postMedia" accept="image/*,video/*"><button onclick="createPost()">Publish Post</button><p id="postStatus" class="muted"></p></div><div id="feed"></div></section>
+<section id="community"><div class="card"><h2>Community</h2><textarea id="postText" placeholder="What would you like to share?"></textarea><label class="media-picker">
+  📷 Choose photo or video
+  <input
+    type="file"
+    id="postMedia"
+    accept="image/*,video/mp4,video/webm,video/quicktime"
+    onchange="previewPostMedia()"
+  >
+</label>
+<div id="postMediaPreview"></div>"><button onclick="createPost()">Publish Post</button><p id="postStatus" class="muted"></p></div><div id="feed"></div></section>
 <section id="trending"><div class="card"><h2>🔥 Trending on INCO</h2><p class="muted">Posts are ranked using recent likes and comments. This is a popularity guide, not a guarantee of quality.</p><button onclick="loadTrending()">Refresh Trending</button><div id="trendingFeed">Login to view trending posts.</div></div></section>
 <section id="daily"><div class="card"><h2>🌞 INCO Daily</h2><p class="muted">A fresh community question and small positive activity each day.</p><h3>Today's question</h3><p id="dailyQuestion">Loading...</p><textarea id="dailyAnswer" placeholder="Share your answer with the community"></textarea><button onclick="answerDailyQuestion()">Share answer</button><h3>Today's challenge</h3><p id="dailyChallenge">Loading...</p><button onclick="startDailyChallenge()">Take today's challenge</button><p id="challengeStatus" class="muted">Challenges are optional. Take part at your own pace.</p></div></section>
 <section id="chat"><div class="card"><h2>💬 INCO Messages</h2><p class="muted">Send private text messages to other INCO users.</p><input id="chatUsername" placeholder="Enter receiver's exact username"><button onclick="openChat()">Open Chat</button><p id="chatStatus" class="muted"></p><div id="chatMessages"><p class="muted">Open a conversation to see messages.</p></div><textarea id="chatText" placeholder="Write your message..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"></textarea><button onclick="sendChatMessage()">Send Message</button></div></section>
@@ -48,7 +107,8 @@ footer{text-align:center;color:#7e91ad;padding:25px}.chat-message{padding:11px;m
 <section id="people"><div class="card"><h2>👥 Discover People</h2><input id="peopleSearch" placeholder="Search username" onkeydown="if(event.key==='Enter')searchPeople()"><button onclick="searchPeople()">Search</button><div id="peopleResults"></div></div><div class="card"><h2>🌍 Public Profile</h2><div id="publicProfile">Search for someone to view their profile.</div><div id="publicPosts"></div></div></section>
 <section id="news"><div class="card"><h2>INCO News</h2><div id="newsFeed">Loading news...</div></div><div class="card"><h3>Submit an article</h3><input id="articleTitle" placeholder="Article title"><input id="articleCategory" placeholder="Category"><textarea id="articleContent" placeholder="Write your article"></textarea><input id="articleImage" placeholder="Image URL (optional)"><button onclick="submitArticle()">Submit Article</button><p id="articleStatus" class="muted"></p></div></section>
 <section id="saved"><div class="card"><h2>Saved Posts</h2><div id="bookmarks"></div></div><div class="card"><h2>Browsing history</h2><div id="history"></div><button onclick="clearHistory()">Clear History</button></div></section>
-<section id="profile"><div class="card"><h2>My Profile</h2><img id="avatarPreview" class="avatar" alt="Profile picture"><input type="file" id="avatarFile" accept="image/*"><button onclick="uploadAvatar()">Upload Profile Picture</button><input id="profileUsername" placeholder="Username"><textarea id="profileBio" placeholder="Your bio"></textarea><button onclick="saveProfile()">Save Profile</button><p id="profileStatus" class="muted"></p></div><div class="card"><h3>My Posts</h3><div id="myPosts"></div></div></section>
+<section id="profile"><div class="card"><h2>My Profile</h2><img id="avatarPreview" class="avatar" alt="Profile picture"><input type="file" id="avatarFile" accept="image/*"><button onclick="uploadAvatar()">Upload Profile Picture</button><input id="profileDisplayName" placeholder="Your display name">
+<input id="profileUsername" placeholder="Your unique username"><textarea id="profileBio" placeholder="Your bio"></textarea><button onclick="saveProfile()">Save Profile</button><p id="profileStatus" class="muted"></p></div><div class="card"><h3>My Posts</h3><div id="myPosts"></div></div></section>
 <section id="account"><div class="card"><h2>INCO Account</h2><input id="email" type="email" autocomplete="email" placeholder="Email address"><input id="password" type="password" autocomplete="current-password" placeholder="Password"><button onclick="signUp()">Create Account</button><button onclick="signIn()">Login</button><button onclick="resetPassword()">Forgot Password</button><button onclick="signOut()">Logout</button><p id="authStatus" class="muted"></p></div></section>
 <section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Live session listings from your existing Supabase database.</p><p class="muted">Camera broadcasting, viewer chat and host controls are not active yet. They need a secure LiveKit token service.</p><div id="liveSessions">Loading live sessions...</div></div></section>
 <section id="shop"><div class="card"><h2>🛍️ INCO Shopping</h2><p>Discover products through INCO partner links. Purchases happen on the partner website.</p><a href="https://jforce.jumia.com.ng/s/Sy0dHa3" target="_blank" rel="noopener noreferrer">Explore Jumia offers</a><p class="muted">INCO may receive a commission from qualifying purchases. Availability and terms are controlled by Jumia.</p></div></section>
