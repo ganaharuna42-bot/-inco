@@ -772,18 +772,11 @@ async function viewPublicProfile(id){
     b.append(h,bio);
 
     const [followers,following,followStatus]=await Promise.all([
-      db.from("follows")
-        .select("follow_id")
-        .eq("follow_id",id),
-
-      db.from("follows")
-        .select("follower_id")
-        .eq("follower_id",id),
-
-      db.from("follows")
-        .select("follow_id")
+      db.from("follows").select("follower_id").eq("following_id",id),
+      db.from("follows").select("following_id").eq("follower_id",id),
+      db.from("follows").select("following_id")
         .eq("follower_id",currentUser.id)
-        .eq("follow_id",id)
+        .eq("following_id",id)
         .maybeSingle()
     ]);
 
@@ -859,9 +852,9 @@ async function toggleFollow(id){
   if(id===currentUser.id)return;
 
   const {data,error}=await db.from("follows")
-    .select("follow_id")
+    .select("following_id")
     .eq("follower_id",currentUser.id)
-    .eq("follow_id",id)
+    .eq("following_id",id)
     .maybeSingle();
 
   if(error){
@@ -875,13 +868,12 @@ async function toggleFollow(id){
     result=await db.from("follows")
       .delete()
       .eq("follower_id",currentUser.id)
-      .eq("follow_id",id);
+      .eq("following_id",id);
   }else{
-    result=await db.from("follows")
-      .insert({
-        follower_id:currentUser.id,
-        follow_id:id
-      });
+    result=await db.from("follows").insert({
+      follower_id:currentUser.id,
+      following_id:id
+    });
   }
 
   if(result.error){
