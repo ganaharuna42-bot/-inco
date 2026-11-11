@@ -236,7 +236,8 @@ body.comments-open{
     onchange="previewPostMedia()"
   >
 </label>
-<div id="postMediaPreview"></div>"><button onclick="createPost()">Publish Post</button><p id="postStatus" class="muted"></p></div><div id="feed"></div></section>
+<div id="postMediaPreview"></div>
+<button onclick="createPost()">Publish Post</button>><p id="postStatus" class="muted"></p></div><div id="feed"></div></section>
 <section id="trending"><div class="card"><h2>🔥 Trending on INCO</h2><p class="muted">Posts are ranked using recent likes and comments. This is a popularity guide, not a guarantee of quality.</p><button onclick="loadTrending()">Refresh Trending</button><div id="trendingFeed">Login to view trending posts.</div></div></section>
 <section id="daily"><div class="card"><h2>🌞 INCO Daily</h2><p class="muted">A fresh community question and small positive activity each day.</p><h3>Today's question</h3><p id="dailyQuestion">Loading...</p><textarea id="dailyAnswer" placeholder="Share your answer with the community"></textarea><button onclick="answerDailyQuestion()">Share answer</button><h3>Today's challenge</h3><p id="dailyChallenge">Loading...</p><button onclick="startDailyChallenge()">Take today's challenge</button><p id="challengeStatus" class="muted">Challenges are optional. Take part at your own pace.</p></div></section>
 <section id="chat"><div class="card"><h2>💬 INCO Messages</h2><p class="muted">Send private text messages to other INCO users.</p><input id="chatUsername" placeholder="Enter receiver's exact username"><button onclick="openChat()">Open Chat</button><p id="chatStatus" class="muted"></p><div id="chatMessages"><p class="muted">Open a conversation to see messages.</p></div><textarea id="chatText" placeholder="Write your message..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"></textarea><button onclick="sendChatMessage()">Send Message</button></div></section>
