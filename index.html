@@ -653,7 +653,69 @@ async function submitArticle(){if(!currentUser)return alert("Please log in first
 async function loadLive(){const b=get("liveSessions"),{data,error}=await db.from("live_sessions").select("id,host_id,title,room_name,status,started_at").order("started_at",{ascending:false}).limit(20);if(error){b.textContent="Could not load LIVE sessions: "+error.message;return;}b.innerHTML="";(data||[]).forEach(s=>{const d=document.createElement("div");d.className="item";const t=document.createElement("b");t.textContent=s.title||"INCO LIVE";const st=document.createElement("span");st.className="badge";st.textContent=s.status||"Status unavailable";d.append(t,st);b.append(d);});if(!data?.length)b.textContent="No live sessions at the moment.";}
 async function openChat(){if(!currentUser)return say("chatStatus","Please login first.");const u=get("chatUsername").value.trim();if(!u)return say("chatStatus","Enter the person's username.");say("chatStatus","Finding user...");const {data,error}=await db.from("profiles").select("id,username").eq("username",u).maybeSingle();if(error)return say("chatStatus",error.message);if(!data)return say("chatStatus","User not found. Check the exact username.");if(data.id===currentUser.id)return say("chatStatus","You cannot chat with yourself.");chatReceiver=data.id;if(chatChannel){await db.removeChannel(chatChannel);chatChannel=null;}await loadChatMessages();chatChannel=db.channel("inco-chat-"+currentUser.id).on("postgres_changes",{event:"*",schema:"public",table:"messages"},p=>{const m=p.new;if(m&&((m.sender_id===currentUser.id&&m.receiver_id===chatReceiver)||(m.sender_id===chatReceiver&&m.receiver_id===currentUser.id)))loadChatMessages();}).subscribe(st=>{if(st==="SUBSCRIBED")say("chatStatus","Connected. Messages update in real time.");if(st==="CHANNEL_ERROR")say("chatStatus","Realtime connection failed. Check Supabase Realtime settings.");});}
 async function sendChatMessage(){if(!currentUser)return alert("Please login first.");if(!chatReceiver)return alert("Open a chat first.");const content=get("chatText").value.trim();if(!content)return;const {error}=await db.from("messages").insert({sender_id:currentUser.id,receiver_id:chatReceiver,content});if(error)return alert("Message failed: "+error.message);get("chatText").value="";await loadChatMessages();await loadInbox();}
-async function loadChatMessages(){if(!currentUser||!chatReceiver)return;const b=get("chatMessages");b.textContent="Loading messages...";const {data,error}=await db.from("messages").select("*").or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${chatReceiver}),and(sender_id.eq.${chatReceiver},receiver_id.eq.${currentUser.id})`).order("created_at",{ascending:true}).limit(200);if(error){b.textContent="Could not load messages: "+error.message;return;}b.innerHTML="";(data||[]).forEach(m=>{const mine=m.sender_id===currentUser.id,d=document.createElement("div");d.className="chat-message"+(mine?" mine":"");d.textContent=m.content||"";const sm=document.createElement("small");sm.textContent=new Date(m.created_at).toLocaleString()+(mine?(m.read_at?" · ✓✓ Read":" · ✓ Sent"):" · Received");d.append(sm);b.append(d);if(!mine&&!m.read_at)markMessageRead(m.id);});b.scrollTop=b.scrollHeight;}
+
+async function loadChatMessages(){
+  if(!currentUser||!chatReceiver)return;
+
+  const b=get("chatMessages");
+  if(!b)return;
+
+  // Remember whether the user was already near the bottom
+  const wasNearBottom =
+    b.scrollHeight - b.scrollTop - b.clientHeight < 120;
+
+  const wasEmpty = b.children.length === 0;
+
+  if(wasEmpty){
+    b.textContent="Loading messages...";
+  }
+
+  const {data,error}=await db
+    .from("messages")
+    .select("*")
+    .or(
+      `and(sender_id.eq.${currentUser.id},receiver_id.eq.${chatReceiver}),and(sender_id.eq.${chatReceiver},receiver_id.eq.${currentUser.id})`
+    )
+    .order("created_at",{ascending:true})
+    .limit(200);
+
+  if(error){
+    b.textContent="Could not load messages: "+error.message;
+    return;
+  }
+
+  b.innerHTML="";
+
+  (data||[]).forEach(m=>{
+    const mine=m.sender_id===currentUser.id;
+
+    const d=document.createElement("div");
+    d.className="chat-message"+(mine?" mine":"");
+    d.textContent=m.content||"";
+
+    const sm=document.createElement("small");
+
+    sm.textContent=
+      new Date(m.created_at).toLocaleString()+
+      (mine
+        ?(m.read_at?" · ✓✓ Read":" · ✓ Sent")
+        :" · Received");
+
+    d.append(sm);
+    b.append(d);
+
+    if(!mine&&!m.read_at){
+      markMessageRead(m.id);
+    }
+  });
+
+  // Only scroll down when opening an empty chat
+  // or when the user was already near the bottom.
+  if(wasEmpty||wasNearBottom){
+    b.scrollTop=b.scrollHeight;
+  }
+}
+
 async function markMessageRead(id){const {error}=await db.from("messages").update({read_at:new Date().toISOString()}).eq("id",id).eq("receiver_id",currentUser.id).is("read_at",null);if(error)console.warn(error.message);}
 async function loadInbox(){if(!currentUser)return say("inboxList","Please login first.");const b=get("inboxList");b.textContent="Loading conversations...";const {data,error}=await db.from("messages").select("id,sender_id,receiver_id,content,read_at,created_at").or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`).order("created_at",{ascending:false}).limit(300);if(error){b.textContent=error.message;return;}const conv={};(data||[]).forEach(m=>{const other=m.sender_id===currentUser.id?m.receiver_id:m.sender_id;if(!conv[other])conv[other]={message:m,unread:0};if(m.receiver_id===currentUser.id&&!m.read_at)conv[other].unread++;});const ids=Object.keys(conv);if(!ids.length){b.textContent="No conversations yet.";say("inboxCount","0");return;}const p=await db.from("profiles").select("id,username").in("id",ids);if(p.error){b.textContent=p.error.message;return;}const map={};(p.data||[]).forEach(x=>map[x.id]=x);let total=0;b.innerHTML="";ids.forEach(id=>{const c=conv[id],u=map[id]||{};total+=c.unread;const d=document.createElement("div");d.className="item";const name=document.createElement("b");name.textContent=u.username||"INCO user";const msg=document.createElement("p");msg.textContent=c.message.content;const unread=document.createElement("span");unread.className="muted";unread.textContent=c.unread?c.unread+" unread":"No unread messages";const btn=document.createElement("button");btn.textContent="Open Conversation";btn.onclick=()=>{get("chatUsername").value=u.username||"";showPage("chat");openChat();};d.append(name,msg,unread,btn);b.append(d);});say("inboxCount",String(total));}
 async function loadNotifications(){if(!currentUser)return say("notificationList","Please login first.");const b=get("notificationList");b.textContent="Loading notifications...";const {data,error}=await db.from("notifications").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(100);if(error){b.textContent="Notifications unavailable: "+error.message;say("notificationCount","0");return;}const rows=data||[];say("notificationCount",String(rows.filter(n=>!n.is_read).length));if(!rows.length){b.textContent="No notifications yet.";return;}const ids=[...new Set(rows.map(n=>n.actor_id).filter(Boolean))],actors={};if(ids.length){const r=await db.from("profiles").select("id,username").in("id",ids);(r.data||[]).forEach(p=>actors[p.id]=p.username);}b.innerHTML="";rows.forEach(n=>{const d=document.createElement("div");d.className="item";if(!n.is_read)d.classList.add("highlight");const name=document.createElement("b");name.textContent=actors[n.actor_id]||"An INCO user";const p=document.createElement("p");p.textContent=n.content||"New notification";const t=document.createElement("small");t.className="muted";t.textContent=n.created_at?new Date(n.created_at).toLocaleString():"";d.append(name,p,t);b.append(d);});}
