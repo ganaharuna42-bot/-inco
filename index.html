@@ -73,6 +73,142 @@ footer{text-align:center;color:#7e91ad;padding:25px}.chat-message{padding:11px;m
   font-size:19px;
   font-weight:bold;
 }
+
+/* ===== INCO REAL SOCIAL COMMENTS ===== */
+.comments-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  z-index:9998;
+  align-items:flex-end;
+  justify-content:center;
+}
+.comments-overlay.open{
+  display:flex;
+}
+.comments-sheet{
+  width:100%;
+  max-width:650px;
+  height:78dvh;
+  max-height:780px;
+  background:#101a2c;
+  border:1px solid #263b5c;
+  border-radius:20px 20px 0 0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.comments-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:15px;
+  border-bottom:1px solid #263b5c;
+  flex-shrink:0;
+}
+.comments-header h3{margin:0}
+.comments-close{
+  background:#263b5c;
+  border-radius:50%;
+  width:38px;
+  height:38px;
+  padding:0;
+  font-size:20px;
+}
+.comments-list{
+  flex:1;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:12px;
+}
+.comment-row{
+  display:flex;
+  gap:10px;
+  margin:14px 0;
+  align-items:flex-start;
+}
+.comment-avatar{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#263b5c;
+  flex-shrink:0;
+}
+.comment-content{
+  min-width:0;
+  flex:1;
+}
+.comment-bubble{
+  display:inline-block;
+  background:#1b2c46;
+  border-radius:14px;
+  padding:10px 13px;
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+.comment-author{
+  font-weight:bold;
+  font-size:13px;
+  margin-bottom:5px;
+  color:#edf3ff;
+}
+.comment-text{
+  font-size:14px;
+  line-height:1.5;
+  white-space:pre-wrap;
+}
+.comment-actions{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin:6px 0 0 8px;
+}
+.comment-actions button{
+  background:transparent;
+  color:#9eb0c9;
+  padding:3px;
+  margin:0;
+  font-size:12px;
+}
+.comment-actions button:hover{
+  color:#56aaff;
+}
+.comment-replies{
+  margin-left:18px;
+  padding-left:12px;
+  border-left:2px solid #304563;
+}
+.comments-composer{
+  padding:12px;
+  border-top:1px solid #263b5c;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  background:#101a2c;
+  flex-shrink:0;
+}
+.comments-composer textarea{
+  flex:1;
+  min-height:44px;
+  max-height:100px;
+  resize:none;
+  margin:0;
+}
+.comments-composer button{
+  flex-shrink:0;
+  margin:0;
+}
+.comment-empty{
+  text-align:center;
+  color:#9eb0c9;
+  padding:35px 10px;
+}
+body.comments-open{
+  overflow:hidden;
+}
+
 </style>
 </head>
 <body>
@@ -155,6 +291,32 @@ footer{text-align:center;color:#7e91ad;padding:25px}.chat-message{padding:11px;m
 </section>
 <section id="privacy"><div class="card"><h2>🔒 Privacy & device data</h2><p>INCO stores shortcuts, saved post IDs and search history in this browser. Supabase stores account and community data.</p><button onclick="clearHistory()">Clear browsing history</button><button onclick="clearLocalINCOData()">Clear device shortcuts and saved posts</button><p id="privacyStatus" class="muted">Clearing device data does not delete your Supabase account, messages or posts.</p><p class="muted">Never share your password or put private API keys in this HTML file.</p></div></section>
 <section id="premium"><div class="card"><h2>⭐ INCO Premium</h2><p>Free and Premium account area.</p><p class="muted">Payments are not active. Secure payment processing must be connected before accepting money.</p></div></section>
+<div id="commentsOverlay" class="comments-overlay"
+     onclick="if(event.target===this)closeComments()">
+
+  <div class="comments-sheet">
+
+    <div class="comments-header">
+      <h3>Comments</h3>
+      <button class="comments-close"
+              onclick="closeComments()">×</button>
+    </div>
+
+    <div id="commentsList" class="comments-list">
+      <p class="comment-empty">Loading comments...</p>
+    </div>
+
+    <div class="comments-composer">
+      <textarea id="newComment"
+        placeholder="Write a comment..."
+        rows="1"></textarea>
+      <button onclick="submitComment()">Post</button>
+    </div>
+
+  </div>
+</div>
+
+</main><footer>
 </main><footer>INCO Browser · Connecting people worldwide 🌍</footer>
 <script>
 "use strict";
@@ -223,7 +385,248 @@ async function loadHomeFeed(){const b=get("homeFeed");if(!b)return;if(!currentUs
 async function renderPostList(box,posts){box.innerHTML="";if(!posts.length){box.textContent="No posts yet. Be the first to share.";return;}const ids=[...new Set(posts.map(p=>p.user_id))],postIds=posts.map(p=>p.id);const [pr,likes,comments]=await Promise.all([db.from("profiles").select("id,username,avatar_url").in("id",ids),db.from("likes").select("post_id,user_id").in("post_id",postIds),db.from("comments").select("post_id").in("post_id",postIds)]);const profiles={};(pr.data||[]).forEach(p=>profiles[p.id]=p);const lr=likes.data||[],cr=comments.data||[];for(const p of posts){const author=profiles[p.user_id]||{},liked=!!(currentUser&&lr.some(l=>l.post_id===p.id&&l.user_id===currentUser.id)),lc=lr.filter(l=>l.post_id===p.id).length,cc=cr.filter(c=>c.post_id===p.id).length;const card=document.createElement("div");card.className="card post";const head=document.createElement("div");head.className="row";if(author.avatar_url){const av=document.createElement("img");av.className="avatar";av.src=safeURL(author.avatar_url);av.alt="";head.append(av);}const who=document.createElement("b");who.textContent=author.username||"INCO user";head.append(who);const body=document.createElement("p");body.textContent=p.content||"";card.append(head,body);if(p.media_url){const url=safeURL(p.media_url);if(/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url)){const v=document.createElement("video");v.src=url;v.controls=true;card.append(v);}else{const im=document.createElement("img");im.src=url;im.alt="Post media";card.append(im);}}const date=document.createElement("p");date.className="muted";date.textContent=new Date(p.created_at).toLocaleString();card.append(date);const actions=document.createElement("div"),lb=document.createElement("button"),cb=document.createElement("button"),sb=document.createElement("button");lb.textContent=(liked?"♥":"♡")+" Like ("+lc+")";lb.onclick=()=>toggleLike(p.id);cb.textContent="Comments ("+cc+")";cb.onclick=()=>showComments(p.id);sb.textContent="Save";sb.onclick=()=>savePost(p.id);actions.append(lb,cb,sb);if(currentUser&&p.user_id===currentUser.id){const del=document.createElement("button");del.textContent="Delete";del.onclick=()=>deletePost(p.id);actions.append(del);}card.append(actions);box.append(card);}}
 async function loadTrending(){const b=get("trendingFeed");if(!b)return;if(!currentUser){b.textContent="Please log in to view Trending.";return;}b.textContent="Finding popular posts...";const {data,error}=await db.from("posts").select("id,user_id,content,media_url,status,created_at").eq("status","published").order("created_at",{ascending:false}).limit(60);if(error){b.textContent="Trending unavailable: "+error.message;return;}const posts=data||[];if(!posts.length){b.textContent="No posts to rank yet.";return;}const ids=posts.map(p=>p.id);const [l,c]=await Promise.all([db.from("likes").select("post_id").in("post_id",ids),db.from("comments").select("post_id").in("post_id",ids)]);if(l.error||c.error){await renderPostList(b,posts.slice(0,20));return;}const scores={};posts.forEach(p=>scores[p.id]=0);(l.data||[]).forEach(x=>scores[x.post_id]=(scores[x.post_id]||0)+1);(c.data||[]).forEach(x=>scores[x.post_id]=(scores[x.post_id]||0)+2);posts.sort((a,z)=>(scores[z.id]||0)-(scores[a.id]||0)||new Date(z.created_at)-new Date(a.created_at));await renderPostList(b,posts.slice(0,30));}
 async function toggleLike(id){if(!currentUser)return alert("Please log in first.");const f=await db.from("likes").select("id").eq("post_id",id).eq("user_id",currentUser.id).maybeSingle();if(f.error)return alert(f.error.message);const r=f.data?await db.from("likes").delete().eq("id",f.data.id):await db.from("likes").insert({post_id:id,user_id:currentUser.id});if(r.error)return alert(r.error.message);await Promise.all([loadFeed(),loadHomeFeed(),loadTrending()]);}
-async function showComments(id){const {data,error}=await db.from("comments").select("content").eq("post_id",id).order("created_at",{ascending:true}).limit(100);if(error)return alert(error.message);const old=(data||[]).map(x=>x.content).join("\n")||"No comments yet.";const value=prompt("Comments:\n"+old+"\n\nWrite a new comment (Cancel to close):");if(value===null||!value.trim())return;if(!currentUser)return alert("Please login first.");const r=await db.from("comments").insert({post_id:id,user_id:currentUser.id,content:value.trim()});if(r.error)return alert(r.error.message);await Promise.all([loadFeed(),loadHomeFeed(),loadTrending()]);}
+
+let activeCommentPostId = null;
+let replyToCommentId = null;
+
+function closeComments(){
+  const panel = document.getElementById("commentsOverlay");
+  if(panel) panel.classList.remove("open");
+  document.body.classList.remove("comments-open");
+  activeCommentPostId = null;
+  replyToCommentId = null;
+
+  const input = document.getElementById("newComment");
+  if(input){
+    input.value = "";
+    input.placeholder = "Write a comment...";
+  }
+}
+
+function commentSafe(value){
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  })[char]);
+}
+
+function commentTime(value){
+  if(!value) return "";
+  const date = new Date(value);
+  if(Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString();
+}
+
+async function showComments(postId){
+  if(!currentUser){
+    alert("Please login first.");
+    return;
+  }
+
+  activeCommentPostId = postId;
+  replyToCommentId = null;
+
+  const panel = document.getElementById("commentsOverlay");
+  if(!panel) return alert("Comments panel not found. Check Part 1.");
+
+  const input = document.getElementById("newComment");
+  if(input){
+    input.value = "";
+    input.placeholder = "Write a comment...";
+  }
+
+  panel.classList.add("open");
+  document.body.classList.add("comments-open");
+
+  await loadComments();
+}
+
+async function loadComments(){
+  const list = document.getElementById("commentsList");
+  if(!list || !activeCommentPostId) return;
+
+  list.innerHTML = '<p class="comment-empty">Loading comments...</p>';
+
+  const {data:comments,error} = await db
+    .from("comments")
+    .select("id,post_id,user_id,content,parent_id,created_at")
+    .eq("post_id",activeCommentPostId)
+    .order("created_at",{ascending:true})
+    .limit(200);
+
+  if(error){
+    list.textContent = "Could not load comments: " + error.message;
+    return;
+  }
+
+  if(!comments || comments.length === 0){
+    list.innerHTML = '<p class="comment-empty">No comments yet. Be the first to comment!</p>';
+    return;
+  }
+
+  const userIds = [...new Set(comments.map(c => c.user_id).filter(Boolean))];
+  const commentIds = comments.map(c => c.id);
+
+  const [profileResult,likeResult] = await Promise.all([
+    db.from("profiles")
+      .select("id,username,avatar_url")
+      .in("id",userIds),
+    db.from("comment_likes")
+      .select("id,comment_id,user_id")
+      .in("comment_id",commentIds)
+  ]);
+
+  if(profileResult.error){
+    list.textContent = "Could not load comment profiles: " + profileResult.error.message;
+    return;
+  }
+
+  if(likeResult.error){
+    list.textContent = "Could not load comment likes: " + likeResult.error.message;
+    return;
+  }
+
+  const profiles = {};
+  (profileResult.data || []).forEach(p => profiles[p.id] = p);
+
+  const likes = likeResult.data || [];
+  const commentsByParent = {};
+
+  comments.forEach(c => {
+    const parent = c.parent_id || "root";
+    if(!commentsByParent[parent]) commentsByParent[parent] = [];
+    commentsByParent[parent].push(c);
+  });
+
+  function renderOne(c){
+    const profile = profiles[c.user_id] || {};
+    const username = profile.username || "INCO user";
+    const avatar = profile.avatar_url || "";
+    const count = likes.filter(l => l.comment_id === c.id).length;
+    const liked = likes.some(l =>
+      l.comment_id === c.id && l.user_id === currentUser.id
+    );
+
+    const avatarHTML = avatar
+      ? `<img class="comment-avatar" src="${commentSafe(avatar)}" alt="">`
+      : `<div class="comment-avatar" style="display:flex;align-items:center;justify-content:center;color:white;font-weight:bold">${commentSafe(username.charAt(0).toUpperCase())}</div>`;
+
+    const replies = commentsByParent[c.id] || [];
+
+    return `
+      <div class="comment-row">
+        ${avatarHTML}
+        <div class="comment-content">
+          <div class="comment-bubble">
+            <div class="comment-author">${commentSafe(username)}</div>
+            <div class="comment-text">${commentSafe(c.content)}</div>
+          </div>
+          <div class="comment-actions">
+            <button onclick="toggleCommentLike('${commentSafe(c.id)}')">
+              ${liked ? "♥ Liked" : "♡ Like"} ${count || ""}
+            </button>
+            <button onclick="setCommentReply('${commentSafe(c.id)}','${commentSafe(username)}')">Reply</button>
+            <span>${commentSafe(commentTime(c.created_at))}</span>
+          </div>
+          ${replies.length ? `
+            <div class="comment-replies">
+              ${replies.map(renderOne).join("")}
+            </div>
+          ` : ""}
+        </div>
+      </div>
+    `;
+  }
+
+  list.innerHTML = (commentsByParent.root || []).map(renderOne).join("");
+
+  if(!(commentsByParent.root || []).length){
+    list.innerHTML = '<p class="comment-empty">No comments yet.</p>';
+  }
+}
+
+function setCommentReply(commentId,username){
+  if(replyToCommentId === commentId){
+    replyToCommentId = null;
+  }else{
+    replyToCommentId = commentId;
+  }
+
+  const input = document.getElementById("newComment");
+  if(input){
+    input.placeholder = replyToCommentId
+      ? "Replying to " + username + "..."
+      : "Write a comment...";
+  }
+}
+
+async function submitComment(){
+  if(!currentUser) return alert("Please login first.");
+  if(!activeCommentPostId) return alert("Open a post first.");
+
+  const input = document.getElementById("newComment");
+  const content = input ? input.value.trim() : "";
+
+  if(!content) return alert("Write a comment first.");
+
+  const button = document.querySelector(".comments-composer button");
+  if(button) button.disabled = true;
+
+  const {error} = await db.from("comments").insert({
+    post_id: activeCommentPostId,
+    user_id: currentUser.id,
+    content: content,
+    parent_id: replyToCommentId || null
+  });
+
+  if(button) button.disabled = false;
+
+  if(error){
+    alert("Comment failed: " + error.message);
+    return;
+  }
+
+  input.value = "";
+  input.placeholder = "Write a comment...";
+  replyToCommentId = null;
+
+  await loadComments();
+}
+
+async function toggleCommentLike(commentId){
+  if(!currentUser) return alert("Please login first.");
+
+  const {data:existing,error:findError} = await db
+    .from("comment_likes")
+    .select("id")
+    .eq("comment_id",commentId)
+    .eq("user_id",currentUser.id)
+    .maybeSingle();
+
+  if(findError) return alert(findError.message);
+
+  let result;
+
+  if(existing){
+    result = await db.from("comment_likes")
+      .delete()
+      .eq("id",existing.id);
+  }else{
+    result = await db.from("comment_likes")
+      .insert({
+        comment_id:commentId,
+        user_id:currentUser.id
+      });
+  }
+
+  if(result.error) return alert(result.error.message);
+
+  await loadComments();
+}
+
 async function deletePost(id){if(!currentUser||!confirm("Delete this post?"))return;const {error}=await db.from("posts").delete().eq("id",id).eq("user_id",currentUser.id);if(error)return alert(error.message);await Promise.all([loadFeed(),loadHomeFeed(),loadProfile(),loadTrending()]);}
 function savePost(id){const a=localGet("inco_bookmarks");if(!a.includes(id))a.push(id);localSet("inco_bookmarks",a);alert("Post saved on this device.");}
 async function renderSaved(){const ids=localGet("inco_bookmarks"),b=get("bookmarks");b.textContent="Loading saved posts...";if(!ids.length)b.textContent="No saved posts yet.";else{const {data,error}=await db.from("posts").select("id,user_id,content,media_url,status,created_at").in("id",ids);if(error)b.textContent=error.message;else await renderPostList(b,data||[]);}renderHistory("history");}
