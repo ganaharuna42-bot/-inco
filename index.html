@@ -804,9 +804,8 @@ async function viewPublicProfile(id){
   // FOLLOW BUTTON
   const btn=document.createElement("button");
 
-  btn.textContent=followStatus.error
-    ?"Follow unavailable"
-    :followStatus.data?"Following ✓":"Follow";
+btn.textContent=f.error?"Follow unavailable":f.data?"Unfollow":"Follow";
+if(f.error) alert("Follow error: "+f.error.message);
 
   btn.disabled=!!followStatus.error||id===currentUser.id;
   btn.onclick=()=>toggleFollow(id);
