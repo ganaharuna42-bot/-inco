@@ -907,7 +907,7 @@ async function viewPublicProfile(id){
 
   try{
     const {data:p,error}=await db.from("profiles")
-      .select("id,username,avatar_url,bio")
+      .select("id,username,avatar_url,bio,is_premium")
       .eq("id",id)
       .maybeSingle();
 
@@ -929,6 +929,14 @@ async function viewPublicProfile(id){
     const h=document.createElement("h3");
     h.className="profile-name";
     h.textContent=p.username||"INCO member";
+    if(p.is_premium){
+  const badge=document.createElement("span");
+  badge.textContent=" 👑 Premium";
+  badge.style.color="#ffd700";
+  badge.style.fontSize="13px";
+  badge.style.fontWeight="bold";
+  h.append(badge);
+}
 
     const bio=document.createElement("p");
     bio.textContent=p.bio||"No bio yet.";
