@@ -1192,9 +1192,6 @@ const [countsResult,followStatus]=await Promise.all([
     .eq("following_id",id)
     .maybeSingle()
 ]);
-
-if(countsResult.error){
-  console.error(countsResult.error);
 }
 
 const counts=countsResult;
