@@ -861,6 +861,36 @@ async function loadProfile(){
 
   applyProfileTheme(data?.profile_theme||"default");
 
+  // Load my Followers and Following counts
+  try{
+    const counts=await getPublicFollowCounts(currentUser.id);
+
+    let followStats=get("myFollowStats");
+
+    if(!followStats){
+      followStats=document.createElement("div");
+      followStats.id="myFollowStats";
+      followStats.className="row";
+      followStats.style.margin="15px 0";
+
+      const profile=get("profile");
+      profile.querySelector(".card").append(followStats);
+    }
+
+    followStats.innerHTML="";
+
+    const followersBox=document.createElement("div");
+    followersBox.textContent=counts.followers+" Followers";
+
+    const followingBox=document.createElement("div");
+    followingBox.textContent=counts.following+" Following";
+
+    followStats.append(followersBox,followingBox);
+
+  }catch(err){
+    console.error("Follow statistics:",err);
+  }
+
   const r=await db.from("posts")
     .select("id,content,created_at")
     .eq("user_id",currentUser.id)
