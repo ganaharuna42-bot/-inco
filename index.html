@@ -771,8 +771,114 @@ function todayItem(){const d=new Date();const day=Math.floor(Date.UTC(d.getFullY
 function loadINCODaily(){const x=todayItem();say("dailyQuestion",x.q);say("dailyChallenge",x.c);say("homeDailyQuestion",x.q);}
 function answerDailyQuestion(){if(!currentUser)return alert("Please log in first.");const a=get("dailyAnswer").value.trim();if(!a)return alert("Write your answer first.");get("postText").value="🌞 INCO Daily Question: "+todayItem().q+"\n\n"+a;showPage("community");say("postStatus","Your answer is ready. Press Publish Post to share it.");get("postText").focus();}
 function startDailyChallenge(){if(!currentUser)return alert("Please log in first.");get("postText").value="🌟 INCO Daily Challenge: "+todayItem().c+"\n\nMy update: ";showPage("community");say("postStatus","Challenge post prepared. Add your update, then press Publish Post.");get("postText").focus();}
-async function loadProfile(){if(!currentUser)return;const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();if(error){say("profileStatus",error.message);return;}myProfile=data;get("profileUsername").value=data?.username||"";get("profileBio").value=data?.bio||"";get("avatarPreview").src=data?.avatar_url?safeURL(data.avatar_url):"";const r=await db.from("posts").select("id,content,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(50);get("myPosts").innerHTML=r.error?escapeHTML(r.error.message):(r.data||[]).map(p=>`<div class="item">${escapeHTML(p.content||"Post")} <span class="muted">${new Date(p.created_at).toLocaleDateString()}</span></div>`).join("")||"You have not posted yet.";}
-async function saveProfile(){if(!currentUser)return alert("Please log in first.");const username=get("profileUsername").value.trim();if(!/^[a-zA-Z0-9_]{3,24}$/.test(username))return say("profileStatus","Username must be 3–24 letters, numbers or underscores.");const {error}=await db.from("profiles").update({username,bio:get("profileBio").value.trim()}).eq("id",currentUser.id);say("profileStatus",error?error.message:"Profile updated.");if(!error)await loadProfile();}
+async function loadProfile(){
+  if(!currentUser)return;
+
+  const {data,error}=await db.from("profiles")
+    .select("*")
+    .eq("id",currentUser.id)
+    .maybeSingle();
+
+  if(error){
+    say("profileStatus",error.message);
+    return;
+  }
+
+  myProfile=data;
+
+  get("profileUsername").value=data?.username||"";
+  get("profileBio").value=data?.bio||"";
+  get("avatarPreview").src=data?.avatar_url?safeURL(data.avatar_url):"";
+
+  const theme=get("profileTheme");
+
+  if(theme){
+    theme.value=data?.profile_theme||"default";
+    theme.disabled=!data?.is_premium;
+
+    say("themeStatus",data?.is_premium
+      ?"Choose your Premium theme."
+      :"Premium membership is required for special themes.");
+  }
+
+  applyProfileTheme(data?.profile_theme||"default");
+
+  const r=await db.from("posts")
+    .select("id,content,created_at")
+    .eq("user_id",currentUser.id)
+    .order("created_at",{ascending:false})
+    .limit(50);
+
+  get("myPosts").innerHTML=r.error
+    ?escapeHTML(r.error.message)
+    :(r.data||[]).map(p=>
+      `<div class="item">${escapeHTML(p.content||"Post")} <span class="muted">${new Date(p.created_at).toLocaleDateString()}</span></div>`
+    ).join("")||"You have not posted yet.";
+}function applyProfileTheme(theme){
+  const section=get("profile");
+  if(!section)return;
+
+  const themes={
+    default:["",""],
+    purple:["#24143d","#9b6cff"],
+    gold:["#332812","#d6a83e"],
+    blue:["#102b45","#268bd2"]
+  };
+
+  const selected=themes[theme]||themes.default;
+
+  section.querySelectorAll(".card").forEach(card=>{
+    card.style.background=selected[0];
+    card.style.borderColor=selected[1];
+  });
+}
+
+async function saveProfileTheme(){
+  if(!currentUser)return alert("Please log in first.");
+
+  if(!myProfile?.is_premium){
+    say("themeStatus","Premium membership is required.");
+    return;
+  }
+
+  const theme=get("profileTheme").value;
+
+  if(!["default","purple","gold","blue"].includes(theme)){
+    return say("themeStatus","Invalid theme.");
+  }
+
+  const {error}=await db.from("profiles")
+    .update({profile_theme:theme})
+    .eq("id",currentUser.id);
+
+  if(error){
+    say("themeStatus",error.message);
+    return;
+  }
+
+  applyProfileTheme(theme);
+  say("themeStatus","Your profile theme has been saved!");
+}
+async function saveProfile(){
+  if(!currentUser)return alert("Please log in first.");
+
+  const username=get("profileUsername").value.trim();
+
+  if(!/^[a-zA-Z0-9_]{3,24}$/.test(username)){
+    return say("profileStatus","Username must be 3–24 letters, numbers or underscores.");
+  }
+
+  const {error}=await db.from("profiles")
+    .update({
+      username,
+      bio:get("profileBio").value.trim()
+    })
+    .eq("id",currentUser.id);
+
+  say("profileStatus",error?error.message:"Profile updated.");
+
+  if(!error)await loadProfile();
+}
 async function uploadAvatar(){if(!currentUser)return alert("Please log in first.");const f=get("avatarFile").files[0];if(!f)return alert("Choose a picture first.");if(!f.type.startsWith("image/")||f.size>5*1024*1024)return alert("Choose an image under 5 MB.");const ext=(f.name.split(".").pop()||"jpg").replace(/[^a-z0-9]/gi,""),path=currentUser.id+"/avatar-"+Date.now()+"."+ext;const up=await db.storage.from("inco-avatars").upload(path,f,{upsert:false,contentType:f.type});if(up.error)return say("profileStatus",up.error.message);const url=db.storage.from("inco-avatars").getPublicUrl(path).data.publicUrl;const r=await db.from("profiles").update({avatar_url:url}).eq("id",currentUser.id);if(r.error)return say("profileStatus",r.error.message);get("avatarPreview").src=url;say("profileStatus","Profile picture updated.");}
 async function loadNews(){const b=get("newsFeed");const {data,error}=await db.from("news_articles").select("id,author_id,title,category,content,image_url,views,created_at").order("created_at",{ascending:false}).limit(30);if(error){b.textContent="Could not load news: "+error.message;return;}b.innerHTML="";(data||[]).forEach(a=>{const c=document.createElement("div");c.className="card";const h=document.createElement("h3");h.textContent=a.title;const m=document.createElement("p");m.className="muted";m.textContent=(a.category||"News")+" · "+new Date(a.created_at).toLocaleDateString();const p=document.createElement("p");p.textContent=a.content||"";c.append(h,m);if(a.image_url){const im=document.createElement("img");im.className="news-image";im.src=safeURL(a.image_url);im.alt="News image";c.append(im);}c.append(p);b.append(c);});if(!data?.length)b.textContent="No news articles yet.";}
 async function submitArticle(){if(!currentUser)return alert("Please log in first.");const title=get("articleTitle").value.trim(),content=get("articleContent").value.trim();if(!title||!content)return say("articleStatus","Enter a title and article.");const {error}=await db.from("news_articles").insert({author_id:currentUser.id,title,category:get("articleCategory").value.trim(),content,image_url:get("articleImage").value.trim()||null});say("articleStatus",error?"Submission failed: "+error.message:"Article submitted.");if(!error){get("articleTitle").value="";get("articleContent").value="";await loadNews();}}
