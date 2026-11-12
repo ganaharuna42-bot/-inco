@@ -1133,49 +1133,50 @@ async function viewPublicProfile(id){
 
     b.append(h,bio);
 
-    const [followers,following,followStatus]=await Promise.all([
-      db.from("follows").select("follower_id").eq("following_id",id),
-      db.from("follows").select("following_id").eq("follower_id",id),
-      db.from("follows").select("following_id")
-        .eq("follower_id",currentUser.id)
-        .eq("following_id",id)
-        .maybeSingle()
-    ]);
+    
+const [countsResult,followStatus]=await Promise.all([
+  getPublicFollowCounts(id),
+  db.from("follows").select("following_id")
+    .eq("follower_id",currentUser.id)
+    .eq("following_id",id)
+    .maybeSingle()
+]);
 
-    const stats=document.createElement("div");
-    stats.className="row";
-    stats.style.margin="15px 0";
+if(countsResult.error){
+  console.error(countsResult.error);
+}
 
-    if(followers.error||following.error){
-      stats.textContent="Follow statistics unavailable: "+
-        (followers.error?.message||following.error?.message);
-    }else{
-      const followerBox=document.createElement("div");
-      followerBox.textContent=followers.data.length+" Followers";
+const counts=countsResult;
+const stats=document.createElement("div");
+stats.className="row";
+stats.style.margin="15px 0";
 
-      const followingBox=document.createElement("div");
-      followingBox.textContent=following.data.length+" Following";
+const followerBox=document.createElement("button");
+followerBox.textContent=counts.followers+" Followers";
+followerBox.onclick=()=>showFollowList(id,"followers");
 
-      stats.append(followerBox,followingBox);
-    }
+const followingBox=document.createElement("button");
+followingBox.textContent=counts.following+" Following";
+followingBox.onclick=()=>showFollowList(id,"following");
 
-    b.append(stats);
+stats.append(followerBox,followingBox);
+b.append(stats);
 
-    const btn=document.createElement("button");
+const btn=document.createElement("button");
 
-    if(id===currentUser.id){
-      btn.textContent="Your Profile";
-      btn.disabled=true;
-    }else if(followStatus.error){
-      btn.textContent="Follow unavailable";
-      btn.disabled=true;
-      console.error(followStatus.error);
-    }else{
-      btn.textContent=followStatus.data?"Unfollow":"Follow";
-      btn.onclick=()=>toggleFollow(id);
-    }
+if(id===currentUser.id){
+  btn.textContent="Your Profile";
+  btn.disabled=true;
+}else if(followStatus.error){
+  btn.textContent="Follow unavailable";
+  btn.disabled=true;
+}else{
+  btn.textContent=followStatus.data?"Unfollow":"Follow";
+  btn.onclick=()=>toggleFollow(id);
+}
 
-    b.append(btn);
+b.append(btn);
+
 
     if(id!==currentUser.id){
       const messageBtn=document.createElement("button");
