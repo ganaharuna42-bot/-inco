@@ -263,7 +263,22 @@ body.comments-open{
 <section id="news"><div class="card"><h2>INCO News</h2><div id="newsFeed">Loading news...</div></div><div class="card"><h3>Submit an article</h3><input id="articleTitle" placeholder="Article title"><input id="articleCategory" placeholder="Category"><textarea id="articleContent" placeholder="Write your article"></textarea><input id="articleImage" placeholder="Image URL (optional)"><button onclick="submitArticle()">Submit Article</button><p id="articleStatus" class="muted"></p></div></section>
 <section id="saved"><div class="card"><h2>Saved Posts</h2><div id="bookmarks"></div></div><div class="card"><h2>Browsing history</h2><div id="history"></div><button onclick="clearHistory()">Clear History</button></div></section>
 <section id="profile"><div class="card"><h2>My Profile</h2><img id="avatarPreview" class="avatar" alt="Profile picture"><input type="file" id="avatarFile" accept="image/*"><button onclick="uploadAvatar()">Upload Profile Picture</button><input id="profileDisplayName" placeholder="Your display name">
-<input id="profileUsername" placeholder="Your unique username"><textarea id="profileBio" placeholder="Your bio"></textarea><button onclick="saveProfile()">Save Profile</button><p id="profileStatus" class="muted"></p></div><div class="card"><h3>My Posts</h3><div id="myPosts"></div></div></section>
+<input id="profileUsername" placeholder="Your unique username"><textarea id="profileBio" placeholder="Your bio"></textarea><button onclick="saveProfile()">Save Profile</button>
+<div id="premiumThemeBox" style="margin-top:18px">
+  <h3>🎨 Profile Theme</h3>
+  <p class="muted">Choose a special theme for your INCO profile.</p>
+
+  <select id="profileTheme">
+    <option value="default">INCO Navy (Free)</option>
+    <option value="purple">Royal Purple 👑</option>
+    <option value="gold">Premium Gold 👑</option>
+    <option value="blue">Ocean Blue 👑</option>
+  </select>
+
+  <button onclick="saveProfileTheme()">Apply Theme</button>
+  <p id="themeStatus" class="muted"></p>
+</div>
+<p id="profileStatus" class="muted"></p></div><div class="card"><h3>My Posts</h3><div id="myPosts"></div></div></section>
 <section id="account"><div class="card"><h2>INCO Account</h2><input id="email" type="email" autocomplete="email" placeholder="Email address"><input id="password" type="password" autocomplete="current-password" placeholder="Password"><button onclick="signUp()">Create Account</button><button onclick="signIn()">Login</button><button onclick="resetPassword()">Forgot Password</button><button onclick="signOut()">Logout</button><p id="authStatus" class="muted"></p></div></section>
 <section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Live session listings from your existing Supabase database.</p><p class="muted">Camera broadcasting, viewer chat and host controls are not active yet. They need a secure LiveKit token service.</p><div id="liveSessions">Loading live sessions...</div></div></section>
 <section id="gifts">
