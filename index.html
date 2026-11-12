@@ -1265,7 +1265,61 @@ async function getPublicFollowCounts(userId){
   if(error)throw error;
   return data?.[0]||{followers:0,following:0};
 }
+async function showFollowList(userId,type){
+  if(!currentUser)return alert("Please login first.");
 
+  const box=get("publicProfile");
+  const heading=type==="followers"?"Followers":"Following";
+
+  const oldList=get("followList");
+  if(oldList)oldList.remove();
+
+  const list=document.createElement("div");
+  list.id="followList";
+  list.className="card";
+  list.textContent="Loading "+heading+"...";
+  box.append(list);
+
+  const {data,error}=await db.rpc("get_follow_list",{
+    target_id:userId,
+    list_type:type
+  });
+
+  if(error){
+    list.textContent=error.message.includes("hidden")
+      ? "This user has hidden their "+heading.toLowerCase()+" list."
+      : "Could not load list: "+error.message;
+    return;
+  }
+
+  const ids=(data||[]).map(item=>item.user_id);
+
+  list.innerHTML="<h3>"+heading+"</h3>";
+
+  if(ids.length===0){
+    list.append("No users found.");
+    return;
+  }
+
+  const {data:people,error:peopleError}=await db
+    .from("profiles")
+    .select("id,username,avatar_url")
+    .in("id",ids);
+
+  if(peopleError){
+    list.append("Could not load usernames: "+peopleError.message);
+    return;
+  }
+
+  (people||[]).forEach(person=>{
+    const item=document.createElement("button");
+    item.textContent="@"+(person.username||"User");
+    item.style.display="block";
+    item.style.margin="6px 0";
+    item.onclick=()=>viewPublicProfile(person.id);
+    list.append(item);
+  });
+}
 async function toggleFollow(id){
   if(!currentUser)return alert("Please login first.");
   if(id===currentUser.id)return;
