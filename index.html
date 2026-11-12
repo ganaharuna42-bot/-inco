@@ -1214,6 +1214,58 @@ b.append(giftBtn);
   }
 }
 
+async function loadFollowPrivacy(){
+  if(!currentUser)return;
+
+  const status=get("followPrivacyStatus");
+
+  const {data,error}=await db.from("profiles")
+    .select("hide_followers,hide_following")
+    .eq("id",currentUser.id)
+    .maybeSingle();
+
+  if(error){
+    if(status)status.textContent="Could not load privacy settings.";
+    return;
+  }
+
+  get("hideFollowers").checked=!!data?.hide_followers;
+  get("hideFollowing").checked=!!data?.hide_following;
+}
+
+async function saveFollowPrivacy(){
+  if(!currentUser)return alert("Please login first.");
+
+  const hideFollowers=get("hideFollowers").checked;
+  const hideFollowing=get("hideFollowing").checked;
+
+  const status=get("followPrivacyStatus");
+  status.textContent="Saving...";
+
+  const {error}=await db.from("profiles")
+    .update({
+      hide_followers:hideFollowers,
+      hide_following:hideFollowing
+    })
+    .eq("id",currentUser.id);
+
+  if(error){
+    status.textContent="Save failed: "+error.message;
+    return;
+  }
+
+  status.textContent="Privacy settings saved successfully!";
+}
+
+async function getPublicFollowCounts(userId){
+  const {data,error}=await db.rpc("get_follow_counts",{
+    target_id:userId
+  });
+
+  if(error)throw error;
+  return data?.[0]||{followers:0,following:0};
+}
+
 async function toggleFollow(id){
   if(!currentUser)return alert("Please login first.");
   if(id===currentUser.id)return;
