@@ -571,11 +571,7 @@ who.style.cursor="pointer";
 who.style.color="#1678db";
 
 who.onclick=()=>{
-  if(typeof openPublicProfile==="function"){
-    openPublicProfile(p.user_id);
-  }else{
-    alert("Public profile function not ready yet.");
-  }
+  viewPublicProfile(p.user_id);
 };
 
 head.append(who);
