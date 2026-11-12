@@ -1133,8 +1133,6 @@ async function searchPeople(){
   }
 }
 
-
-
 async function viewPublicProfile(id){
   if(!currentUser)return alert("Please login first.");
 
@@ -1170,61 +1168,55 @@ async function viewPublicProfile(id){
     const h=document.createElement("h3");
     h.className="profile-name";
     h.textContent=p.username||"INCO member";
+
     if(p.is_premium){
-  const badge=document.createElement("span");
-  badge.textContent=" 👑 Premium";
-  badge.style.color="#ffd700";
-  badge.style.fontSize="13px";
-  badge.style.fontWeight="bold";
-  h.append(badge);
-}
+      const badge=document.createElement("span");
+      badge.textContent=" 👑 Premium";
+      badge.style.color="#ffd700";
+      h.append(badge);
+    }
 
     const bio=document.createElement("p");
     bio.textContent=p.bio||"No bio yet.";
-
     b.append(h,bio);
 
-    
-const [countsResult,followStatus]=await Promise.all([
-  getPublicFollowCounts(id),
-  db.from("follows").select("following_id")
-    .eq("follower_id",currentUser.id)
-    .eq("following_id",id)
-    .maybeSingle()
-]);
-}
+    const [counts,followStatus]=await Promise.all([
+      getPublicFollowCounts(id),
+      db.from("follows").select("following_id")
+        .eq("follower_id",currentUser.id)
+        .eq("following_id",id)
+        .maybeSingle()
+    ]);
 
-const counts=countsResult;
-const stats=document.createElement("div");
-stats.className="row";
-stats.style.margin="15px 0";
+    const stats=document.createElement("div");
+    stats.className="row";
+    stats.style.margin="15px 0";
 
-const followerBox=document.createElement("button");
-followerBox.textContent=counts.followers+" Followers";
-followerBox.onclick=()=>showFollowList(id,"followers");
+    const followerBox=document.createElement("button");
+    followerBox.textContent=counts.followers+" Followers";
+    followerBox.onclick=()=>showFollowList(id,"followers");
 
-const followingBox=document.createElement("button");
-followingBox.textContent=counts.following+" Following";
-followingBox.onclick=()=>showFollowList(id,"following");
+    const followingBox=document.createElement("button");
+    followingBox.textContent=counts.following+" Following";
+    followingBox.onclick=()=>showFollowList(id,"following");
 
-stats.append(followerBox,followingBox);
-b.append(stats);
+    stats.append(followerBox,followingBox);
+    b.append(stats);
 
-const btn=document.createElement("button");
+    const btn=document.createElement("button");
 
-if(id===currentUser.id){
-  btn.textContent="Your Profile";
-  btn.disabled=true;
-}else if(followStatus.error){
-  btn.textContent="Follow unavailable";
-  btn.disabled=true;
-}else{
-  btn.textContent=followStatus.data?"Unfollow":"Follow";
-  btn.onclick=()=>toggleFollow(id);
-}
+    if(id===currentUser.id){
+      btn.textContent="Your Profile";
+      btn.disabled=true;
+    }else if(followStatus.error){
+      btn.textContent="Follow unavailable";
+      btn.disabled=true;
+    }else{
+      btn.textContent=followStatus.data?"Unfollow":"Follow";
+      btn.onclick=()=>toggleFollow(id);
+    }
 
-b.append(btn);
-
+    b.append(btn);
 
     if(id!==currentUser.id){
       const messageBtn=document.createElement("button");
@@ -1236,10 +1228,11 @@ b.append(btn);
       };
       b.append(messageBtn);
     }
-const giftBtn = document.createElement("button");
-giftBtn.textContent = "🎁 Send Gift";
-giftBtn.onclick = () => prepareGift(p.id,p.username);
-b.append(giftBtn);
+
+    const giftBtn=document.createElement("button");
+    giftBtn.textContent="🎁 Send Gift";
+    giftBtn.onclick=()=>prepareGift(p.id,p.username);
+    b.append(giftBtn);
 
     const r=await db.from("posts")
       .select("id,user_id,content,media_url,status,created_at")
@@ -1261,6 +1254,7 @@ b.append(giftBtn);
     pb.textContent="Could not load posts: "+err.message;
   }
 }
+
 
 async function loadFollowPrivacy(){
   if(!currentUser)return;
