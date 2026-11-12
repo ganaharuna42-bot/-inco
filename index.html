@@ -279,7 +279,38 @@ body.comments-open{
   <p id="themeStatus" class="muted"></p>
 </div>
 <p id="profileStatus" class="muted"></p></div><div class="card"><h3>My Posts</h3><div id="myPosts"></div></div></section>
-<section id="account"><div class="card"><h2>INCO Account</h2><input id="email" type="email" autocomplete="email" placeholder="Email address"><input id="password" type="password" autocomplete="current-password" placeholder="Password"><button onclick="signUp()">Create Account</button><button onclick="signIn()">Login</button><button onclick="resetPassword()">Forgot Password</button><button onclick="signOut()">Logout</button><p id="authStatus" class="muted"></p></div></section>
+
+<section id="account">
+  <div class="card">
+    <h2>INCO Account</h2>
+    <input id="email" type="email" autocomplete="email" placeholder="Email address">
+    <input id="password" type="password" autocomplete="current-password" placeholder="Password">
+    <button onclick="signUp()">Create Account</button>
+    <button onclick="signIn()">Login</button>
+    <button onclick="resetPassword()">Forgot Password</button>
+    <button onclick="signOut()">Logout</button>
+    <p id="authStatus" class="muted"></p>
+  </div>
+
+  <div class="card">
+    <h3>🔒 Follow Privacy</h3>
+    <p class="muted">Choose what other people can see on your profile. Your follower counts will remain visible.</p>
+
+    <label>
+      <input type="checkbox" id="hideFollowers">
+      Hide my Followers list
+    </label>
+
+    <label>
+      <input type="checkbox" id="hideFollowing">
+      Hide my Following list
+    </label>
+
+    <button onclick="saveFollowPrivacy()">Save Privacy Settings</button>
+    <p id="followPrivacyStatus" class="muted"></p>
+  </div>
+</section>
+
 <section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Live session listings from your existing Supabase database.</p><p class="muted">Camera broadcasting, viewer chat and host controls are not active yet. They need a secure LiveKit token service.</p><div id="liveSessions">Loading live sessions...</div></div></section>
 <section id="gifts">
   <div class="card">
