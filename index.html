@@ -475,6 +475,52 @@ function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;",
 function safeURL(s){try{const u=new URL(s,location.href);return ["http:","https:"].includes(u.protocol)?u.href:"#";}catch{return "#";}}
 function localGet(k,f=[]){try{const x=JSON.parse(localStorage.getItem(k));return Array.isArray(x)?x:f;}catch{return f;}}
 function localSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){console.warn(e);}}
+
+// INCO PUBLIC PROFILE BUTTON FIX
+function openPublicProfile(userId){
+  return viewPublicProfile(userId);
+}
+
+// INCO POST MEDIA PREVIEW FIX
+function previewPostMedia(){
+  const file = get("postMedia")?.files?.[0];
+  const box = get("postMediaPreview");
+
+  if(!box) return;
+
+  box.innerHTML = "";
+
+  if(!file) return;
+
+  if(!file.type.startsWith("image/") &&
+     !file.type.startsWith("video/")){
+    say("postStatus","Choose a valid image or video.");
+    return;
+  }
+
+  if(file.size > 30 * 1024 * 1024){
+    say("postStatus","Media must be 30 MB or smaller.");
+    get("postMedia").value = "";
+    return;
+  }
+
+  const url = URL.createObjectURL(file);
+
+  if(file.type.startsWith("video/")){
+    const video = document.createElement("video");
+    video.src = url;
+    video.controls = true;
+    video.className = "media-preview";
+    box.append(video);
+  }else{
+    const image = document.createElement("img");
+    image.src = url;
+    image.alt = "Post preview";
+    image.className = "media-preview";
+    box.append(image);
+  }
+}
+
 function showPage(page){const s=get(page);if(!s)return;document.querySelectorAll("main section").forEach(x=>x.classList.remove("active"));s.classList.add("active");
 if(page==="home"){renderShortcuts();loadHomeFeed();loadINCODaily();}if(page==="community")loadFeed();if(page==="trending")loadTrending();if(page==="daily")loadINCODaily();if(page==="news")loadNews();if(page==="profile")loadProfile();if(page==="saved")renderSaved();if(page==="search")renderHistory("searchHistory");if(page==="live")loadLive();if(page==="gifts")loadGifts();if(page==="inbox")loadInbox();if(page==="notifications")loadNotifications();if(page==="earn")renderEarn();if(page==="people"&&!currentUser)say("peopleResults","Please login to discover people.");if(page==="chat"&&!currentUser)say("chatStatus","Please login first.");}
 function addHistory(value){const h=localGet("inco_history");h.unshift({value,time:new Date().toLocaleString()});localSet("inco_history",h.slice(0,100));}
