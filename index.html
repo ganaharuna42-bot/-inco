@@ -598,7 +598,113 @@ async function refreshApp(){
   renderEarn();
 }
 
-async function createPost(){if(!currentUser)return alert("Please log in first.");const content=get("postText").value.trim(),file=get("postMedia").files[0];if(!content&&!file)return alert("Write something or select media.");say("postStatus","Publishing...");let media_url=null;try{if(file){if(file.size>30*1024*1024)return say("postStatus","Media must be 30 MB or smaller.");const ext=(file.name.split(".").pop()||"bin").replace(/[^a-zA-Z0-9]/g,"");const path=currentUser.id+"/"+Date.now()+"."+ext;const up=await db.storage.from("inco-posts").upload(path,file,{upsert:false,contentType:file.type});if(up.error)return say("postStatus","Upload failed: "+up.error.message);media_url=db.storage.from("inco-posts").getPublicUrl(path).data.publicUrl;}const {error}=await db.from("posts").insert({user_id:currentUser.id,content,media_url,status:"published"});if(error)return say("postStatus","Post failed: "+error.message);get("postText").value="";get("postMedia").value="";say("postStatus","Post published.");await Promise.all([loadFeed(),loadHomeFeed(),loadProfile(),loadTrending()]);}catch(e){say("postStatus","Error: "+e.message);}}
+
+async function createPost(){
+  if(!currentUser){
+    return alert("Please log in first.");
+  }
+
+  const content = get("postText").value.trim();
+  const file = get("postMedia").files[0];
+
+  if(!content && !file){
+    return alert("Write something or select media.");
+  }
+
+  if(file && file.size > 30 * 1024 * 1024){
+    return say("postStatus","Media must be 30 MB or smaller.");
+  }
+
+  say("postStatus","Preparing your post...");
+
+  const publishButton = document.querySelector(
+    '#community button[onclick="createPost()"]'
+  );
+
+  if(publishButton) publishButton.disabled = true;
+
+  try{
+    let media_url = null;
+
+    if(file){
+      say("postStatus","Uploading media...");
+
+      const ext = (file.name.split(".").pop() || "bin")
+        .replace(/[^a-zA-Z0-9]/g,"");
+
+      const path = currentUser.id + "/" +
+        Date.now() + "." + ext;
+
+      const {data:uploadData,error:uploadError} =
+        await db.storage
+          .from("inco-posts")
+          .upload(path,file,{
+            upsert:false,
+            contentType:file.type || "application/octet-stream"
+          });
+
+      if(uploadError){
+        throw new Error("Media upload failed: " +
+          uploadError.message);
+      }
+
+      if(!uploadData?.path){
+        throw new Error("Upload completed without a file path.");
+      }
+
+      const {data:urlData} =
+        db.storage
+          .from("inco-posts")
+          .getPublicUrl(uploadData.path);
+
+      media_url = urlData?.publicUrl;
+
+      if(!media_url){
+        throw new Error("Could not create the media URL.");
+      }
+    }
+
+    say("postStatus","Saving your post...");
+
+    const {error:postError} = await db
+      .from("posts")
+      .insert({
+        user_id:currentUser.id,
+        content:content,
+        media_url:media_url,
+        status:"published"
+      });
+
+    if(postError){
+      throw new Error("Post save failed: " +
+        postError.message);
+    }
+
+    get("postText").value = "";
+    get("postMedia").value = "";
+    get("postMediaPreview").innerHTML = "";
+
+    say("postStatus","Post published successfully!");
+
+    await Promise.allSettled([
+      loadFeed(),
+      loadHomeFeed(),
+      loadProfile(),
+      loadTrending()
+    ]);
+
+  }catch(error){
+    console.error("INCO post error:",error);
+
+    say("postStatus",
+      "Could not publish: " + error.message
+    );
+
+  }finally{
+    if(publishButton) publishButton.disabled = false;
+  }
+}
+
 async function loadFeed(){const b=get("feed");if(!b)return;if(!currentUser){b.textContent="Login to load community posts.";return;}b.textContent="Loading posts...";const {data,error}=await db.from("posts").select("id,user_id,content,media_url,status,created_at").eq("status","published").order("created_at",{ascending:false}).limit(50);if(error){b.textContent="Could not load posts: "+error.message;return;}await renderPostList(b,data||[]);}
 async function loadHomeFeed(){const b=get("homeFeed");if(!b)return;if(!currentUser){b.textContent="Login to see community posts.";return;}const {data,error}=await db.from("posts").select("id,user_id,content,media_url,status,created_at").eq("status","published").order("created_at",{ascending:false}).limit(5);if(error){b.textContent=error.message;return;}await renderPostList(b,data||[]);}
 async function renderPostList(box,posts){box.innerHTML="";if(!posts.length){box.textContent="No posts yet. Be the first to share.";return;}const ids=[...new Set(posts.map(p=>p.user_id))],postIds=posts.map(p=>p.id);const [pr,likes,comments]=await Promise.all([db.from("profiles").select("id,username,avatar_url,is_premium").in("id",ids),db.from("likes").select("post_id,user_id").in("post_id",postIds),db.from("comments").select("post_id").in("post_id",postIds)]);const profiles={};(pr.data||[]).forEach(p=>profiles[p.id]=p);const lr=likes.data||[],cr=comments.data||[];for(const p of posts){const author=profiles[p.user_id]||{},liked=!!(currentUser&&lr.some(l=>l.post_id===p.id&&l.user_id===currentUser.id)),lc=lr.filter(l=>l.post_id===p.id).length,cc=cr.filter(c=>c.post_id===p.id).length;const card=document.createElement("div");card.className="card post";const head=document.createElement("div");head.className="row";if(author.avatar_url){const av=document.createElement("img");av.className="avatar";av.src=safeURL(author.avatar_url);
