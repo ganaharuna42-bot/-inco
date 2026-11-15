@@ -1061,16 +1061,16 @@ async function loadProfile(){
   }
 
   const r=await db.from("posts")
-    .select("id,content,created_at")
+    .select("*")
     .eq("user_id",currentUser.id)
     .order("created_at",{ascending:false})
     .limit(50);
 
-  get("myPosts").innerHTML=r.error
-    ?escapeHTML(r.error.message)
-    :(r.data||[]).map(p=>
-      `<div class="item">${escapeHTML(p.content||"Post")} <span class="muted">${new Date(p.created_at).toLocaleDateString()}</span></div>`
-    ).join("")||"You have not posted yet.";
+  if(r.error){
+    get("myPosts").textContent=r.error.message;
+  }else{
+    await renderPostList(get("myPosts"),r.data||[]);
+  }
 }function applyProfileTheme(theme){
   const section=get("profile");
   if(!section)return;
