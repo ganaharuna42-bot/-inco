@@ -14,7 +14,40 @@ button{background:#1678db;color:white;border:0;padding:11px 14px;border-radius:9
 input,textarea,select{width:100%;padding:12px;margin:6px 0;background:#111d31;border:1px solid #304563;border-radius:8px;color:white}textarea{min-height:85px}
 main{max-width:850px;margin:auto;padding:12px}section{display:none}section.active{display:block}
 .card{background:#111d31;border:1px solid #263b5c;border-radius:13px;padding:15px;margin:12px 0;overflow-wrap:anywhere}
-.muted{color:#9eb0c9;font-size:13px}.post img,.post video,.news-image{width:100%;max-height:420px;object-fit:contain;border-radius:10px;margin-top:8px;background:#050910}
+.muted{color:#9eb0c9;font-size:13px}
+
+.post img,
+.post video{
+  display:block;
+  width:100%;
+  max-height:700px;
+  object-fit:contain;
+  border-radius:10px;
+  margin-top:10px;
+  background:#050910;
+}
+
+.post{
+  width:100%;
+  padding:16px;
+  margin:15px 0;
+  border-radius:14px;
+}
+
+.post p{
+  font-size:16px;
+  line-height:1.6;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+
+.news-image{
+  width:100%;
+  max-height:420px;
+  object-fit:contain;
+  border-radius:10px;
+  margin-top:8px;
+}
 a{color:#65b5ff}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1;min-width:0}
 .avatar{width:58px;height:58px;border-radius:50%;object-fit:cover;background:#263b5c}.item{padding:10px;border-bottom:1px solid #263b5c;overflow-wrap:anywhere}
 footer{text-align:center;color:#7e91ad;padding:25px}.chat-message{padding:11px;margin:8px 0;border-radius:12px;max-width:85%;background:#1b2c46;overflow-wrap:anywhere}
