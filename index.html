@@ -342,34 +342,19 @@ body.comments-open{
     <button onclick="saveFollowPrivacy()">Save Privacy Settings</button>
     <p id="followPrivacyStatus" class="muted"></p>
   </div>
-</section>
-
 <section id="live">
   <div class="card">
     <h2>🔴 INCO LIVE</h2>
 
-    <p>Go live and connect with the INCO community.</p>
+    <p>Go live and let people watch you.</p>
 
-    <input
-      id="liveTitle"
-      type="text"
-      placeholder="Enter your LIVE title"
-    >
-
-    <button onclick="startINCOLive()">
+    <button onclick="startLive()">
       🔴 Start LIVE
     </button>
 
-    <button onclick="endINCOLive()" id="endLiveButton" hidden>
-      End LIVE
-    </button>
+    <p id="liveStatus"></p>
 
-    <p id="liveStatus" class="muted"></p>
-
-    <video id="livePreview"
-      autoplay muted playsinline
-      style="width:100%;display:none;border-radius:12px">
-    </video>
+    <h3>Available LIVE sessions</h3>
 
     <div id="liveSessions">
       Loading live sessions...
