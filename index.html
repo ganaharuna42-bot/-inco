@@ -743,17 +743,18 @@ async function loadHomeFeed(){const b=get("homeFeed");if(!b)return;if(!currentUs
 async function renderPostList(box,posts){box.innerHTML="";if(!posts.length){box.textContent="No posts yet. Be the first to share.";return;}const ids=[...new Set(posts.map(p=>p.user_id))],postIds=posts.map(p=>p.id);const [pr,likes,comments]=await Promise.all([db.from("profiles").select("id,username,avatar_url,is_premium").in("id",ids),db.from("likes").select("post_id,user_id").in("post_id",postIds),db.from("comments").select("post_id").in("post_id",postIds)]);const profiles={};(pr.data||[]).forEach(p=>profiles[p.id]=p);const lr=likes.data||[],cr=comments.data||[];for(const p of posts){const author=profiles[p.user_id]||{},liked=!!(currentUser&&lr.some(l=>l.post_id===p.id&&l.user_id===currentUser.id)),lc=lr.filter(l=>l.post_id===p.id).length,cc=cr.filter(c=>c.post_id===p.id).length;const card=document.createElement("div");card.className="card post";const head=document.createElement("div");head.className="row";if(author.avatar_url){const av=document.createElement("img");av.className="avatar";av.src=safeURL(author.avatar_url);
 av.alt="Profile";
 av.style.cursor="pointer";
-av.onclick=()=>{
-  viewPublicProfile(p.user_id);
+av.onclick=async()=>{
+  showPage("people");
+  await viewPublicProfile(p.user_id);
 };
-
 head.append(av);}const who=document.createElement("b");
 who.textContent=author.username||"INCO user";
 who.style.cursor="pointer";
 who.style.color="#1678db";
 
-who.onclick=()=>{
-  viewPublicProfile(p.user_id);
+who.onclick=async()=>{
+  showPage("people");
+  await viewPublicProfile(p.user_id);
 };
 
 head.append(who);
