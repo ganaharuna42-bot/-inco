@@ -344,7 +344,38 @@ body.comments-open{
   </div>
 </section>
 
-<section id="live"><div class="card"><h2>🔴 INCO LIVE</h2><p>Live session listings from your existing Supabase database.</p><p class="muted">Camera broadcasting, viewer chat and host controls are not active yet. They need a secure LiveKit token service.</p><div id="liveSessions">Loading live sessions...</div></div></section>
+<section id="live">
+  <div class="card">
+    <h2>🔴 INCO LIVE</h2>
+
+    <p>Go live and connect with the INCO community.</p>
+
+    <input
+      id="liveTitle"
+      type="text"
+      placeholder="Enter your LIVE title"
+    >
+
+    <button onclick="startINCOLive()">
+      🔴 Start LIVE
+    </button>
+
+    <button onclick="endINCOLive()" id="endLiveButton" hidden>
+      End LIVE
+    </button>
+
+    <p id="liveStatus" class="muted"></p>
+
+    <video id="livePreview"
+      autoplay muted playsinline
+      style="width:100%;display:none;border-radius:12px">
+    </video>
+
+    <div id="liveSessions">
+      Loading live sessions...
+    </div>
+  </div>
+</section>
 <section id="gifts">
   <div class="card">
     <h2>🎁 INCO Gifts</h2>
