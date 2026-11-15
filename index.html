@@ -1247,6 +1247,39 @@ async function uploadAvatar(){if(!currentUser)return alert("Please log in first.
 async function loadNews(){const b=get("newsFeed");const {data,error}=await db.from("news_articles").select("id,author_id,title,category,content,image_url,views,created_at").order("created_at",{ascending:false}).limit(30);if(error){b.textContent="Could not load news: "+error.message;return;}b.innerHTML="";(data||[]).forEach(a=>{const c=document.createElement("div");c.className="card";const h=document.createElement("h3");h.textContent=a.title;const m=document.createElement("p");m.className="muted";m.textContent=(a.category||"News")+" · "+new Date(a.created_at).toLocaleDateString();const p=document.createElement("p");p.textContent=a.content||"";c.append(h,m);if(a.image_url){const im=document.createElement("img");im.className="news-image";im.src=safeURL(a.image_url);im.alt="News image";c.append(im);}c.append(p);b.append(c);});if(!data?.length)b.textContent="No news articles yet.";}
 async function submitArticle(){if(!currentUser)return alert("Please log in first.");const title=get("articleTitle").value.trim(),content=get("articleContent").value.trim();if(!title||!content)return say("articleStatus","Enter a title and article.");const {error}=await db.from("news_articles").insert({author_id:currentUser.id,title,category:get("articleCategory").value.trim(),content,image_url:get("articleImage").value.trim()||null});say("articleStatus",error?"Submission failed: "+error.message:"Article submitted.");if(!error){get("articleTitle").value="";get("articleContent").value="";await loadNews();}}
 async function loadLive(){const b=get("liveSessions"),{data,error}=await db.from("live_sessions").select("id,host_id,title,room_name,status,started_at").order("started_at",{ascending:false}).limit(20);if(error){b.textContent="Could not load LIVE sessions: "+error.message;return;}b.innerHTML="";(data||[]).forEach(s=>{const d=document.createElement("div");d.className="item";const t=document.createElement("b");t.textContent=s.title||"INCO LIVE";const st=document.createElement("span");st.className="badge";st.textContent=s.status||"Status unavailable";d.append(t,st);b.append(d);});if(!data?.length)b.textContent="No live sessions at the moment.";}
+async function startLive(){
+  if(!currentUser){
+    say("liveStatus","Please log in first.");
+    return;
+  }
+
+  const title = prompt("Enter your LIVE title:");
+  if(!title || !title.trim()) return;
+
+  say("liveStatus","Creating LIVE session...");
+
+  const roomName = "inco_" + crypto.randomUUID().replace(/-/g,"");
+
+  const {data,error} = await db
+    .from("live_sessions")
+    .insert({
+      host_id: currentUser.id,
+      title: title.trim(),
+      room_name: roomName,
+      status: "live",
+      started_at: new Date().toISOString()
+    })
+    .select()
+    .single();
+
+  if(error){
+    say("liveStatus","Could not start LIVE: " + error.message);
+    return;
+  }
+
+  say("liveStatus","LIVE session created successfully.");
+  await loadLive();
+}
 async function openChat(){if(!currentUser)return say("chatStatus","Please login first.");const u=get("chatUsername").value.trim();if(!u)return say("chatStatus","Enter the person's username.");say("chatStatus","Finding user...");const {data,error}=await db.from("profiles").select("id,username").eq("username",u).maybeSingle();if(error)return say("chatStatus",error.message);if(!data)return say("chatStatus","User not found. Check the exact username.");if(data.id===currentUser.id)return say("chatStatus","You cannot chat with yourself.");chatReceiver=data.id;if(chatChannel){await db.removeChannel(chatChannel);chatChannel=null;}await loadChatMessages();chatChannel=db.channel("inco-chat-"+currentUser.id).on("postgres_changes",{event:"*",schema:"public",table:"messages"},p=>{const m=p.new;if(m&&((m.sender_id===currentUser.id&&m.receiver_id===chatReceiver)||(m.sender_id===chatReceiver&&m.receiver_id===currentUser.id)))loadChatMessages();}).subscribe(st=>{if(st==="SUBSCRIBED")say("chatStatus","Connected. Messages update in real time.");if(st==="CHANNEL_ERROR")say("chatStatus","Realtime connection failed. Check Supabase Realtime settings.");});}
 async function sendChatMessage(){if(!currentUser)return alert("Please login first.");if(!chatReceiver)return alert("Open a chat first.");const content=get("chatText").value.trim();if(!content)return;const {error}=await db.from("messages").insert({sender_id:currentUser.id,receiver_id:chatReceiver,content});if(error)return alert("Message failed: "+error.message);get("chatText").value="";await loadChatMessages();await loadInbox();}
 
