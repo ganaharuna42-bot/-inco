@@ -1329,8 +1329,67 @@ async function startLive(){
   await loadLive();
 }
 async function openChat(){if(!currentUser)return say("chatStatus","Please login first.");const u=get("chatUsername").value.trim();if(!u)return say("chatStatus","Enter the person's username.");say("chatStatus","Finding user...");const {data,error}=await db.from("profiles").select("id,username").eq("username",u).maybeSingle();if(error)return say("chatStatus",error.message);if(!data)return say("chatStatus","User not found. Check the exact username.");if(data.id===currentUser.id)return say("chatStatus","You cannot chat with yourself.");chatReceiver=data.id;if(chatChannel){await db.removeChannel(chatChannel);chatChannel=null;}await loadChatMessages();chatChannel=db.channel("inco-chat-"+currentUser.id).on("postgres_changes",{event:"*",schema:"public",table:"messages"},p=>{const m=p.new;if(m&&((m.sender_id===currentUser.id&&m.receiver_id===chatReceiver)||(m.sender_id===chatReceiver&&m.receiver_id===currentUser.id)))loadChatMessages();}).subscribe(st=>{if(st==="SUBSCRIBED")say("chatStatus","Connected. Messages update in real time.");if(st==="CHANNEL_ERROR")say("chatStatus","Realtime connection failed. Check Supabase Realtime settings.");});}
-async function sendChatMessage(){if(!currentUser)return alert("Please login first.");if(!chatReceiver)return alert("Open a chat first.");const content=get("chatText").value.trim();if(!content)return;const {error}=await db.from("messages").insert({sender_id:currentUser.id,receiver_id:chatReceiver,content});if(error)return alert("Message failed: "+error.message);get("chatText").value="";await loadChatMessages();await loadInbox();}
+
+async function sendChatMessage(){
+  if(!currentUser)return alert("Please login first.");
+  if(!chatReceiver)return alert("Open a chat first.");
+
+  const fileInput=get("chatMedia");
+  const file=fileInput?.files?.[0];
+  const text=get("chatText").value.trim();
+
+  if(!file&&!text)return;
+
+  if(file){
+    if(file.size>30*1024*1024){
+      return alert("File is too large. Maximum size is 30MB.");
+    }
+
+    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+    const path=currentUser.id+"/"+Date.now()+"_"+safeName;
+
+    const {error:uploadError}=await db.storage
+      .from("inco-messages")
+      .upload(path,file);
+
+    if(uploadError){
+      return alert("Upload failed: "+uploadError.message);
+    }
+
+    const content="INCO_MEDIA:"+JSON.stringify({
+      path:path,
+      type:file.type
+    });
+
+    const {error}=await db.from("messages").insert({
+      sender_id:currentUser.id,
+      receiver_id:chatReceiver,
+      content:content
+    });
+
+    if(error){
+      return alert("Message failed: "+error.message);
+    }
+
+    fileInput.value="";
+  }
+
+  if(text){
+    const {error}=await db.from("messages").insert({
+      sender_id:currentUser.id,
+      receiver_id:chatReceiver,
+      content:text
+    });
+
+    if(error)return alert("Message failed: "+error.message);
+
+    get("chatText").value="";
+  }
+
+  await loadChatMessages();
+  await loadInbox();
 }
+
 async function loadChatMessages(){
   if(!currentUser||!chatReceiver)return;
 
