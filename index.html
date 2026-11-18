@@ -313,7 +313,44 @@ body.comments-open{
 <p id="postStatus" class="muted"></p></p></div><div id="feed"></div></section>
 <section id="trending"><div class="card"><h2>🔥 Trending on INCO</h2><p class="muted">Posts are ranked using recent likes and comments. This is a popularity guide, not a guarantee of quality.</p><button onclick="loadTrending()">Refresh Trending</button><div id="trendingFeed">Login to view trending posts.</div></div></section>
 <section id="daily"><div class="card"><h2>🌞 INCO Daily</h2><p class="muted">A fresh community question and small positive activity each day.</p><h3>Today's question</h3><p id="dailyQuestion">Loading...</p><textarea id="dailyAnswer" placeholder="Share your answer with the community"></textarea><button onclick="answerDailyQuestion()">Share answer</button><h3>Today's challenge</h3><p id="dailyChallenge">Loading...</p><button onclick="startDailyChallenge()">Take today's challenge</button><p id="challengeStatus" class="muted">Challenges are optional. Take part at your own pace.</p></div></section>
-<section id="chat"><div class="card"><h2>💬 INCO Messages</h2><p class="muted">Send private text messages to other INCO users.</p><input id="chatUsername" placeholder="Enter receiver's exact username"><button onclick="openChat()">Open Chat</button><p id="chatStatus" class="muted"></p><div id="chatMessages"><p class="muted">Open a conversation to see messages.</p></div><textarea id="chatText" placeholder="Write your message..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"></textarea><button onclick="sendChatMessage()">Send Message</button></div></section>
+
+<section id="chat">
+  <div class="card">
+    <h2>💬 INCO Messages</h2>
+
+    <p class="muted">Send private messages and photos to other INCO users.</p>
+
+    <input id="chatUsername" placeholder="Enter receiver's exact username">
+
+    <button onclick="openChat()">Open Chat</button>
+
+    <p id="chatStatus" class="muted"></p>
+
+    <div id="chatMessages">
+      <p class="muted">Open a conversation to see messages.</p>
+    </div>
+
+    <textarea
+      id="chatText"
+      placeholder="Write your message..."
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"
+    ></textarea>
+
+    <label class="media-picker">
+      📷 Send Photo or Video
+      <input
+        type="file"
+        id="chatMedia"
+        accept="image/*,video/*"
+      >
+    </label>
+
+    <div id="chatMediaPreview"></div>
+
+    <button onclick="sendChatMessage()">Send Message</button>
+  </div>
+</section>
+
 <section id="inbox"><div class="card"><h2>📥 Message Inbox</h2><div id="inboxList">Loading inbox...</div></div></section>
 <section id="notifications"><div class="card"><h2>🔔 Notifications</h2><button onclick="markAllNotificationsRead()">Mark all as read</button><div id="notificationList">Loading notifications...</div></div></section>
 <section id="people"><div class="card"><h2>👥 Discover People</h2><input id="peopleSearch" placeholder="Search username" onkeydown="if(event.key==='Enter')searchPeople()"><button onclick="searchPeople()">Search</button><div id="peopleResults"></div></div><div class="card"><h2>🌍 Public Profile</h2><div id="publicProfile">Search for someone to view their profile.</div><div id="publicPosts"></div></div></section>
