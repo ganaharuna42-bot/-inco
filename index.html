@@ -1424,7 +1424,7 @@ async function loadChatMessages(){
 
         const {data:link,error:linkError}=await db
           .storage
-          .from("inco-messages")
+          .from("INCO Message")
           .createSignedUrl(media.path,3600);
 
         if(linkError)throw linkError;
