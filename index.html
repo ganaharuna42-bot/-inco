@@ -592,25 +592,19 @@ function openPublicProfile(userId){
 }
 
 // INCO POST MEDIA PREVIEW FIX
-function previewPostMedia(){
-  const file = get("postMedia")?.files?.[0];
-  const box = get("postMediaPreview");
+function previewChatMedia(){
+  const file = get("chatMedia")?.files?.[0];
+  const box = get("chatMediaPreview");
 
   if(!box) return;
 
   box.innerHTML = "";
-
   if(!file) return;
 
   if(!file.type.startsWith("image/") &&
      !file.type.startsWith("video/")){
-    say("postStatus","Choose a valid image or video.");
-    return;
-  }
-
-  if(file.size > 30 * 1024 * 1024){
-    say("postStatus","Media must be 30 MB or smaller.");
-    get("postMedia").value = "";
+    alert("Choose an image or video.");
+    get("chatMedia").value = "";
     return;
   }
 
@@ -625,7 +619,6 @@ function previewPostMedia(){
   }else{
     const image = document.createElement("img");
     image.src = url;
-    image.alt = "Post preview";
     image.className = "media-preview";
     box.append(image);
   }
