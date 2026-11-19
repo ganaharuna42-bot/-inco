@@ -334,12 +334,13 @@ body.comments-open{
     ></textarea>
 
     <label class="media-picker">
-      📷 Send Photo or Video
-      <input
-        type="file"
-        id="chatMedia"
-        accept="image/*,video/*"
-      >
+      📷 Send Photo or Video 
+<input
+  type="file"
+  id="chatMedia"
+  accept="image/*,video/*"
+  onchange="previewChatMedia()"
+>
     </label>
 
     <div id="chatMediaPreview"></div>
