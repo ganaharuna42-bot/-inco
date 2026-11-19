@@ -1346,7 +1346,7 @@ async function sendChatMessage(){
     const path=currentUser.id+"/"+Date.now()+"_"+safeName;
 
     const {error:uploadError}=await db.storage
-       .from("inco message")
+     .from("INCO Message")
       .upload(path,file);
 
     if(uploadError){
