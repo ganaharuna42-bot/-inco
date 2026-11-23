@@ -310,7 +310,28 @@ body.comments-open{
 <button onclick="createPost()">Publish Post</button>
 <p id="postStatus" class="muted"></p></p></div><div id="feed"></div></section>
 <section id="trending"><div class="card"><h2>🔥 Trending on INCO</h2><p class="muted">Posts are ranked using recent likes and comments. This is a popularity guide, not a guarantee of quality.</p><button onclick="loadTrending()">Refresh Trending</button><div id="trendingFeed">Login to view trending posts.</div></div></section>
-<section id="daily"><div class="card"><h2>🌞 INCO Daily</h2><p class="muted">A fresh community question and small positive activity each day.</p><h3>Today's question</h3><p id="dailyQuestion">Loading...</p><textarea id="dailyAnswer" placeholder="Share your answer with the community"></textarea><button onclick="answerDailyQuestion()">Share answer</button><h3>Today's challenge</h3><p id="dailyChallenge">Loading...</p><button onclick="startDailyChallenge()">Take today's challenge</button><p id="challengeStatus" class="muted">Challenges are optional. Take part at your own pace.</p></div></section>
+
+<section id="daily">
+<div class="card">
+<h2>🌞 INCO Daily</h2>
+<p class="muted" id="dailyDate">Your daily update</p>
+<h3>💡 Today's useful tip</h3>
+<p id="dailyTip">Loading today's tip...</p>
+</div>
+<div class="card">
+<h3>❓ Today's question</h3>
+<p id="dailyQuestion">Loading...</p>
+<textarea id="dailyAnswer" placeholder="Share your thoughts with the INCO community"></textarea>
+<button onclick="answerDailyQuestion()">Share your answer</button>
+</div>
+<div class="card">
+<h3>🎯 Today's challenge</h3>
+<p id="dailyChallenge">Loading...</p>
+<button onclick="startDailyChallenge()">Take today's challenge</button>
+<p id="challengeStatus" class="muted">Your participation is optional.</p>
+</div>
+</section>
+
 
 <section id="chat">
   <div class="card">
@@ -1132,19 +1153,92 @@ function savePost(id){const a=localGet("inco_bookmarks");if(!a.includes(id))a.pu
 async function renderSaved(){const ids=localGet("inco_bookmarks"),b=get("bookmarks");b.textContent="Loading saved posts...";if(!ids.length)b.textContent="No saved posts yet.";else{const {data,error}=await db.from("posts").select("id,user_id,content,media_url,status,created_at").in("id",ids);if(error)b.textContent=error.message;else await renderPostList(b,data||[]);}renderHistory("history");}
 function renderHistory(id){const b=get(id);if(!b)return;const a=localGet("inco_history");b.innerHTML=a.map(x=>`<div class="item">${escapeHTML(x.value)} <span class="muted">${escapeHTML(x.time)}</span></div>`).join("")||"No history yet.";}
 function clearHistory(){localSet("inco_history",[]);renderHistory("history");renderHistory("searchHistory");}
+
 const dailyItems=[
-{q:"What is one useful thing you learned recently?",c:"Share one helpful tip that another INCO member can use."},
-{q:"What small thing made your day better?",c:"Encourage someone in the community with a kind message."},
-{q:"If you could learn one new skill, what would it be?",c:"Share a free learning resource or useful website."},
-{q:"What advice would you give someone starting something new?",c:"Share a practical lesson from your experience."},
-{q:"Which website or app helps you most, and why?",c:"Introduce a website that helps people study, create or work."},
-{q:"What is one goal you want to make progress on?",c:"Write down one safe, realistic step toward a personal goal."},
-{q:"What topic would you like the INCO community to discuss?",c:"Ask a respectful question and welcome different viewpoints."}
+{
+q:"What is one skill you would like to learn?",
+c:"Find one free learning resource and share it with someone.",
+tip:"Learning a little every day can help you build useful skills."
+},
+{
+q:"What is one thing that could make your community better?",
+c:"Share one helpful idea with the INCO community.",
+tip:"Good communication helps people understand each other."
+},
+{
+q:"Which website helps you learn or work?",
+c:"Introduce a useful website to other INCO members.",
+tip:"The internet can be a powerful learning tool."
+},
+{
+q:"What is one useful lesson you learned recently?",
+c:"Share that lesson with another person.",
+tip:"Sharing knowledge can help someone else grow."
+},
+{
+q:"What would you like to achieve this month?",
+c:"Choose one small step towards your goal.",
+tip:"Breaking a big goal into smaller steps makes it easier to manage."
+},
+{
+q:"What topic would you like INCO to discuss?",
+c:"Start a respectful discussion in the community.",
+tip:"Different viewpoints can help us learn."
+},
+{
+q:"What is one positive thing you noticed today?",
+c:"Share something encouraging with the community.",
+tip:"Taking time to notice good things can improve your day."
+}
 ];
-function todayItem(){const d=new Date();const day=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000);return dailyItems[((day%dailyItems.length)+dailyItems.length)%dailyItems.length];}
-function loadINCODaily(){const x=todayItem();say("dailyQuestion",x.q);say("dailyChallenge",x.c);say("homeDailyQuestion",x.q);}
-function answerDailyQuestion(){if(!currentUser)return alert("Please log in first.");const a=get("dailyAnswer").value.trim();if(!a)return alert("Write your answer first.");get("postText").value="🌞 INCO Daily Question: "+todayItem().q+"\n\n"+a;showPage("community");say("postStatus","Your answer is ready. Press Publish Post to share it.");get("postText").focus();}
-function startDailyChallenge(){if(!currentUser)return alert("Please log in first.");get("postText").value="🌟 INCO Daily Challenge: "+todayItem().c+"\n\nMy update: ";showPage("community");say("postStatus","Challenge post prepared. Add your update, then press Publish Post.");get("postText").focus();}
+
+function todayItem(){
+const d=new Date();
+const day=Math.floor(Date.UTC(
+d.getFullYear(),d.getMonth(),d.getDate()
+)/86400000);
+return dailyItems[((day%dailyItems.length)+dailyItems.length)%dailyItems.length];
+}
+
+function loadINCODaily(){
+const x=todayItem();
+const date=new Date().toLocaleDateString(undefined,{
+weekday:"long",year:"numeric",month:"long",day:"numeric"
+});
+
+say("dailyDate","Today: "+date);
+say("dailyQuestion",x.q);
+say("dailyChallenge",x.c);
+say("dailyTip",x.tip);
+say("homeDailyQuestion",x.q);
+}
+
+function answerDailyQuestion(){
+if(!currentUser)return alert("Please log in first.");
+const a=get("dailyAnswer").value.trim();
+if(!a)return alert("Write your answer first.");
+
+get("postText").value=
+"🌞 INCO Daily Question: "+
+todayItem().q+"\n\n"+a;
+
+showPage("community");
+say("postStatus","Your answer is ready. Press Publish Post to share it.");
+get("postText").focus();
+}
+
+function startDailyChallenge(){
+if(!currentUser)return alert("Please log in first.");
+
+get("postText").value=
+"🌟 INCO Daily Challenge: "+
+todayItem().c+"\n\nMy update: ";
+
+showPage("community");
+say("postStatus","Challenge prepared. Add your update and press Publish Post.");
+get("postText").focus();
+}
+
 async function loadProfile(){
   if(!currentUser)return;
 
