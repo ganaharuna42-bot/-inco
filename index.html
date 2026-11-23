@@ -1413,89 +1413,124 @@ async function saveProfile(){
 }
 async function uploadAvatar(){if(!currentUser)return alert("Please log in first.");const f=get("avatarFile").files[0];if(!f)return alert("Choose a picture first.");if(!f.type.startsWith("image/")||f.size>5*1024*1024)return alert("Choose an image under 5 MB.");const ext=(f.name.split(".").pop()||"jpg").replace(/[^a-z0-9]/gi,""),path=currentUser.id+"/avatar-"+Date.now()+"."+ext;const up=await db.storage.from("inco-avatars").upload(path,f,{upsert:false,contentType:f.type});if(up.error)return say("profileStatus",up.error.message);const url=db.storage.from("inco-avatars").getPublicUrl(path).data.publicUrl;const r=await db.from("profiles").update({avatar_url:url}).eq("id",currentUser.id);if(r.error)return say("profileStatus",r.error.message);get("avatarPreview").src=url;say("profileStatus","Profile picture updated.");}
 
+
 let incoNewsCategory = "All";
 
+async function filterNews(category){
+  incoNewsCategory = category;
+  await loadNews();
+}
+
 async function loadNews(){
- const feed=get("newsFeed");
- const status=get("newsStatus");
+  const feed = get("newsFeed");
+  const status = get("newsStatus");
 
- if(!feed)return;
+  if(!feed) return;
 
- feed.innerHTML="Loading articles...";
- if(status)status.textContent="Getting latest INCO articles...";
+  feed.innerHTML = "Loading latest news...";
+  if(status) status.textContent = "Connecting to news sources...";
 
- const {data,error}=await db
- .from("news_articles")
- .select("id,author_id,title,category,content,image_url,views,created_at")
- .order("created_at",{ascending:false})
- .limit(50);
+  const searches = {
+    "All": "Nigeria OR Africa OR world news",
+    "Nigeria": "Nigeria news",
+    "World": "world international news",
+    "Business": "Nigeria business economy",
+    "Technology": "technology innovation",
+    "Sports": "football sports",
+    "Entertainment": "entertainment music movies",
+    "Politics": "Nigeria politics"
+  };
 
- if(error){
-  feed.textContent="Could not load news: "+error.message;
-  return;
- }
-
- renderIncoNews(data||[]);
-}
-
-function filterNews(category){
- incoNewsCategory=category;
- loadNews();
-}
-
-function renderIncoNews(articles){
- const feed=get("newsFeed");
- const status=get("newsStatus");
-
- if(!feed)return;
-
- feed.innerHTML="";
-
- const filtered=articles.filter(a=>{
-  return incoNewsCategory==="All" ||
-  (a.category||"").toLowerCase().includes(
-   incoNewsCategory.toLowerCase()
+  const query = encodeURIComponent(
+    searches[incoNewsCategory] || searches.All
   );
- });
 
- if(status){
-  status.textContent=filtered.length+
-  " articles found · "+incoNewsCategory;
- }
+  const rss = "https://news.google.com/rss/search?q=" +
+    query + "&hl=en-NG&gl=NG&ceid=NG:en";
 
- if(!filtered.length){
-  feed.textContent="No articles in this category yet.";
-  return;
- }
+  const api = "https://api.rss2json.com/v1/api.json?rss_url=" +
+    encodeURIComponent(rss);
 
- filtered.forEach(a=>{
-  const card=document.createElement("div");
-  card.className="card";
+  try {
+    const response = await fetch(api);
 
-  const heading=document.createElement("h3");
-  heading.textContent=a.title;
+    if(!response.ok) throw new Error("News service unavailable");
 
-  const meta=document.createElement("p");
-  meta.className="muted";
-  meta.textContent=(a.category||"News")+" · "+
-  new Date(a.created_at).toLocaleDateString();
+    const result = await response.json();
 
-  card.append(heading,meta);
+    if(result.status !== "ok") {
+      throw new Error("News feed could not be loaded");
+    }
 
-  if(a.image_url){
-   const img=document.createElement("img");
-   img.className="news-image";
-   img.src=safeURL(a.image_url);
-   img.alt=a.title;
-   card.append(img);
+    const articles = result.items || [];
+
+    feed.innerHTML = "";
+
+    if(!articles.length){
+      feed.textContent = "No latest articles found. Try Refresh News.";
+      return;
+    }
+
+    articles.forEach(article => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const title = document.createElement("h3");
+      title.textContent = article.title || "News update";
+
+      const source = document.createElement("p");
+      source.className = "muted";
+      source.textContent =
+        (article.author || "News publisher") + " · " +
+        (article.pubDate ?
+        new Date(article.pubDate).toLocaleString() : "");
+
+      const imageUrl =
+        article.thumbnail ||
+        article.enclosure?.link ||
+        "";
+
+      if(imageUrl && /^https?:\/\//i.test(imageUrl)){
+        const img = document.createElement("img");
+        img.className = "news-image";
+        img.src = safeURL(imageUrl);
+        img.alt = article.title || "News image";
+        img.loading = "lazy";
+        card.append(img);
+      }
+
+      const description = document.createElement("p");
+      const temp = document.createElement("div");
+      temp.innerHTML = article.description || "";
+      description.textContent =
+        (temp.textContent || "").slice(0,350);
+
+      const link = document.createElement("a");
+      const url = safeURL(article.link || "");
+
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "Read Full Story →";
+
+      card.append(title,source,description);
+
+      if(url !== "#") card.append(link);
+
+      feed.append(card);
+    });
+
+    if(status){
+      status.textContent =
+        articles.length + " latest headlines · " +
+        incoNewsCategory;
+    }
+
+  } catch(error) {
+    feed.textContent =
+      "News could not load right now. Please try again.";
+    if(status) status.textContent = error.message;
   }
-
-  const content=document.createElement("p");
-  content.textContent=a.content||"";
-  card.append(content);
-
-  feed.append(card);
- });
 }
 
 async function submitArticle(){
