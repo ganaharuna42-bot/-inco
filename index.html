@@ -374,7 +374,41 @@ body.comments-open{
 <section id="inbox"><div class="card"><h2>📥 Message Inbox</h2><div id="inboxList">Loading inbox...</div></div></section>
 <section id="notifications"><div class="card"><h2>🔔 Notifications</h2><button onclick="markAllNotificationsRead()">Mark all as read</button><div id="notificationList">Loading notifications...</div></div></section>
 <section id="people"><div class="card"><h2>👥 Discover People</h2><input id="peopleSearch" placeholder="Search username" onkeydown="if(event.key==='Enter')searchPeople()"><button onclick="searchPeople()">Search</button><div id="peopleResults"></div></div><div class="card"><h2>🌍 Public Profile</h2><div id="publicProfile">Search for someone to view their profile.</div><div id="publicPosts"></div></div></section>
-<section id="news"><div class="card"><h2>INCO News</h2><div id="newsFeed">Loading news...</div></div><div class="card"><h3>Submit an article</h3><input id="articleTitle" placeholder="Article title"><input id="articleCategory" placeholder="Category"><textarea id="articleContent" placeholder="Write your article"></textarea><input id="articleImage" placeholder="Image URL (optional)"><button onclick="submitArticle()">Submit Article</button><p id="articleStatus" class="muted"></p></div></section>
+
+<section id="news">
+<div class="card">
+<h2>🌍 INCO News</h2>
+<p class="muted">Your world. Your news. All in one place.</p>
+<button onclick="loadNews()">↻ Refresh News</button>
+<div class="row">
+<button onclick="filterNews('All')">All</button>
+<button onclick="filterNews('Nigeria')">Nigeria</button>
+<button onclick="filterNews('World')">World</button>
+</div>
+<div class="row">
+<button onclick="filterNews('Business')">Business</button>
+<button onclick="filterNews('Technology')">Technology</button>
+<button onclick="filterNews('Sports')">Sports</button>
+</div>
+<div class="row">
+<button onclick="filterNews('Entertainment')">Entertainment</button>
+<button onclick="filterNews('Politics')">Politics</button>
+</div>
+<p id="newsStatus" class="muted">Loading news...</p>
+<div id="newsFeed">Loading news...</div>
+</div>
+
+<div class="card">
+<h3>✍️ Share an Article</h3>
+<input id="articleTitle" placeholder="Article title">
+<input id="articleCategory" placeholder="Category">
+<textarea id="articleContent" placeholder="Write your article"></textarea>
+<input id="articleImage" placeholder="Image URL (optional)">
+<button onclick="submitArticle()">Submit Article</button>
+<p id="articleStatus" class="muted"></p>
+</div>
+</section>
+
 <section id="saved"><div class="card"><h2>Saved Posts</h2><div id="bookmarks"></div></div><div class="card"><h2>Browsing history</h2><div id="history"></div><button onclick="clearHistory()">Clear History</button></div></section>
 <section id="profile"><div class="card"><h2>My Profile</h2><img id="avatarPreview" class="avatar" alt="Profile picture"><input type="file" id="avatarFile" accept="image/*"><button onclick="uploadAvatar()">Upload Profile Picture</button><input id="profileDisplayName" placeholder="Your display name">
 <input id="profileUsername" placeholder="Your unique username"><textarea id="profileBio" placeholder="Your bio"></textarea><button onclick="saveProfile()">Save Profile</button>
