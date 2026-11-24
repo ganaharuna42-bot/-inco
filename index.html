@@ -259,7 +259,92 @@ footer{text-align:center;color:#7e91ad;padding:25px}.chat-message{padding:11px;m
 body.comments-open{
   overflow:hidden;
 }
-
+/* ===== INCO PROFESSIONAL NEWS DESIGN ===== */
+.news-heading{
+  margin:18px 0 8px;
+  font-size:21px;
+}
+.news-intro{
+  color:#9eb0c9;
+  line-height:1.6;
+}
+.news-categories{
+  display:flex;
+  gap:7px;
+  overflow-x:auto;
+  padding:8px 0;
+}
+.news-categories button{
+  flex-shrink:0;
+  background:#1b2c46;
+}
+.news-categories button.active{
+  background:#1678db;
+}
+.news-feature{
+  background:linear-gradient(145deg,#172d4c,#111d31);
+  border:1px solid #355477;
+  border-radius:15px;
+  padding:17px;
+  margin:12px 0;
+}
+.news-feature h2{
+  font-size:21px;
+  line-height:1.4;
+}
+.news-card{
+  background:#111d31;
+  border:1px solid #263b5c;
+  border-radius:13px;
+  padding:14px;
+  margin:12px 0;
+}
+.news-card h3{
+  line-height:1.45;
+  margin:8px 0;
+}
+.news-card p{
+  line-height:1.6;
+}
+.news-card a,.news-feature a{
+  display:inline-block;
+  margin-top:10px;
+  font-weight:bold;
+  text-decoration:none;
+}
+.news-section-label{
+  color:#65b5ff;
+  font-weight:bold;
+  font-size:12px;
+  letter-spacing:1px;
+}
+.news-source{
+  color:#9eb0c9;
+  font-size:12px;
+}
+.news-briefing{
+  background:#14233a;
+  border:1px solid #355477;
+  border-radius:13px;
+  padding:15px;
+  margin:14px 0;
+}
+.news-briefing li{
+  margin:12px 0;
+  line-height:1.5;
+}
+.news-empty{
+  padding:22px;
+  text-align:center;
+  color:#9eb0c9;
+}
+.news-image{
+  width:100%;
+  max-height:350px;
+  object-fit:cover;
+  border-radius:11px;
+  margin:10px 0;
+}
 </style>
 </head>
 <body>
@@ -376,37 +461,84 @@ body.comments-open{
 <section id="people"><div class="card"><h2>👥 Discover People</h2><input id="peopleSearch" placeholder="Search username" onkeydown="if(event.key==='Enter')searchPeople()"><button onclick="searchPeople()">Search</button><div id="peopleResults"></div></div><div class="card"><h2>🌍 Public Profile</h2><div id="publicProfile">Search for someone to view their profile.</div><div id="publicPosts"></div></div></section>
 
 <section id="news">
+
 <div class="card">
-<h2>🌍 INCO News</h2>
-<p class="muted">Your world. Your news. All in one place.</p>
-<button onclick="loadNews()">↻ Refresh News</button>
-<div class="row">
-<button onclick="filterNews('All')">All</button>
-<button onclick="filterNews('Nigeria')">Nigeria</button>
-<button onclick="filterNews('World')">World</button>
-</div>
-<div class="row">
-<button onclick="filterNews('Business')">Business</button>
-<button onclick="filterNews('Technology')">Technology</button>
-<button onclick="filterNews('Sports')">Sports</button>
-</div>
-<div class="row">
-<button onclick="filterNews('Entertainment')">Entertainment</button>
-<button onclick="filterNews('Politics')">Politics</button>
-</div>
-<p id="newsStatus" class="muted">Loading news...</p>
-<div id="newsFeed">Loading news...</div>
+  <h2>🌍 INCO News</h2>
+  <p class="news-intro">
+    Important stories from Nigeria and around the world.
+    Stay informed with INCO.
+  </p>
+
+  <div class="news-briefing">
+    <span class="news-section-label">🌞 YOUR DAILY BRIEFING</span>
+    <h3>Today's Headlines</h3>
+    <p class="muted">
+      A quick roundup of the latest stories.
+    </p>
+    <div id="newsBriefing">
+      Loading today's headlines...
+    </div>
+  </div>
+
+  <div class="row">
+    <button onclick="loadNews()">↻ Refresh News</button>
+    <button onclick="loadNews(true)">🌞 Refresh Briefing</button>
+  </div>
+
+  <h3 class="news-heading">📰 Explore News</h3>
+
+  <div class="news-categories">
+    <button data-news-category="All"
+      onclick="filterNews('All')">Top Stories</button>
+
+    <button data-news-category="Nigeria"
+      onclick="filterNews('Nigeria')">🇳🇬 Nigeria</button>
+
+    <button data-news-category="World"
+      onclick="filterNews('World')">🌍 World</button>
+
+    <button data-news-category="Business"
+      onclick="filterNews('Business')">💼 Business</button>
+
+    <button data-news-category="Technology"
+      onclick="filterNews('Technology')">💻 Technology</button>
+
+    <button data-news-category="Sports"
+      onclick="filterNews('Sports')">⚽ Sports</button>
+
+    <button data-news-category="Entertainment"
+      onclick="filterNews('Entertainment')">🎬 Entertainment</button>
+
+    <button data-news-category="Politics"
+      onclick="filterNews('Politics')">🏛️ Politics</button>
+  </div>
+
+  <p id="newsStatus" class="muted">
+    Loading latest headlines...
+  </p>
+
+  <div id="newsFeed">
+    Loading INCO News...
+  </div>
 </div>
 
 <div class="card">
-<h3>✍️ Share an Article</h3>
-<input id="articleTitle" placeholder="Article title">
-<input id="articleCategory" placeholder="Category">
-<textarea id="articleContent" placeholder="Write your article"></textarea>
-<input id="articleImage" placeholder="Image URL (optional)">
-<button onclick="submitArticle()">Submit Article</button>
-<p id="articleStatus" class="muted"></p>
+  <h3>✍️ Share an Article</h3>
+  <p class="muted">
+    Submit an article for consideration by INCO.
+  </p>
+
+  <input id="articleTitle" placeholder="Article title">
+  <input id="articleCategory" placeholder="Category">
+  <textarea id="articleContent"
+    placeholder="Write your article"></textarea>
+  <input id="articleImage"
+    placeholder="Image URL (optional)">
+
+  <button onclick="submitArticle()">Submit Article</button>
+  <p id="articleStatus" class="muted"></p>
 </div>
+
 </section>
 
 <section id="saved"><div class="card"><h2>Saved Posts</h2><div id="bookmarks"></div></div><div class="card"><h2>Browsing history</h2><div id="history"></div><button onclick="clearHistory()">Clear History</button></div></section>
@@ -1413,165 +1545,337 @@ async function saveProfile(){
 }
 async function uploadAvatar(){if(!currentUser)return alert("Please log in first.");const f=get("avatarFile").files[0];if(!f)return alert("Choose a picture first.");if(!f.type.startsWith("image/")||f.size>5*1024*1024)return alert("Choose an image under 5 MB.");const ext=(f.name.split(".").pop()||"jpg").replace(/[^a-z0-9]/gi,""),path=currentUser.id+"/avatar-"+Date.now()+"."+ext;const up=await db.storage.from("inco-avatars").upload(path,f,{upsert:false,contentType:f.type});if(up.error)return say("profileStatus",up.error.message);const url=db.storage.from("inco-avatars").getPublicUrl(path).data.publicUrl;const r=await db.from("profiles").update({avatar_url:url}).eq("id",currentUser.id);if(r.error)return say("profileStatus",r.error.message);get("avatarPreview").src=url;say("profileStatus","Profile picture updated.");}
 
+// ===== INCO NEWS ENGINE =====
 
 let incoNewsCategory = "All";
+let incoNewsRequest = 0;
+let incoNewsArticles = [];
+
+const incoNewsSearches = {
+  "All": "Nigeria Africa world latest news",
+  "Nigeria": "Nigeria latest news",
+  "World": "world international latest news",
+  "Business": "Nigeria Africa business economy finance",
+  "Technology": "technology artificial intelligence innovation",
+  "Sports": "football sports latest news",
+  "Entertainment": "entertainment music movies latest news",
+  "Politics": "Nigeria politics latest news"
+};
+
+function updateNewsCategoryButtons(){
+  document.querySelectorAll("[data-news-category]")
+    .forEach(button=>{
+      button.classList.toggle(
+        "active",
+        button.dataset.newsCategory === incoNewsCategory
+      );
+    });
+}
 
 async function filterNews(category){
   incoNewsCategory = category;
+  updateNewsCategoryButtons();
   await loadNews();
 }
 
-async function loadNews(){
+function newsSourceName(article){
+  const author = article.author || "";
+  if(author.trim()) return author.trim();
+
+  const title = article.title || "";
+  const parts = title.split(" - ");
+
+  return parts.length > 1
+    ? parts[parts.length - 1].trim()
+    : "News publisher";
+}
+
+function createNewsLink(article){
+  const url = safeURL(article.link || "");
+  if(url === "#") return null;
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = "Read Full Story →";
+
+  return link;
+}
+
+function createNewsCard(article,index){
+  const card = document.createElement("article");
+  card.className = index === 0
+    ? "news-feature"
+    : "news-card";
+
+  const label = document.createElement("span");
+  label.className = "news-section-label";
+  label.textContent = index === 0
+    ? "TOP STORY"
+    : "LATEST UPDATE";
+
+  const title = document.createElement(
+    index === 0 ? "h2" : "h3"
+  );
+
+  title.textContent = article.title || "News update";
+
+  const source = document.createElement("p");
+  source.className = "news-source";
+
+  const date = article.pubDate
+    ? new Date(article.pubDate)
+    : null;
+
+  source.textContent =
+    newsSourceName(article) +
+    (date && !Number.isNaN(date.getTime())
+      ? " · " + date.toLocaleString()
+      : "");
+
+  const imageUrl =
+    article.thumbnail ||
+    article.enclosure?.link ||
+    "";
+
+  if(imageUrl && /^https?:\/\//i.test(imageUrl)){
+    const image = document.createElement("img");
+    image.className = "news-image";
+    image.src = safeURL(imageUrl);
+    image.alt = article.title || "News image";
+    image.loading = "lazy";
+
+    image.onerror = ()=>{
+      image.remove();
+    };
+
+    card.append(label,image,title,source);
+  }else{
+    card.append(label,title,source);
+  }
+
+  const description = document.createElement("p");
+  const temporary = document.createElement("div");
+
+  // Extract text only; do not display feed HTML.
+  temporary.innerHTML = article.description || "";
+
+  description.textContent =
+    (temporary.textContent || "")
+      .trim()
+      .slice(0,350);
+
+  if(description.textContent){
+    card.append(description);
+  }
+
+  const link = createNewsLink(article);
+
+  if(link) card.append(link);
+
+  return card;
+}
+
+async function getINCONNews(query){
+  const rss =
+    "https://news.google.com/rss/search?q=" +
+    encodeURIComponent(query) +
+    "&hl=en-NG&gl=NG&ceid=NG:en";
+
+  const api =
+    "https://api.rss2json.com/v1/api.json?rss_url=" +
+    encodeURIComponent(rss);
+
+  const response = await fetch(api);
+
+  if(!response.ok){
+    throw new Error("News service is temporarily unavailable.");
+  }
+
+  const result = await response.json();
+
+  if(result.status !== "ok"){
+    throw new Error("Could not retrieve this news feed.");
+  }
+
+  return result.items || [];
+}
+
+async function loadNews(refreshBriefing=false){
   const feed = get("newsFeed");
   const status = get("newsStatus");
+  const briefing = get("newsBriefing");
 
   if(!feed) return;
 
-  feed.innerHTML = "Loading latest news...";
-  if(status) status.textContent = "Connecting to news sources...";
+  const requestId = ++incoNewsRequest;
 
-  const searches = {
-    "All": "Nigeria OR Africa OR world news",
-    "Nigeria": "Nigeria news",
-    "World": "world international news",
-    "Business": "Nigeria business economy",
-    "Technology": "technology innovation",
-    "Sports": "football sports",
-    "Entertainment": "entertainment music movies",
-    "Politics": "Nigeria politics"
-  };
+  feed.innerHTML = "";
+  feed.textContent = "Loading latest stories...";
 
-  const query = encodeURIComponent(
-    searches[incoNewsCategory] || searches.All
-  );
+  if(status){
+    status.textContent =
+      "Connecting to news sources...";
+  }
 
-  const rss = "https://news.google.com/rss/search?q=" +
-    query + "&hl=en-NG&gl=NG&ceid=NG:en";
+  if(briefing && (refreshBriefing || !briefing.dataset.loaded)){
+    briefing.textContent = "Preparing today's headlines...";
+  }
 
-  const api = "https://api.rss2json.com/v1/api.json?rss_url=" +
-    encodeURIComponent(rss);
+  try{
+    const query =
+      incoNewsSearches[incoNewsCategory] ||
+      incoNewsSearches.All;
 
-  try {
-    const response = await fetch(api);
+    const articles = await getINCONNews(query);
 
-    if(!response.ok) throw new Error("News service unavailable");
+    // Ignore older requests if the user changed category.
+    if(requestId !== incoNewsRequest) return;
 
-    const result = await response.json();
-
-    if(result.status !== "ok") {
-      throw new Error("News feed could not be loaded");
-    }
-
-    const articles = result.items || [];
+    incoNewsArticles = articles;
 
     feed.innerHTML = "";
 
     if(!articles.length){
-      feed.textContent = "No latest articles found. Try Refresh News.";
+      feed.textContent =
+        "No stories found. Please try another category.";
+      if(status) status.textContent = "No headlines available.";
       return;
     }
 
-    articles.forEach(article => {
-      const card = document.createElement("div");
-      card.className = "card";
+    const heading = document.createElement("h3");
+    heading.className = "news-heading";
 
-      const title = document.createElement("h3");
-      title.textContent = article.title || "News update";
+    heading.textContent =
+      incoNewsCategory === "All"
+        ? "🔥 Top Stories"
+        : incoNewsCategory + " News";
 
-      const source = document.createElement("p");
-      source.className = "muted";
-      source.textContent =
-        (article.author || "News publisher") + " · " +
-        (article.pubDate ?
-        new Date(article.pubDate).toLocaleString() : "");
+    feed.append(heading);
 
-      const imageUrl =
-        article.thumbnail ||
-        article.enclosure?.link ||
-        "";
-
-      if(imageUrl && /^https?:\/\//i.test(imageUrl)){
-        const img = document.createElement("img");
-        img.className = "news-image";
-        img.src = safeURL(imageUrl);
-        img.alt = article.title || "News image";
-        img.loading = "lazy";
-        card.append(img);
-      }
-
-      const description = document.createElement("p");
-      const temp = document.createElement("div");
-      temp.innerHTML = article.description || "";
-      description.textContent =
-        (temp.textContent || "").slice(0,350);
-
-      const link = document.createElement("a");
-      const url = safeURL(article.link || "");
-
-      link.href = url;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.textContent = "Read Full Story →";
-
-      card.append(title,source,description);
-
-      if(url !== "#") card.append(link);
-
-      feed.append(card);
+    articles.slice(0,20).forEach((article,index)=>{
+      feed.append(createNewsCard(article,index));
     });
 
     if(status){
       status.textContent =
-        articles.length + " latest headlines · " +
-        incoNewsCategory;
+        articles.length +
+        " stories received · " +
+        incoNewsCategory +
+        " · Updated " +
+        new Date().toLocaleTimeString();
     }
 
-  } catch(error) {
+    // Build the briefing from actual retrieved headlines.
+    if(briefing){
+      briefing.innerHTML = "";
+
+      const list = document.createElement("ol");
+
+      articles.slice(0,5).forEach(article=>{
+        const item = document.createElement("li");
+
+        const link = createNewsLink(article);
+
+        if(link){
+          const title = document.createElement("a");
+          title.href = link.href;
+          title.target = "_blank";
+          title.rel = "noopener noreferrer";
+          title.textContent = article.title || "News update";
+          item.append(title);
+        }else{
+          item.textContent =
+            article.title || "News update";
+        }
+
+        list.append(item);
+      });
+
+      if(!articles.length){
+        briefing.textContent =
+          "No headlines available right now.";
+      }else{
+        briefing.append(list);
+
+        const note = document.createElement("p");
+        note.className = "muted";
+        note.textContent =
+          "Headlines collected from the current news feed. " +
+          "Open each story to read the publisher's full report.";
+
+        briefing.append(note);
+      }
+
+      briefing.dataset.loaded = "true";
+    }
+
+  }catch(error){
+    if(requestId !== incoNewsRequest) return;
+
     feed.textContent =
-      "News could not load right now. Please try again.";
-    if(status) status.textContent = error.message;
+      "INCO News could not connect right now. " +
+      "Please try Refresh News.";
+
+    if(status){
+      status.textContent = error.message;
+    }
+
+    if(briefing){
+      briefing.textContent =
+        "Today's briefing is temporarily unavailable.";
+    }
   }
 }
 
 async function submitArticle(){
- if(!currentUser){
-  alert("Please log in first.");
-  return;
- }
+  if(!currentUser){
+    alert("Please log in first.");
+    return;
+  }
 
- const title=get("articleTitle").value.trim();
- const content=get("articleContent").value.trim();
- const category=get("articleCategory").value.trim();
- const image=get("articleImage").value.trim();
+  const title = get("articleTitle").value.trim();
+  const content = get("articleContent").value.trim();
+  const category = get("articleCategory").value.trim();
+  const image = get("articleImage").value.trim();
 
- if(!title||!content){
-  say("articleStatus","Enter a title and article.");
-  return;
- }
+  if(!title || !content){
+    say("articleStatus","Enter a title and article.");
+    return;
+  }
 
- const {error}=await db.from("news_articles").insert({
-  author_id:currentUser.id,
-  title:title,
-  category:category||"General",
-  content:content,
-  image_url:image||null
- });
+  if(image && safeURL(image) === "#"){
+    say("articleStatus","Enter a valid image URL.");
+    return;
+  }
 
- if(error){
-  say("articleStatus","Submission failed: "+error.message);
-  return;
- }
+  say("articleStatus","Submitting article...");
 
- say("articleStatus","Article submitted successfully!");
+  const {error} = await db
+    .from("news_articles")
+    .insert({
+      author_id:currentUser.id,
+      title:title,
+      category:category || "General",
+      content:content,
+      image_url:image || null
+    });
 
- get("articleTitle").value="";
- get("articleCategory").value="";
- get("articleContent").value="";
- get("articleImage").value="";
+  if(error){
+    say("articleStatus",
+      "Submission failed: " + error.message);
+    return;
+  }
 
- await loadNews();
+  say("articleStatus",
+    "Article submitted successfully for consideration.");
+
+  get("articleTitle").value = "";
+  get("articleCategory").value = "";
+  get("articleContent").value = "";
+  get("articleImage").value = "";
 }
-
 async function loadLive(){const b=get("liveSessions"),{data,error}=await db.from("live_sessions").select("id,host_id,title,room_name,status,started_at").order("started_at",{ascending:false}).limit(20);if(error){b.textContent="Could not load LIVE sessions: "+error.message;return;}b.innerHTML="";(data||[]).forEach(s=>{const d=document.createElement("div");d.className="item";const t=document.createElement("b");t.textContent=s.title||"INCO LIVE";const st=document.createElement("span");st.className="badge";st.textContent=s.status||"Status unavailable";d.append(t,st);b.append(d);});if(!data?.length)b.textContent="No live sessions at the moment.";}
 async function startLive(){
   if(!currentUser){
